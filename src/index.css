@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 26 98% 57%;
+    --primary-foreground: 0 0% 100%;
+    
+    --primary-dark: 26 98% 47%;
+    --primary-light: 26 98% 67%;
+
+    --secondary: 312 60% 16%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 26 45% 92%;
+    --muted-foreground: 0 0% 0%;
+
+    --accent: 312 60% 16%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 26 98% 57%;
+    --input: 26 45% 92%;
+    --ring: 26 98% 57%;
+
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(26 98% 57%), hsl(312 60% 16%));
+    --gradient-hero: linear-gradient(135deg, hsl(26 98% 47%), hsl(26 98% 57%), hsl(312 60% 16%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(26 45% 92%));
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(221 83% 53% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(221 83% 53% / 0.1), 0 2px 4px -1px hsl(221 83% 53% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(221 83% 53% / 0.1), 0 4px 6px -2px hsl(221 83% 53% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(221 83% 53% / 0.1), 0 10px 10px -5px hsl(221 83% 53% / 0.04);
+    --shadow-glow: 0 0 30px hsl(221 83% 53% / 0.2);
+    
+    /* Animation */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 262 83% 65%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 262 83% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 221 83% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .app-gradient {
+    background-color: hsl(256 100% 98%);
+    background-image: radial-gradient(circle at 20% 20%, hsl(255 100% 92% / 0.6), transparent 55%),
+      radial-gradient(circle at 80% 25%, hsl(210 100% 94% / 0.5), transparent 55%),
+      radial-gradient(circle at 30% 80%, hsl(275 100% 95% / 0.45), transparent 60%);
+  }
+
+  .app-starfield {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20width%3D%27160%27%20height%3D%27160%27%20fill%3D%27none%27%3E%3Cg%20fill%3D%27hsla(0%2C0%25%2C100%25%2C0.45)%27%3E%3Ccircle%20cx%3D%2712%27%20cy%3D%2718%27%20r%3D%271.2%27/%3E%3Ccircle%20cx%3D%2790%27%20cy%3D%2742%27%20r%3D%271.6%27/%3E%3Ccircle%20cx%3D%27130%27%20cy%3D%2724%27%20r%3D%271.1%27/%3E%3Ccircle%20cx%3D%2748%27%20cy%3D%2770%27%20r%3D%271.4%27/%3E%3Ccircle%20cx%3D%27140%27%20cy%3D%2790%27%20r%3D%271.2%27/%3E%3Ccircle%20cx%3D%2730%27%20cy%3D%27120%27%20r%3D%271.1%27/%3E%3Ccircle%20cx%3D%27100%27%20cy%3D%27130%27%20r%3D%271.5%27/%3E%3Ccircle%20cx%3D%27150%27%20cy%3D%27140%27%20r%3D%271%27/%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2724%27%20r%3D%271%27/%3E%3Ccircle%20cx%3D%2720%27%20cy%3D%2780%27%20r%3D%270.8%27/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 240px 240px;
+  }
+
+  .surface-3d {
+    background-color: hsl(var(--card));
+    background-image: linear-gradient(to bottom, hsl(var(--card) / 0.98), hsl(var(--card) / 0.92));
+    border: 1px solid hsl(var(--border) / 0.6);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+  }
+
+  .text-brand-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
