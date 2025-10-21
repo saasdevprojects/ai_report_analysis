@@ -90,9 +90,9 @@ const pricingFaqs = [
 
 const generalFaqs = [
   {
-    question: "Who is Solstice designed for?",
+    question: "Who is ReactArch designed for?",
     answer:
-      "Solstice is built for B2B product, marketing, and strategy teams that need fast market intelligence without hiring analysts.",
+      "ReactArch is built for B2B product, marketing, and strategy teams that need fast market intelligence without hiring analysts.",
   },
   {
     question: "How quickly can I produce my first report?",
@@ -100,9 +100,9 @@ const generalFaqs = [
       "Most teams launch their first AI-generated report in under ten minutes—just add your idea, target audience, and goals to begin.",
   },
   {
-    question: "Does Solstice track competitors and market shifts automatically?",
+    question: "Does ReactArch track competitors and market shifts automatically?",
     answer:
-      "Yes. Solstice continuously monitors competitor positioning, sentiment signals, and regulatory changes so your dashboard stays current.",
+      "Yes. ReactArch continuously monitors competitor positioning, sentiment signals, and regulatory changes so your dashboard stays current.",
   },
   {
     question: "What integrations are available out of the box?",
@@ -517,7 +517,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-12">
           <div className="grid gap-10 lg:grid-cols-[1.5fr_2fr_1fr] items-start">
             <div className="space-y-4">
-              <div className="text-2xl font-bold text-foreground">Solstice</div>
+              <div className="text-2xl font-bold text-foreground">ReactArch</div>
               <p className="text-sm text-muted-foreground">AI product intelligence for ambitious teams.</p>
             </div>
             <div className="grid gap-8 sm:grid-cols-3 text-sm">
@@ -571,7 +571,7 @@ const Index = () => {
             </div>
           </div>
           <div className="mt-12 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-            Made with heart © {new Date().getFullYear()} Solstice. All rights reserved.
+            Made with heart © {new Date().getFullYear()} ReactArch. All rights reserved.
           </div>
         </div>
       </footer>

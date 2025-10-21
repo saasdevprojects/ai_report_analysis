@@ -148,7 +148,7 @@ export default function SignIn() {
               )}
 
               <p className="text-sm text-muted-foreground">
-                New to Solstice?{" "}
+                New to ReactArch?{" "}
                 <Link to="/sign-up" className="font-semibold text-[#431139] hover:underline">
                   Create new account
                 </Link>
@@ -162,10 +162,10 @@ export default function SignIn() {
                 <div className="flex items-center justify-between rounded-2xl bg-white/80 px-5 py-4 shadow-sm backdrop-blur">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fd8628]/15 text-[#fd8628] font-semibold">
-                      S
+                      R
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-foreground">Solstice Room</p>
+                      <p className="text-sm font-semibold text-foreground">ReactArch Room</p>
                       <p className="text-xs text-muted-foreground">Live strategy session</p>
                     </div>
                   </div>

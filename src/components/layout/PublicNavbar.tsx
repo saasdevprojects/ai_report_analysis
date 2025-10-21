@@ -16,7 +16,7 @@ export function PublicNavbar() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 text-lg font-semibold text-foreground">
           <Zap className="h-5 w-5 text-[#431139]" />
-          <span>Solstice</span>
+          <span>ReactArch</span>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

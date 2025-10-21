@@ -8,9 +8,9 @@ const faqGroups = [
     title: "Platform",
     items: [
       {
-        question: "Who is Solstice designed for?",
+        question: "Who is ReactArch designed for?",
         answer:
-          "Solstice is built for B2B product, marketing, and strategy teams that need fast market intelligence without hiring analysts.",
+          "ReactArch is built for B2B product, marketing, and strategy teams that need fast market intelligence without hiring analysts.",
       },
       {
         question: "How quickly can I produce my first report?",
@@ -18,9 +18,9 @@ const faqGroups = [
           "Most teams launch their first AI-generated report in under ten minutes—add your idea, target audience, and goals to begin.",
       },
       {
-        question: "Does Solstice track competitors automatically?",
+        question: "Does ReactArch track competitors automatically?",
         answer:
-          "Yes. Solstice continuously monitors competitor positioning, sentiment signals, and regulatory changes so your dashboard stays current.",
+          "Yes. ReactArch continuously monitors competitor positioning, sentiment signals, and regulatory changes so your dashboard stays current.",
       },
     ],
   },
