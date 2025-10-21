@@ -32,7 +32,8 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleShare = async (analysis: Analysis) => {
-    const shareUrl = `${window.location.origin}/analysis/${analysis.id}`;
+    const shareUrl = `https://ai-report-analysis.vercel.app/analysis/${analysis.id}`;
+
     const shareData = {
       title: analysis.product_name,
       text: analysis.product_description,

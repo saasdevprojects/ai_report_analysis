@@ -41,7 +41,7 @@ export default function SignUp() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+        options: { emailRedirectTo: `https://ai-report-analysis.vercel.app/dashboard` },
       });
       if (error) throw error;
       toast.success("Account created! Please sign in.");
@@ -59,7 +59,7 @@ export default function SignUp() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { 
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `https://ai-report-analysis.vercel.app/auth/callback`,
           queryParams: {
             prompt: 'consent'
           }
