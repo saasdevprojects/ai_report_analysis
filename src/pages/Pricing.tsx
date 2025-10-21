@@ -26,7 +26,7 @@ const features = [
 const faqs = [
   {
     question: "How does the workflow run?",
-    answer: "Describe your product; Gemini and Exa assemble a 360° report in minutes.",
+    answer: "Describe your product; Orion and Pulse assemble a 360° report in minutes.",
   },
   {
     question: "What makes it different?",

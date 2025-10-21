@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Building2, Users, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Target, Lightbulb, Download, Globe2, Activity, BarChart3, Sparkles, CircleDollarSign, Shield, Network, MapPin, LineChart as LineChartIcon, Wallet, Coins, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, RadialBarChart, RadialBar, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, ZAxis, AreaChart, Area, ComposedChart } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, RadialBarChart, RadialBar, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, ComposedChart } from "recharts";
 import type { ReportPayload, PersonaProfile } from "@/types/report";
 
 function safeArray<T>(value: T[] | null | undefined): T[] {
@@ -87,6 +87,84 @@ function sanitizePieData<T extends Record<string, any>, K extends keyof T>(items
     .filter(item => item[valueKey] > 0);
 }
 
+function createDynamicDomain(values: number[], paddingRatio = 0.15): [number, number] {
+  if (!values.length) return [0, 1];
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min;
+  if (range === 0) {
+    const pad = Math.max(Math.abs(max) * paddingRatio, 1);
+    return [Math.max(0, min - pad), max + pad];
+  }
+  const pad = range * paddingRatio;
+  return [Math.max(0, min - pad), max + pad];
+}
+
+function ensureUniPolarDomain(
+  values: number[] | readonly [number, number],
+  baseRange: readonly [number, number] = [0, 100]
+): [number, number] {
+  const [min, max] = Array.isArray(values) && values.length === 2 && typeof values[0] === 'number'
+    ? [values[0], values[1]]
+    : createDynamicDomain(values as number[]);
+  const baseMin = baseRange[0];
+  const baseMax = baseRange[1];
+  if (max <= baseMax && min >= baseMin) {
+    return [baseMin, baseMax];
+  }
+  return [Math.max(baseMin, min), Math.max(baseMax, max)];
+}
+
+function normalizePercent(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  if (value > 1 && value <= 100) return value;
+  if (value > 0 && value <= 1) return value * 100;
+  return value;
+}
+
+const ChannelDeviceTick = ({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
+  const lines = String(payload.value).split(" (");
+  const formattedLines = lines.length > 1 ? [lines[0], `(${lines.slice(1).join(" (")}`] : lines;
+
+  return (
+    <text x={x} y={y + 14} textAnchor="middle" fill="currentColor" style={{ fontSize: 12 }}>
+      {formattedLines.map((line, index) => (
+        <tspan key={`${line}-${index}`} x={x} dy={index === 0 ? 0 : 14}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
+};
+
+const RADIAN = Math.PI / 180;
+
+const renderSentimentLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent
+}: {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  percent: number;
+}) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" style={{ fontSize: 12 }}>
+      {`${Math.round((percent || 0) * 100)}%`}
+    </text>
+  );
+};
+
 interface Competitor {
   name: string;
   website: string;
@@ -134,7 +212,13 @@ interface Analysis {
   generated_at?: string | null;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const COLORS = [
+  'hsl(var(--chart-1, var(--primary)))',
+  'hsl(var(--chart-2, var(--secondary)))',
+  'hsl(var(--chart-3, var(--accent)))',
+  'hsl(var(--chart-4, var(--muted-foreground)))',
+  'hsl(var(--chart-5, var(--primary-foreground)))',
+];
 
 type PersonaCard = PersonaProfile & { title?: string };
 
@@ -144,6 +228,7 @@ const AnalysisDetail = () => {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [report, setReport] = useState<ReportPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [selectedCompanySize, setSelectedCompanySize] = useState<string>('all');
 
   useEffect(() => {
@@ -200,7 +285,7 @@ const AnalysisDetail = () => {
   };
 
   const readinessScore = currentReport
-    ? clampNumber(currentReport?.executiveSummary?.marketReadiness?.score ?? 0, 0, 100)
+    ? clampNumber((currentReport?.executiveSummary?.marketReadiness?.score ?? 0) * 10, 0, 100)
     : (analysis?.market_readiness_score ?? 0) * 10;
 
   const readinessScoreTenScale = Math.round(readinessScore / 10);
@@ -240,16 +325,33 @@ const AnalysisDetail = () => {
   const behavioralSignals = safeArray(currentReport?.customerInsights?.behavioralSignals);
   const channelUsage = safeArray(currentReport?.customerInsights?.channelUsage);
   const deviceUsage = safeArray(currentReport?.customerInsights?.deviceUsage);
+  const channelDeviceData = [
+    ...channelUsage.map(item => ({ name: item.label, value: coerceNumber(item.percentage) })),
+    ...deviceUsage.map(item => ({ name: `${item.label} (Device)`, value: coerceNumber(item.percentage) }))
+  ];
   const purchaseJourney = safeArray(currentReport?.customerInsights?.purchaseJourney);
 
   const performanceMetrics = safeArray(currentReport?.productEvaluation?.performanceRadar);
   const featureOverlap = safeArray(currentReport?.productEvaluation?.featureOverlap);
+  const featureCoverageData = featureOverlap.map(item => ({
+    feature: item.feature,
+    product: coerceNumber((item as { product?: number | string }).product),
+    competitorAverage: coerceNumber((item as { competitorAverage?: number | string }).competitorAverage)
+  }));
   const innovationQuotient = currentReport?.productEvaluation?.innovationQuotient;
   const technicalReadiness = safeArray(currentReport?.productEvaluation?.technicalReadiness);
   const retentionRisk = safeArray(currentReport?.productEvaluation?.retentionRisk);
 
   const unexploredSegments = safeArray(currentReport?.opportunityForecast?.unexploredSegments);
   const predictedShifts = safeArray(currentReport?.opportunityForecast?.predictedShifts);
+  const predictedShiftData = predictedShifts.map((shift) => ({
+    topic: shift.topic,
+    confidencePercent: normalizePercent(coerceNumber(shift.confidence)),
+  }));
+  const predictedShiftDomain = predictedShiftData.length
+    ? createDynamicDomain(predictedShiftData.map((item) => item.confidencePercent))
+    : [0, 1];
+  const predictedShiftAxisDomain = ensureUniPolarDomain(predictedShiftDomain, [0, 100]);
   const partnerships = safeArray(currentReport?.opportunityForecast?.partnerships);
   const regionalOpportunity = safeArray(currentReport?.opportunityForecast?.regionalOpportunity);
   const threatSignals = safeArray(currentReport?.opportunityForecast?.threatSignals);
@@ -266,6 +368,16 @@ const AnalysisDetail = () => {
   const valuationModel = safeArray(currentReport?.financialBenchmark?.valuationModel);
   const unitEconomics = currentReport?.financialBenchmark?.unitEconomics;
   const pricePositioning = safeArray(currentReport?.financialBenchmark?.pricePositioning);
+  const pricePositioningLineData = pricePositioning
+    .map(item => ({
+      label: (item as { name?: string; tier?: string; segment?: string }).name
+        ?? (item as { tier?: string }).tier
+        ?? (item as { segment?: string }).segment
+        ?? `${formatCurrency(coerceNumber((item as { price?: number }).price))}`,
+      price: coerceNumber((item as { price?: number | string }).price),
+      valueScore: coerceNumber((item as { valueScore?: number | string }).valueScore)
+    }))
+    .sort((a, b) => a.price - b.price);
   const profitMarginTrend = safeArray(currentReport?.financialBenchmark?.profitMarginTrend);
   const clvVsCac = safeArray(currentReport?.financialBenchmark?.clvVsCac);
 
@@ -280,7 +392,14 @@ const AnalysisDetail = () => {
   const technologyRisk = safeArray(currentReport?.riskCompliance?.technologyRisk);
   const ipConflicts = safeArray(currentReport?.riskCompliance?.ipConflicts);
   const financialGeopolitical = safeArray(currentReport?.riskCompliance?.financialGeopolitical);
-  const riskMatrixData = safeArray(currentReport?.riskCompliance?.riskMatrix);
+  const rawRiskMatrix = safeArray(currentReport?.riskCompliance?.riskMatrix);
+  const riskMatrixData = rawRiskMatrix.map((risk) => ({
+    risk: risk.risk,
+    impactPercent: Math.min(100, Math.max(0, normalizePercent(coerceNumber(risk.impact)))),
+    probabilityPercent: Math.min(100, Math.max(0, normalizePercent(coerceNumber(risk.probability)))),
+    owner: risk.owner,
+  }));
+  const hasRiskMatrixData = riskMatrixData.length > 0;
   const complianceStatus = safeArray(currentReport?.riskCompliance?.complianceStatus);
 
   const competitorMoves = safeArray(currentReport?.predictiveDashboard?.competitorMoves);
@@ -314,7 +433,7 @@ const AnalysisDetail = () => {
     "hsl(var(--chart-2, var(--secondary)))",
     "hsl(var(--chart-3, var(--accent)))",
     "hsl(var(--chart-4, var(--muted-foreground)))",
-    "hsl(var(--chart-5, var(--primary-foreground)))",
+    "hsl(var(--chart-5, var(--primary)))",
   ];
   const primaryColor = themePalette[0];
   const secondaryColor = themePalette[1];
@@ -337,9 +456,17 @@ const AnalysisDetail = () => {
 
   const scenarioModelingData = safeArray(currentReport?.predictiveDashboard?.scenarios).map((scenario) => ({
     scenario: scenario.scenario,
-    growthRate: coerceNumber(scenario.growthRate),
+    growthRate: normalizePercent(coerceNumber(scenario.growthRate)),
     revenueProjection: coerceNumber(scenario.revenueProjection),
   }));
+  const scenarioGrowthDomain = scenarioModelingData.length
+    ? createDynamicDomain(scenarioModelingData.map((item) => item.growthRate))
+    : [0, 1];
+  const scenarioRevenueDomain = scenarioModelingData.length
+    ? createDynamicDomain(scenarioModelingData.map((item) => item.revenueProjection))
+    : [0, 1];
+  const scenarioGrowthAxisDomain = ensureUniPolarDomain(scenarioGrowthDomain, [0, 100]);
+  const scenarioRevenueAxisDomain = scenarioRevenueDomain;
   const topScenario = scenarioModelingData.reduce<
     { scenario: string; growthRate: number; revenueProjection: number } | undefined
   >(
@@ -528,9 +655,35 @@ const AnalysisDetail = () => {
     URL.revokeObjectURL(url);
   };
 
-  const exportReportPDF = () => {
-    // Use browser print to PDF
-    window.print();
+  const exportReportPDF = async () => {
+    if (!analysis || !report) {
+      toast.error("Report data unavailable for PDF export");
+      return;
+    }
+
+    try {
+      setIsExportingPdf(true);
+      const { generateAnalysisReportPdf } = await import("@/pdf/AnalysisReportPDF");
+      const blob = await generateAnalysisReportPdf({
+        analysisName: analysis.product_name,
+        report,
+        generatedAt: analysis.generated_at ?? analysis.generated_at ?? report.generatedAt,
+      });
+
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      const sanitizedName = analysis.product_name.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+      anchor.download = `${sanitizedName || "analysis"}-report.pdf`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      toast.success("PDF export ready");
+    } catch (error) {
+      console.error("Failed to export PDF", error);
+      toast.error("Failed to export PDF");
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   if (isLoading) {
@@ -549,9 +702,8 @@ const AnalysisDetail = () => {
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 70) return "text-green-600";
-    if (score >= 50) return "text-yellow-600";
-    return "text-red-600";
+    // Market Readiness uses orange theme color
+    return "text-orange-500";
   };
 
   const getImpactBadge = (impact: string) => {
@@ -579,9 +731,9 @@ const AnalysisDetail = () => {
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
-            <Button variant="outline" onClick={exportReportPDF}>
+            <Button variant="outline" onClick={exportReportPDF} disabled={isExportingPdf}>
               <Download className="h-4 w-4 mr-2" />
-              Export PDF
+              {isExportingPdf ? "Exporting..." : "Export PDF"}
             </Button>
           </div>
         </div>
@@ -613,147 +765,12 @@ const AnalysisDetail = () => {
             </CardContent>
           </Card>
 
-        {hasFinancialPlanningData ? (
-          <Card className="shadow-lg mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="h-5 w-5 text-primary" />
-                Financial Planning & Runway
-              </CardTitle>
-              <CardDescription>Budget discipline, runway outlook, and regional allocation strategy</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              {runwayScenarios.length ? (
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Coins className="h-4 w-4 text-primary" />
-                    Runway Scenarios
-                  </h4>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <ComposedChart data={runwayScenarios}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="scenario" />
-                      <YAxis yAxisId="left" label={{ value: 'Months', angle: -90, position: 'insideLeft' }} />
-                      <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} />
-                      <Tooltip formatter={(value: number, name) => name === 'monthsOfRunway' ? `${value} months` : formatCurrency(value)} />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="monthsOfRunway" fill="#6366f1" radius={[6, 6, 0, 0]} name="Runway" />
-                      <Line yAxisId="right" dataKey="cashBalance" type="monotone" stroke="#f97316" strokeWidth={2} name="Cash Balance" />
-                      <Line yAxisId="right" dataKey="burnRate" type="monotone" stroke="#0ea5e9" strokeWidth={2} name="Burn Rate" />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : null}
-
-              {financialBudgetAllocation.length ? (
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div>
-                    <h4 className="text-sm font-semibold mb-3">Budget vs Actual</h4>
-                    <ResponsiveContainer width="100%" height={260}>
-                      <ComposedChart data={financialBudgetAllocation}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="category" />
-                        <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Legend />
-                        <Bar dataKey="planned" fill="#22c55e" radius={[6, 6, 0, 0]} name="Planned" />
-                        <Bar dataKey="actual" fill="#ef4444" radius={[6, 6, 0, 0]} name="Actual" />
-                        <Line dataKey="variance" type="monotone" stroke="#f59e0b" strokeWidth={2} name="Variance" />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold">Variance Insights</h4>
-                    {financialBudgetAllocation.map((item, idx) => (
-                      <div key={idx} className="rounded-lg border p-3">
-                        <div className="flex items-center justify-between">
-                          <p className="font-semibold">{item.category}</p>
-                          <Badge variant={item.variance <= 0 ? "secondary" : "destructive"}>
-                            {item.variance <= 0 ? "On Track" : "Over Budget"}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Planned {formatCurrency(item.planned)} vs actual {formatCurrency(item.actual)} ({formatCurrency(item.variance)} variance)
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {cashFlowTimeline.length ? (
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Cash Flow Timeline</h4>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <ComposedChart data={cashFlowTimeline}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                      <Legend />
-                      <Area type="monotone" dataKey="inflow" stackId="cash" stroke="#22c55e" fill="#22c55e33" name="Inflow" />
-                      <Area type="monotone" dataKey="outflow" stackId="cash" stroke="#ef4444" fill="#ef444433" name="Outflow" />
-                      <Line type="monotone" dataKey="net" stroke="#6366f1" strokeWidth={2} name="Net Cash" />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : null}
-
-              {financialPlanningMap.length ? (
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Financial Planning Map</h4>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={financialPlanningMap}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="region" />
-                      <YAxis tickFormatter={(value) => `${value}%`} />
-                      <Tooltip formatter={(value: number, name) => name === 'budgetWeight' ? `${value}%` : formatCurrency(value)} />
-                      <Legend />
-                      <Bar dataKey="budgetWeight" fill="#0ea5e9" radius={[6, 6, 0, 0]} name="Budget Weight" />
-                      <Line type="monotone" dataKey="projectedRevenue" stroke="#6366f1" strokeWidth={2} name="Projected Revenue" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {financialPlanningMap.map((node, idx) => (
-                      <div key={idx} className="rounded-lg border p-3 space-y-1">
-                        <p className="font-semibold">{node.region}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Priority: <span className="font-medium text-primary">{node.priority}</span>
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Budget Weight: {formatNumber(node.budgetWeight, { style: 'percent', maximumFractionDigits: 1 })}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Projected Revenue: {formatCurrency(node.projectedRevenue)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {strategicFinancialNotes.length ? (
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Strategic Financial Notes</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    {strategicFinancialNotes.map((note, idx) => (
-                      <li key={idx} className="flex gap-2">
-                        <span className="text-primary">•</span>
-                        <span>{note}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-        ) : null}
           <Card className="shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Competitors Analyzed</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold" style={{ color: "#fd923e" }}>
                     {currentReport
                       ? safeArray(currentReport?.competitiveLandscape?.topCompetitors).length
                       : analysis.competitors?.length || 0}
@@ -763,12 +780,13 @@ const AnalysisDetail = () => {
               </div>
             </CardContent>
           </Card>
+
           <Card className="shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Key Trends</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold" style={{ color: "#fd923e" }}>
                     {currentReport
                       ? safeArray(currentReport?.marketEnvironment?.regulatoryTrends).length
                       : analysis.market_trends?.length || 0}
@@ -916,15 +934,13 @@ const AnalysisDetail = () => {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="relative flex items-center justify-center">
-                          <ResponsiveContainer width={140} height={140}>
-                            <PieChart>
-                              <Pie data={segment.segments} dataKey="value" innerRadius={50} outerRadius={65} stroke="transparent">
-                                {segment.segments.map((item, index) => (
-                                  <Cell key={`${segment.title}-${item.label}-${index}`} fill={item.color} />
-                                ))}
-                              </Pie>
-                            </PieChart>
-                          </ResponsiveContainer>
+                          <PieChart width={140} height={140}>
+                            <Pie data={segment.segments} dataKey="value" innerRadius={50} outerRadius={65} stroke="transparent">
+                              {segment.segments.map((item, index) => (
+                                <Cell key={`${segment.title}-${item.label}-${index}`} fill={item.color} />
+                              ))}
+                            </Pie>
+                          </PieChart>
                           <div className="absolute text-center">
                             <p className="text-sm text-muted-foreground">Total</p>
                             <p className="text-xl font-semibold">{formatNumber(total, { maximumFractionDigits: 1 })}</p>
@@ -1119,7 +1135,23 @@ const AnalysisDetail = () => {
                     {safeArray(currentReport?.executiveSummary?.keyInsights).map((insight, idx) => (
                       <li key={idx} className="flex gap-2">
                         <span className="text-primary">•</span>
-                        <span>{insight}</span>
+                        <span>
+                          {typeof insight === "string"
+                            ? insight
+                            : typeof insight === "number"
+                              ? String(insight)
+                              : insight && typeof insight === "object"
+                                ? [
+                                    (insight as any).title,
+                                    (insight as any).summary,
+                                    (insight as any).focus,
+                                    (insight as any).text,
+                                    (insight as any).description,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" — ") || JSON.stringify(insight)
+                                : String(insight)}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -1194,14 +1226,36 @@ const AnalysisDetail = () => {
             <div className="mt-6">
               <h4 className="font-semibold mb-2">Improvement Impact Matrix</h4>
               <ResponsiveContainer width="100%" height={260}>
-                <ScatterChart>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" dataKey="effort" name="Effort" />
-                  <YAxis type="number" dataKey="impact" name="Impact" />
-                  <ZAxis type="number" dataKey="expectedLift" range={[90, 180]} />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                  <Scatter data={safeArray(currentReport?.executiveSummary?.marketReadiness?.improvementMatrix)} fill="#6366f1" />
-                </ScatterChart>
+                <AreaChart data={safeArray(currentReport?.executiveSummary?.marketReadiness?.improvementMatrix)} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                  <defs>
+                    <linearGradient id="improvementMatrixGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                  <XAxis dataKey="effort" tick={{ fontSize: 12 }} />
+                  <YAxis dataKey="impact" tickFormatter={(value) => `${Math.round(value as number)}%`} />
+                  <Tooltip formatter={(value: number, name, props) => {
+                    if (name === 'impact') {
+                      return [`${Math.round(value as number)}%`, 'Impact'];
+                    }
+                    if (name === 'effort') {
+                      return [`${Math.round(value as number)}%`, 'Effort'];
+                    }
+                    const lift = props?.payload?.expectedLift;
+                    return [formatNumber(lift, { maximumFractionDigits: 1 }), 'Expected Lift'];
+                  }} />
+                  <Area
+                    type="monotone"
+                    dataKey="impact"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    fill="url(#improvementMatrixGradient)"
+                    dot={{ r: 4, stroke: '#6366f1', fill: '#fff', strokeWidth: 2 }}
+                  />
+                  <Line type="monotone" dataKey="expectedLift" stroke="#f97316" strokeWidth={2} dot={{ r: 4, stroke: '#f97316', fill: '#fff', strokeWidth: 2 }} />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
@@ -1382,13 +1436,32 @@ const AnalysisDetail = () => {
                   Price vs Feature Score
                 </h4>
                 <ResponsiveContainer width="100%" height={260}>
-                  <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" dataKey="pricePosition" name="Price Index" />
-                    <YAxis type="number" dataKey="featureScore" name="Feature Score" />
-                    <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter data={priceFeatureMatrix} fill="#22d3ee" />
-                  </ScatterChart>
+                  <AreaChart data={priceFeatureMatrix} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                    <defs>
+                      <linearGradient id="priceFeatureGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                    <XAxis dataKey="pricePosition" tickFormatter={(value) => `${Math.round(value as number)}%`} />
+                    <YAxis dataKey="featureScore" tickFormatter={(value) => `${Math.round(value as number)}%`} />
+                    <Tooltip formatter={(value: number, name, props) => {
+                      if (name === 'pricePosition') {
+                        return [`${Math.round(value as number)}%`, 'Price Position'];
+                      }
+                      return [`${Math.round(value as number)}%`, 'Feature Score'];
+                    }} />
+                    <Area
+                      type="monotone"
+                      dataKey="featureScore"
+                      stroke="#22d3ee"
+                      strokeWidth={2}
+                      fill="url(#priceFeatureGradient)"
+                      dot={{ r: 4, stroke: '#22d3ee', fill: '#fff', strokeWidth: 2 }}
+                    />
+                    <Line type="monotone" dataKey="pricePosition" stroke="#a855f7" strokeWidth={2} dot={{ r: 4, stroke: '#a855f7', fill: '#fff', strokeWidth: 2 }} />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -1464,36 +1537,32 @@ const AnalysisDetail = () => {
               })}
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
-                <h4 className="text-sm font-semibold mb-3">Buyer Sentiment Mix</h4>
-                {hasSocialToneData ? (
-                  <ResponsiveContainer width="100%" height={220}>
-                    <PieChart>
-                      <Pie data={socialToneChartData} dataKey="value" nameKey="sentiment" label>
-                        {socialToneChartData.map((item, idx) => (
-                          <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No sentiment mix data available.</p>
-                )}
-              </div>
-              <div className="rounded-xl border p-4">
-                <h4 className="text-sm font-semibold mb-3">Channel & Device Usage</h4>
+            <div className="rounded-xl border p-4">
+              <h4 className="text-sm font-semibold mb-3">Buyer Sentiment Mix</h4>
+              {hasSocialToneData ? (
                 <ResponsiveContainer width="100%" height={220}>
-                  <ComposedChart data={channelUsage.map(item => ({ name: item.label, channel: item.percentage })).concat(deviceUsage.map(item => ({ name: `${item.label} (Device)`, channel: item.percentage })))}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" interval={0} angle={-20} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="channel" fill="#0ea5e9" radius={[6, 6, 0, 0]} />
-                  </ComposedChart>
+                  <PieChart>
+                    <Pie
+                      data={socialToneChartData}
+                      dataKey="value"
+                      nameKey="sentiment"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      labelLine={false}
+                      label={renderSentimentLabel}
+                    >
+                      {socialToneChartData.map((item, idx) => (
+                        <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number, name: string) => [`${value}%`, name]} />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
                 </ResponsiveContainer>
-              </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No sentiment mix data available.</p>
+              )}
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
@@ -1527,6 +1596,167 @@ const AnalysisDetail = () => {
           </CardContent>
         </Card>
 
+        {hasFinancialPlanningData ? (
+          <Card className="shadow-lg mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-primary" />
+                Financial Planning & Runway
+              </CardTitle>
+              <CardDescription>Budget discipline, runway outlook, and regional allocation strategy</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {runwayScenarios.length ? (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Coins className="h-4 w-4 text-primary" />
+                    Runway Scenarios
+                  </h4>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <ComposedChart data={runwayScenarios}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="scenario" />
+                      <YAxis yAxisId="left" label={{ value: 'Months', angle: -90, position: 'insideLeft' }} />
+                      <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} />
+                      <Tooltip formatter={(value: number, name) => name === 'monthsOfRunway' ? `${value} months` : formatCurrency(value)} />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="monthsOfRunway" fill="#6366f1" radius={[6, 6, 0, 0]} name="Runway" />
+                      <Line yAxisId="right" dataKey="cashBalance" type="monotone" stroke="#f97316" strokeWidth={2} name="Cash Balance" />
+                      <Line yAxisId="right" dataKey="burnRate" type="monotone" stroke="#0ea5e9" strokeWidth={2} name="Burn Rate" />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : null}
+
+              {financialBudgetAllocation.length ? (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div>
+                    <h4 className="text-sm font-semibold mb-3">Budget vs Actual</h4>
+                    <ResponsiveContainer width="100%" height={260}>
+                      <AreaChart data={financialBudgetAllocation} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                        <defs>
+                          <linearGradient id="budgetPlannedGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#cbd5f5" stopOpacity={0.5} />
+                            <stop offset="95%" stopColor="#cbd5f5" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                        <XAxis dataKey="category" tick={{ fontSize: 12 }} />
+                        <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                        <Tooltip formatter={(value: number, name) => [formatCurrency(value), name === 'planned' ? 'Planned' : 'Actual']} />
+                        <Area
+                          type="monotone"
+                          dataKey="planned"
+                          stroke="#94a3b8"
+                          strokeWidth={2}
+                          fill="url(#budgetPlannedGradient)"
+                          dot={{ r: 4, stroke: '#94a3b8', fill: '#fff', strokeWidth: 2 }}
+                          name="Planned"
+                        />
+                        <Line type="monotone" dataKey="actual" stroke="#6366f1" strokeWidth={3} dot={{ r: 5, fill: '#fff', stroke: '#6366f1', strokeWidth: 2 }} name="Actual" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold">Variance Insights</h4>
+                    {financialBudgetAllocation.map((item, idx) => (
+                      <div key={idx} className="rounded-lg border p-3">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold">{item.category}</p>
+                          <Badge variant={item.variance <= 0 ? "secondary" : "destructive"}>
+                            {item.variance <= 0 ? "On Track" : "Over Budget"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Planned {formatCurrency(item.planned)} vs actual {formatCurrency(item.actual)} ({formatCurrency(item.variance)} variance)
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {cashFlowTimeline.length ? (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3">Cash Flow Timeline</h4>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <AreaChart data={cashFlowTimeline} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                      <defs>
+                        <linearGradient id="cashFlowNetGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                      <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                      <Tooltip formatter={(value: number, name) => [formatCurrency(value), name === 'net' ? 'Net Cash' : name === 'inflow' ? 'Inflow' : 'Outflow']} />
+                      <Area
+                        type="monotone"
+                        dataKey="net"
+                        stroke="#6366f1"
+                        strokeWidth={2}
+                        fill="url(#cashFlowNetGradient)"
+                        dot={{ r: 4, stroke: '#6366f1', fill: '#fff', strokeWidth: 2 }}
+                        name="Net Cash"
+                      />
+                      <Line type="monotone" dataKey="inflow" stroke="#22c55e" strokeWidth={2} dot={{ r: 4, stroke: '#22c55e', fill: '#fff', strokeWidth: 2 }} name="Inflow" />
+                      <Line type="monotone" dataKey="outflow" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, stroke: '#ef4444', fill: '#fff', strokeWidth: 2 }} name="Outflow" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : null}
+
+              {financialPlanningMap.length ? (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3">Financial Planning Map</h4>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={financialPlanningMap}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="region" />
+                      <YAxis tickFormatter={(value) => `${value}%`} />
+                      <Tooltip formatter={(value: number, name) => name === 'budgetWeight' ? `${value}%` : formatCurrency(value)} />
+                      <Legend />
+                      <Bar dataKey="budgetWeight" fill="#0ea5e9" radius={[6, 6, 0, 0]} name="Budget Weight" />
+                      <Line type="monotone" dataKey="projectedRevenue" stroke="#6366f1" strokeWidth={2} name="Projected Revenue" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {financialPlanningMap.map((node, idx) => (
+                      <div key={idx} className="rounded-lg border p-3 space-y-1">
+                        <p className="font-semibold">{node.region}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Priority: <span className="font-medium text-primary">{node.priority}</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Budget Weight: {formatNumber(node.budgetWeight, { style: 'percent', maximumFractionDigits: 1 })}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Projected Revenue: {formatCurrency(node.projectedRevenue)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {strategicFinancialNotes.length ? (
+                <div>
+                  <h4 className="text-sm font-semibold mb-3">Strategic Financial Notes</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    {strategicFinancialNotes.map((note, idx) => (
+                      <li key={idx} className="flex gap-2">
+                        <span className="text-primary">•</span>
+                        <span>{note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+        ) : null}
+
         {/* Product Evaluation */}
         <Card className="shadow-lg mb-8">
           <CardHeader>
@@ -1553,16 +1783,44 @@ const AnalysisDetail = () => {
               </div>
               <div className="rounded-xl border p-4">
                 <h4 className="text-sm font-semibold mb-3">Feature Coverage</h4>
-                <ResponsiveContainer width="100%" height={260}>
-                  <ComposedChart data={featureOverlap}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="feature" interval={0} angle={-20} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="product" fill="#22d3ee" radius={[6, 6, 0, 0]} />
-                    <Line type="monotone" dataKey="competitorAverage" stroke="#0ea5e9" strokeWidth={2} />
-                  </ComposedChart>
-                </ResponsiveContainer>
+                {featureCoverageData.length ? (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <AreaChart data={featureCoverageData} margin={{ top: 16, right: 24, left: 0, bottom: 24 }}>
+                      <defs>
+                        <linearGradient id="featureProductGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="featureCompetitorGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#a855f7" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                      <XAxis dataKey="feature" interval={0} angle={-20} textAnchor="end" height={80} tick={{ fontSize: 12 }} />
+                      <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                      <Tooltip formatter={(value: number, name) => [`${Math.round(value as number)}%`, name === 'product' ? 'Product' : 'Competitor Avg']} />
+                      <Area
+                        type="monotone"
+                        dataKey="product"
+                        stroke="#0ea5e9"
+                        strokeWidth={2}
+                        fill="url(#featureProductGradient)"
+                        dot={{ r: 4, stroke: '#0ea5e9', fill: '#fff', strokeWidth: 2 }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="competitorAverage"
+                        stroke="#a855f7"
+                        strokeWidth={2}
+                        fill="url(#featureCompetitorGradient)"
+                        dot={{ r: 4, stroke: '#a855f7', fill: '#fff', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No feature coverage data available.</p>
+                )}
               </div>
             </div>
 
@@ -1641,12 +1899,12 @@ const AnalysisDetail = () => {
               <div className="rounded-xl border p-4">
                 <h4 className="text-sm font-semibold mb-3">Predicted Shifts</h4>
                 <ResponsiveContainer width="100%" height={220}>
-                  <ComposedChart data={predictedShifts.map(shift => ({ ...shift, score: shift.confidence }))}>
+                  <ComposedChart data={predictedShiftData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="topic" interval={0} angle={-20} textAnchor="end" height={80} />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Bar dataKey="score" fill="#f97316" radius={[6, 6, 0, 0]} />
+                    <YAxis domain={ensureUniPolarDomain(predictedShiftDomain, [0, 100])} tickFormatter={(value) => `${Math.round(value)}%`} allowDecimals={false} />
+                    <Tooltip formatter={(value: number) => [`${Math.round(value)}%`, "Confidence"]} />
+                    <Bar dataKey="confidencePercent" fill="#f97316" radius={[6, 6, 0, 0]} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -1667,15 +1925,32 @@ const AnalysisDetail = () => {
               </div>
               <div className="rounded-xl border p-4">
                 <h4 className="text-sm font-semibold mb-3">Growth Timeline</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={growthTimeline}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="growthIndex" stroke="#6366f1" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {growthTimeline.length ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={growthTimeline} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                      <defs>
+                        <linearGradient id="opportunityGrowthGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                      <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(value) => `${Math.round(value as number)}%`} />
+                      <Tooltip formatter={(value: number) => [`${Math.round(value as number)}%`, 'Growth Index']} />
+                      <Area
+                        type="monotone"
+                        dataKey="growthIndex"
+                        stroke="#6366f1"
+                        strokeWidth={2}
+                        fill="url(#opportunityGrowthGradient)"
+                        dot={{ r: 4, stroke: '#6366f1', fill: '#fff', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No growth timeline data available.</p>
+                )}
               </div>
             </div>
 
@@ -1796,30 +2071,70 @@ const AnalysisDetail = () => {
               </div>
               <div className="rounded-xl border p-4">
                 <h4 className="text-sm font-semibold mb-3">Price Positioning Scatter</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" dataKey="price" name="Price" />
-                    <YAxis type="number" dataKey="valueScore" name="Value Score" />
-                    <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter data={pricePositioning} fill="#6366f1" />
-                  </ScatterChart>
-                </ResponsiveContainer>
+                {pricePositioningLineData.length ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={pricePositioningLineData} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                      <defs>
+                        <linearGradient id="pricePositioningGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                      <XAxis dataKey="label" tick={{ fontSize: 12 }} interval={0} />
+                      <YAxis tickFormatter={(value) => `${value}`} />
+                      <Tooltip formatter={(value: number, name, props) => {
+                        const item = pricePositioningLineData[props?.payload?.index ?? 0];
+                        return [
+                          `${Math.round(value as number)} score`,
+                          item ? `${item.label} · ${formatCurrency(item.price)}` : 'Value'
+                        ];
+                      }} />
+                      <Area
+                        type="monotone"
+                        dataKey="valueScore"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        fill="url(#pricePositioningGradient)"
+                        dot={{ r: 4, stroke: 'hsl(var(--primary))', fill: '#fff', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No price positioning data available.</p>
+                )}
               </div>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="rounded-xl border p-4">
                 <h4 className="text-sm font-semibold mb-3">Profit Margin Trend</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={profitMarginTrend}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="margin" stroke="#22c55e" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {profitMarginTrend.length ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={profitMarginTrend} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                      <defs>
+                        <linearGradient id="profitMarginGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                      <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(value) => `${value}%`} />
+                      <Tooltip formatter={(value: number) => [`${Math.round(value as number)}%`, 'Margin']} />
+                      <Area
+                        type="monotone"
+                        dataKey="margin"
+                        stroke="#22c55e"
+                        strokeWidth={2}
+                        fill="url(#profitMarginGradient)"
+                        dot={{ r: 4, stroke: '#22c55e', fill: '#fff', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No margin trend data available.</p>
+                )}
               </div>
               <div className="rounded-xl border p-4">
                 <h4 className="text-sm font-semibold mb-3">Unit Economics</h4>
@@ -1891,15 +2206,32 @@ const AnalysisDetail = () => {
               </div>
               <div className="rounded-xl border p-4">
                 <h4 className="text-sm font-semibold mb-3">Reputation Index</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={reputationIndex}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {reputationIndex.length ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={reputationIndex} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                      <defs>
+                        <linearGradient id="reputationGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                      <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(value) => `${value}`} />
+                      <Tooltip formatter={(value: number) => [`${Math.round(value as number)}`, 'Score']} />
+                      <Area
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#8b5cf6"
+                        strokeWidth={2}
+                        fill="url(#reputationGradient)"
+                        dot={{ r: 4, stroke: '#8b5cf6', fill: '#fff', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No reputation data available.</p>
+                )}
               </div>
             </div>
 
@@ -2045,16 +2377,27 @@ const AnalysisDetail = () => {
 
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="rounded-xl border p-4">
-                <h4 className="text-sm font-semibold mb-3">Risk Matrix</h4>
-                <ResponsiveContainer width="100%" height={260}>
-                  <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" dataKey="impact" name="Impact" domain={[0, 100]} />
-                    <YAxis type="number" dataKey="probability" name="Probability" domain={[0, 100]} />
-                    <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter data={riskMatrixData} fill="#f97316" />
-                  </ScatterChart>
-                </ResponsiveContainer>
+                <div className="flex items-start justify-between">
+                  <h4 className="text-sm font-semibold mb-3">Risk Exposure Overview</h4>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-muted-foreground/40" />Impact</span>
+                    <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-primary" />Probability</span>
+                  </div>
+                </div>
+                {hasRiskMatrixData ? (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={riskMatrixData} barGap={18} barCategoryGap="32%">
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" strokeOpacity={0.4} />
+                      <XAxis dataKey="risk" tick={{ fontSize: 12 }} interval={0} />
+                      <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                      <Tooltip formatter={(value: number, name) => [`${Math.round(value)}%`, name === 'impactPercent' ? 'Impact' : 'Probability']} />
+                      <Bar dataKey="impactPercent" fill="hsl(var(--muted-foreground))" radius={[6, 6, 0, 0]} maxBarSize={24} />
+                      <Bar dataKey="probabilityPercent" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={24} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No risk exposure data available.</p>
+                )}
               </div>
               <div className="rounded-xl border p-4 space-y-3">
                 <h4 className="text-sm font-semibold mb-3">Financial & Geopolitical Factors</h4>
@@ -2111,29 +2454,52 @@ const AnalysisDetail = () => {
               </div>
               <div className="rounded-xl border p-4">
                 <h4 className="text-sm font-semibold mb-3">User Adoption Projection</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <ComposedChart data={userAdoption}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area dataKey="adoptionRate" stroke="#6366f1" fill="#c7d2fe" />
-                    <Line type="monotone" dataKey="sentimentScore" stroke="#f97316" strokeWidth={2} />
-                  </ComposedChart>
-                </ResponsiveContainer>
+                {userAdoption.length ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={userAdoption} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
+                      <defs>
+                        <linearGradient id="userAdoptionGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
+                      <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(value) => `${Math.round(value as number)}%`} />
+                      <Tooltip formatter={(value: number, name) => {
+                        if (name === 'adoptionRate') {
+                          return [`${Math.round(value as number)}%`, 'Adoption Rate'];
+                        }
+                        return [`${Math.round(value as number)}%`, 'Sentiment Score'];
+                      }} />
+                      <Area
+                        type="monotone"
+                        dataKey="adoptionRate"
+                        stroke="#6366f1"
+                        strokeWidth={2}
+                        fill="url(#userAdoptionGradient)"
+                        dot={{ r: 4, stroke: '#6366f1', fill: '#fff', strokeWidth: 2 }}
+                      />
+                      <Line type="monotone" dataKey="sentimentScore" stroke="#f97316" strokeWidth={2} dot={{ r: 4, stroke: '#f97316', fill: '#fff', strokeWidth: 2 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No adoption forecast data available.</p>
+                )}
               </div>
             </div>
 
             <div className="rounded-xl border p-4">
               <h4 className="text-sm font-semibold mb-3">Scenario Modeling</h4>
               <ResponsiveContainer width="100%" height={260}>
-                <ComposedChart data={scenarioData}>
+                <ComposedChart data={scenarioModelingData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="scenario" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="growthRate" fill="#22c55e" radius={[6, 6, 0, 0]} />
-                  <Line type="monotone" dataKey="revenueProjection" stroke="#6366f1" strokeWidth={2} />
+                  <YAxis yAxisId="left" domain={ensureUniPolarDomain(scenarioGrowthDomain, [0, 100])} tickFormatter={(value) => `${Math.round(value)}%`} />
+                  <YAxis yAxisId="right" orientation="right" domain={createDynamicDomain(scenarioRevenueDomain)} tickFormatter={(value) => formatNumber(value, { maximumFractionDigits: 1 })} />
+                  <Tooltip formatter={(value: number, name) => name === 'growthRate' ? `${Math.round(value)}%` : formatNumber(value, { maximumFractionDigits: 1 })} />
+                  <Bar yAxisId="left" dataKey="growthRate" fill="#22c55e" radius={[6, 6, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="revenueProjection" stroke="#6366f1" strokeWidth={2} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

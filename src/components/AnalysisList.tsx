@@ -172,15 +172,16 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
       {analyses.map((analysis) => (
         <Card 
           key={analysis.id} 
-          className="hover:shadow-lg transition-shadow cursor-pointer group"
+          className="group relative overflow-hidden border border-slate-200/80 bg-white/90 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
           onClick={() => navigate(`/analysis/${analysis.id}`)}
         >
-          <CardHeader className="relative">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/0 via-indigo-900/0 to-sky-700/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <CardHeader className="relative z-10 pb-4">
             <div className="min-w-0 pr-10">
-              <CardTitle className="group-hover:text-primary transition-colors line-clamp-1">
+              <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-white line-clamp-1">
                 {analysis.product_name}
               </CardTitle>
-              <CardDescription className="flex items-center gap-2 text-xs">
+              <CardDescription className="flex items-center gap-2 text-xs transition-colors duration-300 group-hover:text-slate-200">
                 <Calendar className="h-3 w-3" />
                 {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
               </CardDescription>
@@ -194,9 +195,9 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
                   aria-label="Open analysis actions"
                 >
                   <span className="flex flex-col items-center justify-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary"></span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary group-hover:bg-white"></span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary group-hover:bg-white"></span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary group-hover:bg-white"></span>
                   </span>
                 </button>
               </DropdownMenuTrigger>
@@ -227,14 +228,18 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+          <CardContent className="relative z-10 pt-0">
+            <p className="text-sm text-muted-foreground line-clamp-3 mb-4 transition-colors duration-300 group-hover:text-slate-200">
               {analysis.product_description}
             </p>
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <span>Readiness Score:</span>
-              <span className="text-primary font-bold">{analysis.market_readiness_score}/10</span>
+            <div className="flex items-center justify-between text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary group-hover:text-white transition-colors" />
+                <span className="text-slate-600 transition-colors duration-300 group-hover:text-slate-200">Readiness</span>
+              </div>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors duration-300 group-hover:bg-white/20 group-hover:text-white">
+                {Math.round((analysis.market_readiness_score ?? 0) / 10)}/10
+              </span>
             </div>
           </CardContent>
         </Card>

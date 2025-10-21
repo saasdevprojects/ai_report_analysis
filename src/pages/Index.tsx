@@ -19,11 +19,11 @@ import {
 const valuePillars = [
   {
     title: "Live intelligence",
-    description: "Exa surfaces market moves, regulatory shifts, and fresh sentiment the moment they change.",
+    description: "Pulse surfaces market moves, regulatory shifts, and fresh sentiment the moment they change.",
   },
   {
     title: "Strategic reasoning",
-    description: "Gemini turns raw signals into story-driven guidance your leadership and clients can act on.",
+    description: "Orion turns raw signals into story-driven guidance your leadership and clients can act on.",
   },
   {
     title: "Enterprise delivery",
@@ -41,7 +41,7 @@ const workflowSteps = [
   {
     label: "Step II",
     title: "Activate dual AI research",
-    description: "Gemini frames the narrative while Exa pulls live data, competitor moves, and regulatory signals.",
+    description: "Orion frames the narrative while Pulse pulls live data, competitor moves, and regulatory signals.",
     icon: Sparkles,
   },
   {
@@ -140,7 +140,7 @@ const Index = () => {
                 Instant AI-Powered Product & Market Analysis for B2B Innovators
               </h1>
               <p className="text-lg text-muted-foreground sm:text-xl">
-                Transform any product idea into a board-ready intelligence report within minutes. Gemini and Exa blend live market signals with strategic reasoning so your team moves first.
+                Transform any product idea into a board-ready intelligence report within minutes. Orion and Pulse blend live market signals with strategic reasoning so your team moves first.
               </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Button
@@ -172,7 +172,7 @@ const Index = () => {
               <span className="text-sm font-semibold uppercase tracking-wide text-primary">About the product</span>
               <h2 className="text-3xl font-semibold text-foreground sm:text-4xl">Intelligence made for agencies, consultancies, and enterprise product teams</h2>
               <p className="text-base text-muted-foreground">
-                Gemini handles context. Exa captures live momentum. Together they convert simple briefs into 360° analysis that is ready for boardrooms and client pitches.
+                Orion handles context. Pulse captures live momentum. Together they convert simple briefs into 360° analysis that is ready for boardrooms and client pitches.
               </p>
             </div>
             <div className="mt-12 grid gap-6 md:grid-cols-3">

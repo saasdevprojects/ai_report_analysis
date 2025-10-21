@@ -47,7 +47,7 @@ export default function Contact() {
               <div className="space-y-4">
                 <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">About the Product</h1>
                 <p className="max-w-xl text-base text-muted-foreground">
-                  This is a next-generation intelligence platform for agencies, consultancies, and enterprise product teams who need deep, actionable analysis — not just summaries. By combining real-time web intelligence (Exa) and contextual reasoning (Gemini), it translates simple inputs into 360° strategic insights ready for boardrooms and client pitches.
+                  This is a next-generation intelligence platform for agencies, consultancies, and enterprise product teams who need deep, actionable analysis — not just summaries. By combining real-time web intelligence (Pulse) and contextual reasoning (Orion), it translates simple inputs into 360° strategic insights ready for boardrooms and client pitches.
                 </p>
                 <div className="h-1 w-20 rounded-full bg-[#fd8628]"></div>
               </div>

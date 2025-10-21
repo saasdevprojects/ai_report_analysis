@@ -45,7 +45,7 @@ const featureSpotlights = [
     tag: "Step 2",
     title: "AI Research Activation",
     description:
-      "Gemini interprets your context while Exa gathers live intelligence across the web ecosystem.",
+      "Orion interprets your context while Pulse gathers live intelligence across the web ecosystem.",
     image: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=1000&q=80",
   },
   {
@@ -59,8 +59,8 @@ const featureSpotlights = [
 
 const faqs = [
   {
-    question: "How does the platform merge Gemini and Exa?",
-    answer: "Gemini provides contextual reasoning while Exa streams live market intelligence, creating a unified 360° analysis.",
+    question: "How does the platform merge Orion and Pulse?",
+    answer: "Orion provides contextual reasoning while Pulse streams live market intelligence, creating a unified 360° analysis.",
   },
   {
     question: "What deliverables should teams expect?",
@@ -93,13 +93,13 @@ export default function Features() {
                 <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#fd8628]">Instant Intelligence</span>
                 <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">Instant AI-Powered Product & Market Analysis for B2B Innovators</h1>
                 <p className="max-w-xl text-base text-muted-foreground">
-                  Transform any product idea into a full-scale business insight report within minutes. Powered by Gemini and Exa AI, our platform delivers market trends, competitor breakdowns, buyer personas, and go-to-market strategies — all in one beautiful, data-backed dashboard.
+                  Transform any product idea into a full-scale business insight report within minutes. Powered by Orion and Pulse AI, our platform delivers market trends, competitor breakdowns, buyer personas, and go-to-market strategies — all in one beautiful, data-backed dashboard.
                 </p>
               </div>
 
               <div className="inline-flex items-center gap-3 rounded-full border border-[#efd9c3] bg-white px-4 py-2 shadow-sm">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#431139] text-xs font-semibold text-white">AI</span>
-                <p className="text-sm text-muted-foreground">Gemini reasoning plus Exa intelligence delivers executive-ready reports on demand.</p>
+                <p className="text-sm text-muted-foreground">Orion reasoning plus Pulse intelligence delivers executive-ready reports on demand.</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-4">

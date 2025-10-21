@@ -75,9 +75,9 @@ export default function SignIn() {
       <div className="relative min-h-screen overflow-hidden bg-white">
         <div className="pointer-events-none absolute top-0 left-0 right-0 h-[6px] bg-gradient-to-r from-[#431139] via-[#fd8628] to-transparent"></div>
         <div className="pointer-events-none absolute -left-[220px] bottom-[-160px] h-[420px] w-[420px] rounded-full bg-[#fdc58f]"></div>
-        <div className="pointer-events-none absolute left-24 bottom-24 hidden h-40 w-40 -translate-y-1/2 rotate-[18deg] rounded-[50px] border-[6px] border-[#5a134e] lg:block"></div>
+        <div className="pointer-events-none absolute left-12 bottom-24 hidden h-36 w-36 rotate-[18deg] rounded-[48px] border-[6px] border-[#5a134e] lg:block"></div>
         <div className="pointer-events-none absolute -right-24 top-32 hidden h-40 w-40 rotate-[12deg] rounded-[36px] bg-[#fd8628] lg:block"></div>
-        <div className="pointer-events-none absolute right-32 bottom-6 hidden h-56 w-56 -translate-y-4 rounded-full bg-[#431139]/85 lg:block"></div>
+        <div className="pointer-events-none absolute right-32 bottom-10 hidden h-56 w-56 -translate-y-4 rounded-full bg-[#431139]/85 lg:block"></div>
         <div className="container relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] flex-col justify-center px-6 py-20 lg:px-10">
           <div className="grid gap-14 place-items-center lg:grid-cols-2 lg:items-center">
             <div className="mx-auto max-w-sm space-y-8 text-center lg:mx-0 lg:text-left">
@@ -147,7 +147,7 @@ export default function SignIn() {
                 </div>
               )}
 
-              <p className="text-sm text-muted-foreground"> 
+              <p className="text-sm text-muted-foreground">
                 New to Solstice?{" "}
                 <Link to="/sign-up" className="font-semibold text-[#431139] hover:underline">
                   Create new account
