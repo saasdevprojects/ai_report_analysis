@@ -438,6 +438,10 @@ const AnalysisDetail = () => {
   const primaryColor = themePalette[0];
   const secondaryColor = themePalette[1];
   const accentColor = themePalette[2];
+  const elevatedCardClass = "group relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-background/80 to-background/95 backdrop-blur-xl shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl";
+  const analyticPanelClass = "group relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-background/95 via-muted/30 to-background/90 backdrop-blur-xl shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl";
+  const highlightPanelClass = `${analyticPanelClass} border-primary/40 shadow-2xl`;
+  const subPanelClass = "rounded-2xl border border-border/50 bg-gradient-to-br from-background/92 via-muted/20 to-background/96 p-5 shadow-lg backdrop-blur-sm";
 
   const userAdoptionData = safeArray(currentReport?.predictiveDashboard?.userAdoption).map((point) => ({
     period: point.period,
@@ -716,9 +720,9 @@ const AnalysisDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted">
+      <div className="container mx-auto max-w-6xl px-4 py-10">
+        <div className="mb-8 flex items-center justify-between">
           <Button 
             variant="outline" 
             onClick={() => navigate("/dashboard")}
@@ -739,19 +743,22 @@ const AnalysisDetail = () => {
         </div>
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">{analysis.product_name}</h1>
-          <p className="text-muted-foreground text-lg">{analysis.product_description}</p>
+        <div className="relative mb-10 overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-background/80 to-background/95 p-8 shadow-xl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,theme(colors.primary/20),transparent_60%)]" />
+          <div className="relative">
+            <h1 className="mb-2 text-4xl font-bold">{analysis.product_name}</h1>
+            <p className="text-lg text-muted-foreground">{analysis.product_description}</p>
           {currentReport?.generatedAt && (
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="mt-4 text-sm text-muted-foreground">
               Generated: {new Date(currentReport.generatedAt).toLocaleString()}
             </p>
           )}
         </div>
+        </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <Card className="shadow-lg">
+        <div className="mb-12 grid gap-6 md:grid-cols-3">
+          <Card className={elevatedCardClass}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -765,7 +772,7 @@ const AnalysisDetail = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg">
+          <Card className={elevatedCardClass}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -781,7 +788,7 @@ const AnalysisDetail = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg">
+          <Card className={elevatedCardClass}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -809,7 +816,7 @@ const AnalysisDetail = () => {
 
           <div className="space-y-6">
             <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-              <Card className="shadow-lg border border-border">
+              <Card className={analyticPanelClass}>
                 <CardHeader className="pb-4">
                   <CardDescription>User Adoption Overview</CardDescription>
                   <CardTitle className="text-3xl">
@@ -869,7 +876,7 @@ const AnalysisDetail = () => {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-lg border border-border">
+              <Card className={analyticPanelClass}>
                 <CardHeader className="pb-4">
                   <CardDescription>Scenario Modeling</CardDescription>
                   <CardTitle className="flex items-center gap-2 text-3xl">
@@ -925,7 +932,7 @@ const AnalysisDetail = () => {
                 {segmentCards.map((segment) => {
                   const total = segment.segments.reduce((sum, item) => sum + item.value, 0);
                   return (
-                    <Card key={segment.title} className="shadow-lg border border-border">
+                    <Card key={segment.title} className={analyticPanelClass}>
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg">{segment.title}</CardTitle>
@@ -965,7 +972,7 @@ const AnalysisDetail = () => {
             ) : null}
 
             <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-              <Card className="shadow-lg border border-border">
+              <Card className={analyticPanelClass}>
                 <CardHeader className="pb-4">
                   <CardTitle>Profit Margin Trend</CardTitle>
                   <CardDescription>Tracking margin swings over time</CardDescription>
@@ -989,7 +996,7 @@ const AnalysisDetail = () => {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-lg border border-border">
+              <Card className={analyticPanelClass}>
                 <CardHeader className="pb-4">
                   <CardTitle>Price Positioning</CardTitle>
                   <CardDescription>Comparing market price and value score</CardDescription>
@@ -1045,7 +1052,7 @@ const AnalysisDetail = () => {
               </Card>
             </div>
 
-            <Card className="shadow-lg border border-border">
+            <Card className={analyticPanelClass}>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-primary" />
@@ -1086,7 +1093,7 @@ const AnalysisDetail = () => {
         </div>
 
         {/* Market Readiness Score */}
-        <Card className="mb-8 shadow-lg border-2 border-primary/20">
+        <Card className={highlightPanelClass}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-6 w-6 text-primary" />
@@ -1262,8 +1269,8 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Market Environment Overview */}
-        <div className="grid gap-6 mb-8 lg:grid-cols-2">
-          <Card className="shadow-lg">
+        <div className="mb-8 grid gap-6 lg:grid-cols-2">
+          <Card className={analyticPanelClass}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe2 className="h-5 w-5 text-primary" />
@@ -1292,7 +1299,7 @@ const AnalysisDetail = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg">
+          <Card className={analyticPanelClass}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary" />
@@ -1339,7 +1346,7 @@ const AnalysisDetail = () => {
           </Card>
         </div>
 
-        <Card className="mb-8 shadow-lg">
+        <Card className={analyticPanelClass}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LineChartIcon className="h-5 w-5 text-primary" />
@@ -1364,7 +1371,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Competitive Landscape */}
-        <Card className="shadow-lg mb-8">
+        <Card className={analyticPanelClass}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
@@ -1413,7 +1420,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className="rounded-3xl border border-border/50 bg-gradient-to-br from-background/90 via-muted/20 to-background/95 p-5 shadow-lg backdrop-blur">
                 <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-primary" />
                   Market Share Overview
@@ -1430,7 +1437,7 @@ const AnalysisDetail = () => {
                 </ResponsiveContainer>
               </div>
 
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   Price vs Feature Score
@@ -1467,7 +1474,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-4">Innovation Frequency</h4>
                 <ResponsiveContainer width="100%" height={260}>
                   <ComposedChart data={innovationFrequency}>
@@ -1480,10 +1487,10 @@ const AnalysisDetail = () => {
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl border p-4 space-y-3">
+              <div className={`${subPanelClass} space-y-3`}>
                 <h4 className="text-sm font-semibold">Negative Signals</h4>
                 {negativeSignals.map((signal, idx) => (
-                  <div key={idx} className="border rounded-lg p-3">
+                  <div key={idx} className="rounded-lg border border-border/40 bg-background/80 p-3 shadow-sm">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{signal.company}</p>
                       <Badge>{signal.severity}</Badge>
@@ -1497,7 +1504,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Customer Insights */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-8`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -1510,7 +1517,7 @@ const AnalysisDetail = () => {
               {personaCards.map((persona, idx) => {
                 const personaName = persona.name ?? persona.title ?? "ICP Persona";
                 return (
-                  <div key={idx} className="rounded-xl border p-4 bg-muted/30">
+                  <div key={idx} className="rounded-3xl border border-border/50 bg-gradient-to-br from-muted/40 via-background/80 to-background/95 p-5 shadow-lg backdrop-blur">
                     <p className="text-xs uppercase text-muted-foreground">{persona.role}</p>
                     <h4 className="text-lg font-semibold mt-1">{personaName}</h4>
                     <p className="text-xs text-muted-foreground mt-1">{persona.companySize}</p>
@@ -1566,7 +1573,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Demand Drivers</h4>
                 <ul className="space-y-3 text-sm">
                   {behavioralSignals.map((signal, idx) => (
@@ -1580,7 +1587,7 @@ const AnalysisDetail = () => {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Purchase Journey</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <ComposedChart data={purchaseJourney}>
@@ -1597,7 +1604,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {hasFinancialPlanningData ? (
-          <Card className="shadow-lg mb-8">
+          <Card className={analyticPanelClass}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-primary" />
@@ -1758,7 +1765,7 @@ const AnalysisDetail = () => {
         ) : null}
 
         {/* Product Evaluation */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-8`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
@@ -1768,7 +1775,7 @@ const AnalysisDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Performance vs Competitors</h4>
                 <ResponsiveContainer width="100%" height={260}>
                   <RadarChart data={performanceMetrics}>
@@ -1835,7 +1842,7 @@ const AnalysisDetail = () => {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-xl border p-4 space-y-4">
+              <div className={`${subPanelClass} space-y-4`}>
                 <div>
                   <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                     <Shield className="h-4 w-4 text-primary" />
@@ -1874,7 +1881,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Opportunity Detection */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-8`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -1884,7 +1891,7 @@ const AnalysisDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Unexplored Segments</h4>
                 <ul className="space-y-3 text-sm">
                   {unexploredSegments.map((segment, idx) => (
@@ -1896,16 +1903,16 @@ const AnalysisDetail = () => {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-xl border p-4">
-                <h4 className="text-sm font-semibold mb-3">Predicted Shifts</h4>
+              <div className={subPanelClass}>
+                <h4 className="text-sm font-semibold mb-3">Predicted Market Shifts</h4>
                 <ResponsiveContainer width="100%" height={220}>
-                  <ComposedChart data={predictedShiftData}>
+                  <BarChart data={predictedShiftData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="topic" interval={0} angle={-20} textAnchor="end" height={80} />
                     <YAxis domain={ensureUniPolarDomain(predictedShiftDomain, [0, 100])} tickFormatter={(value) => `${Math.round(value)}%`} allowDecimals={false} />
                     <Tooltip formatter={(value: number) => [`${Math.round(value)}%`, "Confidence"]} />
                     <Bar dataKey="confidencePercent" fill="#f97316" radius={[6, 6, 0, 0]} />
-                  </ComposedChart>
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -1972,7 +1979,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* GTM Strategy */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-8`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Network className="h-5 w-5 text-primary" />
@@ -2048,7 +2055,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Financial & Pricing Benchmark */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-8`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CircleDollarSign className="h-5 w-5 text-primary" />
@@ -2058,7 +2065,7 @@ const AnalysisDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Pricing Benchmarks</h4>
                 <ul className="space-y-3 text-sm">
                   {pricingBenchmarks.map((tier, idx) => (
@@ -2069,7 +2076,7 @@ const AnalysisDetail = () => {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Price Positioning Scatter</h4>
                 {pricePositioningLineData.length ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -2107,7 +2114,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Profit Margin Trend</h4>
                 {profitMarginTrend.length ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -2136,18 +2143,18 @@ const AnalysisDetail = () => {
                   <p className="text-sm text-muted-foreground">No margin trend data available.</p>
                 )}
               </div>
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Unit Economics</h4>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-lg border p-3 text-center">
+                  <div className="rounded-lg border border-border/40 bg-background/80 p-3 text-center shadow-sm">
                     <p className="text-xs text-muted-foreground">CPA</p>
                     <p className="text-lg font-semibold">{formatCurrency(unitEconomics?.cpa)}</p>
                   </div>
-                  <div className="rounded-lg border p-3 text-center">
+                  <div className="rounded-lg border border-border/40 bg-background/80 p-3 text-center shadow-sm">
                     <p className="text-xs text-muted-foreground">CLV</p>
                     <p className="text-lg font-semibold">{formatCurrency(unitEconomics?.clv)}</p>
                   </div>
-                  <div className="rounded-lg border p-3 text-center">
+                  <div className="rounded-lg border border-border/40 bg-background/80 p-3 text-center shadow-sm">
                     <p className="text-xs text-muted-foreground">CLV:CAC</p>
                     <p className="text-lg font-semibold">{unitEconomics?.clvToCac ?? '—'}</p>
                   </div>
@@ -2437,7 +2444,7 @@ const AnalysisDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Competitor Moves</h4>
                 <ul className="space-y-3 text-sm">
                   {competitorMoves.map((move, idx) => (
@@ -2576,7 +2583,7 @@ const AnalysisDetail = () => {
         {/* Legacy fallback sections when no report data */}
         {!currentReport && (
           <>
-            <Card className="mb-8 shadow-lg">
+            <Card className={`${analyticPanelClass} mb-8`}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
@@ -2599,7 +2606,7 @@ const AnalysisDetail = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg">
+            <Card className={analyticPanelClass}>
               <CardHeader>
                 <CardTitle>SWOT Analysis</CardTitle>
                 <CardDescription>Strategic position assessment</CardDescription>
