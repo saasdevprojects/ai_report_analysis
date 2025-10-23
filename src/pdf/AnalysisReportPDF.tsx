@@ -10,6 +10,7 @@ import {
   Line,
   Path,
   Image,
+  Circle,
 } from "@react-pdf/renderer";
 import { Fragment } from "react";
 import bebasNeue400 from "@/assets/fonts/bebas-neue-400.ttf";
@@ -506,20 +507,6 @@ const styles = StyleSheet.create({
 
 const safeArray = <T,>(items?: T[] | null): T[] => (Array.isArray(items) ? items : []);
 
-const dedupeByKey = <T,>(items: T[], key: (item: T) => string | number | undefined | null): T[] => {
-  const seen = new Set<string>();
-  const result: T[] = [];
-  for (const item of items) {
-    const k = key(item);
-    const kk = k === undefined || k === null ? "" : String(k);
-    if (!kk) continue;
-    if (seen.has(kk)) continue;
-    seen.add(kk);
-    result.push(item);
-  }
-  return result;
-};
-
 const formatCurrency = (value?: number, currency = "USD") => {
   if (typeof value !== "number" || Number.isNaN(value)) return "-";
   return new Intl.NumberFormat("en", {
@@ -658,85 +645,70 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
   const readinessStatus = summary?.marketReadiness?.status || "Not rated";
   const readinessNarrative = summary?.marketReadiness?.summary || "No summary available.";
 
-  const growthTimeline = dedupeByKey(safeArray(report.opportunityForecast?.growthTimeline), (i) => i.period);
-  const adoption = dedupeByKey(safeArray(report.predictiveDashboard?.userAdoption), (i) => i.period);
-  const sentimentTrend = dedupeByKey(safeArray(report.competitiveLandscape?.sentimentTrend), (i) => i.period);
-  const scenarioModeling = dedupeByKey(safeArray(report.predictiveDashboard?.scenarios), (i) => i.scenario);
-  const runwayScenarios = dedupeByKey(safeArray(report.financialPlanning?.runwayScenarios), (i) => i.scenario);
-  const budgetAllocation = dedupeByKey(safeArray(report.financialPlanning?.budgetAllocation), (i) => i.category);
-  const cashFlowTimeline = dedupeByKey(safeArray(report.financialPlanning?.cashFlowTimeline), (i) => i.period);
-  const financialPlanningNotes = dedupeByKey(
-    safeArray(report.financialPlanning?.strategicNotes).filter(Boolean),
-    (i) => i
-  );
+  const growthTimeline = safeArray(report.opportunityForecast?.growthTimeline);
+  const adoption = safeArray(report.predictiveDashboard?.userAdoption);
+  const sentimentTrend = safeArray(report.competitiveLandscape?.sentimentTrend);
+  const scenarioModeling = safeArray(report.predictiveDashboard?.scenarios);
+  const runwayScenarios = safeArray(report.financialPlanning?.runwayScenarios);
+  const budgetAllocation = safeArray(report.financialPlanning?.budgetAllocation);
+  const cashFlowTimeline = safeArray(report.financialPlanning?.cashFlowTimeline);
+  const financialPlanningNotes = safeArray(report.financialPlanning?.strategicNotes).filter(Boolean);
 
-  const regionalOpportunity = dedupeByKey(safeArray(report.opportunityForecast?.regionalOpportunity), (i) => i.region);
-  const pricePositioning = dedupeByKey(safeArray(report.financialBenchmark?.pricePositioning), (i) => i.company);
-  const performanceRadar = dedupeByKey(safeArray(report.productEvaluation?.performanceRadar), (i) => i.axis);
-  const featureOverlap = dedupeByKey(safeArray(report.productEvaluation?.featureOverlap), (i) => i.feature);
+  const regionalOpportunity = safeArray(report.opportunityForecast?.regionalOpportunity);
+  const pricePositioning = safeArray(report.financialBenchmark?.pricePositioning);
+  const performanceRadar = safeArray(report.productEvaluation?.performanceRadar);
+  const featureOverlap = safeArray(report.productEvaluation?.featureOverlap);
   const innovationQuotient = report.productEvaluation?.innovationQuotient;
-  const technicalReadiness = dedupeByKey(safeArray(report.productEvaluation?.technicalReadiness), (i) => i.item);
-  const retentionRisk = dedupeByKey(safeArray(report.productEvaluation?.retentionRisk), (i) => i.riskType);
+  const technicalReadiness = safeArray(report.productEvaluation?.technicalReadiness);
+  const retentionRisk = safeArray(report.productEvaluation?.retentionRisk);
 
-  const personas = dedupeByKey(safeArray(report.customerInsights?.personas), (i) => `${i.name}|${i.role}`);
-  const behavioralSignals = dedupeByKey(safeArray(report.customerInsights?.behavioralSignals), (i) => i.signal);
-  const purchaseJourney = dedupeByKey(safeArray(report.customerInsights?.purchaseJourney), (i) => i.stage);
-  const sentimentMaps = dedupeByKey(safeArray(report.customerInsights?.sentimentMaps), (i) => i.channel);
-  const channelUsage = dedupeByKey(safeArray(report.customerInsights?.channelUsage), (i) => i.label);
-  const deviceUsage = dedupeByKey(safeArray(report.customerInsights?.deviceUsage), (i) => i.label);
+  const personas = safeArray(report.customerInsights?.personas);
+  const behavioralSignals = safeArray(report.customerInsights?.behavioralSignals);
+  const purchaseJourney = safeArray(report.customerInsights?.purchaseJourney);
+  const sentimentMaps = safeArray(report.customerInsights?.sentimentMaps);
+  const channelUsage = safeArray(report.customerInsights?.channelUsage);
+  const deviceUsage = safeArray(report.customerInsights?.deviceUsage);
 
-  const marketSizeForecast = dedupeByKey(safeArray(report.marketEnvironment?.marketSize?.forecast), (i) => i.year);
-  const cagrByRegion = dedupeByKey(safeArray(report.marketEnvironment?.cagrByRegion), (i) => i.region);
-  const regulatoryTrends = dedupeByKey(
-    safeArray(report.marketEnvironment?.regulatoryTrends),
-    (i) => `${i.year}|${i.title}`
-  );
-  const competitiveDensity = dedupeByKey(safeArray(report.marketEnvironment?.competitiveDensity), (i) => i.region);
-  const geoSegmentation = dedupeByKey(safeArray(report.marketEnvironment?.segmentation?.geography), (i) => i.name);
+  const marketSizeForecast = safeArray(report.marketEnvironment?.marketSize?.forecast);
+  const cagrByRegion = safeArray(report.marketEnvironment?.cagrByRegion);
+  const regulatoryTrends = safeArray(report.marketEnvironment?.regulatoryTrends);
+  const competitiveDensity = safeArray(report.marketEnvironment?.competitiveDensity);
+  const geoSegmentation = safeArray(report.marketEnvironment?.segmentation?.geography);
 
-  const topCompetitors = dedupeByKey(safeArray(report.competitiveLandscape?.topCompetitors), (i) => i.name);
-  const marketShare = dedupeByKey(safeArray(report.competitiveLandscape?.marketShare), (i) => i.company);
-  const featureBenchmark = dedupeByKey(safeArray(report.competitiveLandscape?.featureBenchmark), (i) => i.feature);
-  const priceFeatureMatrix = dedupeByKey(safeArray(report.competitiveLandscape?.priceFeatureMatrix), (i) => i.company);
-  const innovationFrequency = dedupeByKey(safeArray(report.competitiveLandscape?.innovationFrequency), (i) => i.company);
-  const negativeSignals = dedupeByKey(
-    safeArray(report.competitiveLandscape?.negativeSignals),
-    (i) => `${i.company}|${i.signal}`
-  );
+  const topCompetitors = safeArray(report.competitiveLandscape?.topCompetitors);
+  const marketShare = safeArray(report.competitiveLandscape?.marketShare);
+  const featureBenchmark = safeArray(report.competitiveLandscape?.featureBenchmark);
+  const priceFeatureMatrix = safeArray(report.competitiveLandscape?.priceFeatureMatrix);
+  const innovationFrequency = safeArray(report.competitiveLandscape?.innovationFrequency);
+  const negativeSignals = safeArray(report.competitiveLandscape?.negativeSignals);
 
-  const newsSentiment = dedupeByKey(
-    safeArray(report.sentimentAnalysis?.newsSentiment),
-    (i) => i.link || `${i.source}|${i.summary}`
-  );
-  const socialTone = dedupeByKey(safeArray(report.sentimentAnalysis?.socialTone), (i) => i.platform);
-  const reputationIndex = dedupeByKey(safeArray(report.sentimentAnalysis?.reputationIndex), (i) => i.period);
-  const emergingPhrases = dedupeByKey(safeArray(report.sentimentAnalysis?.emergingPhrases), (i) => i.phrase);
-  const trendingStories = dedupeByKey(safeArray(report.sentimentAnalysis?.trendingStories), (i) => i.url);
-  const competitorCoverage = dedupeByKey(safeArray(report.sentimentAnalysis?.competitorCoverage), (i) => i.url);
+  const newsSentiment = safeArray(report.sentimentAnalysis?.newsSentiment);
+  const socialTone = safeArray(report.sentimentAnalysis?.socialTone);
+  const reputationIndex = safeArray(report.sentimentAnalysis?.reputationIndex);
+  const emergingPhrases = safeArray(report.sentimentAnalysis?.emergingPhrases);
+  const trendingStories = safeArray(report.sentimentAnalysis?.trendingStories);
+  const competitorCoverage = safeArray(report.sentimentAnalysis?.competitorCoverage);
 
-  const policyScores = dedupeByKey(safeArray(report.riskCompliance?.policyScores), (i) => i.region);
-  const technologyRisk = dedupeByKey(safeArray(report.riskCompliance?.technologyRisk), (i) => i.area);
-  const financialGeo = dedupeByKey(safeArray(report.riskCompliance?.financialGeopolitical), (i) => i.factor);
-  const complianceStatus = dedupeByKey(safeArray(report.riskCompliance?.complianceStatus), (i) => i.framework);
-  const ipConflicts = dedupeByKey(safeArray(report.riskCompliance?.ipConflicts), (i) => `${i.competitor}|${i.issue}`);
-  const riskMatrix = dedupeByKey(safeArray(report.riskCompliance?.riskMatrix), (i) => i.risk).map((item) => ({
+  const policyScores = safeArray(report.riskCompliance?.policyScores);
+  const technologyRisk = safeArray(report.riskCompliance?.technologyRisk);
+  const financialGeo = safeArray(report.riskCompliance?.financialGeopolitical);
+  const complianceStatus = safeArray(report.riskCompliance?.complianceStatus);
+  const ipConflicts = safeArray(report.riskCompliance?.ipConflicts);
+  const riskMatrix = safeArray(report.riskCompliance?.riskMatrix).map((item) => ({
     risk: item.risk,
     impactPercent: Math.min(100, Math.max(0, item.impact ?? 0)),
     probabilityPercent: Math.min(100, Math.max(0, item.probability ?? 0)),
     owner: item.owner,
   }));
 
-  const recommendationActions = dedupeByKey(safeArray(report.strategicRecommendations?.actions), (i) => i.title);
-  const sources = dedupeByKey(safeArray(report.sourceAttribution?.sources), (i) => i.url || `${i.name}|${i.type}`);
+  const recommendationActions = safeArray(report.strategicRecommendations?.actions);
+  const sources = safeArray(report.sourceAttribution?.sources);
 
-  const valuations = dedupeByKey(safeArray(report.financialBenchmark?.valuationModel), (i) => i.scenario);
+  const valuations = safeArray(report.financialBenchmark?.valuationModel);
   const unitEconomics = report.financialBenchmark?.unitEconomics;
-  const pricingBenchmarks = dedupeByKey(
-    safeArray(report.financialBenchmark?.pricingBenchmarks),
-    (i) => `${i.tier}|${i.currency}`
-  );
-  const profitMarginTrend = dedupeByKey(safeArray(report.financialBenchmark?.profitMarginTrend), (i) => i.period);
-  const clvVsCac = dedupeByKey(safeArray(report.financialBenchmark?.clvVsCac), (i) => i.metric);
+  const pricingBenchmarks = safeArray(report.financialBenchmark?.pricingBenchmarks);
+  const profitMarginTrend = safeArray(report.financialBenchmark?.profitMarginTrend);
+  const clvVsCac = safeArray(report.financialBenchmark?.clvVsCac);
   const pricePositioningLine = pricePositioning.map((point) => ({
     label: point.company,
     value: point.price,
