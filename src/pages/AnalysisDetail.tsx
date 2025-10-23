@@ -938,35 +938,39 @@ const AnalysisDetail = () => {
                   const total = segment.segments.reduce((sum, item) => sum + item.value, 0);
                   return (
                     <Card key={segment.title} className={analyticPanelClass}>
-                      <CardHeader className="pb-4 text-center">
+                      <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg">{segment.title}</CardTitle>
                           <span className="text-xs text-muted-foreground">{segment.timeframe}</span>
                         </div>
                       </CardHeader>
                       <CardContent className="flex flex-col items-center gap-5">
-                        <div className="relative flex items-center justify-center">
-                          <PieChart width={148} height={148}>
-                            <Pie
-                              data={segment.segments}
-                              dataKey="value"
-                              innerRadius={60}
-                              outerRadius={76}
-                              stroke="transparent"
-                              paddingAngle={2}
-                              cornerRadius={6}
-                              startAngle={90}
-                              endAngle={-270}
-                              cx="50%"
-                              cy="50%"
-                              isAnimationActive={false}
-                            >
-                              {segment.segments.map((item, index) => (
-                                <Cell key={`${segment.title}-${item.label}-${index}`} fill={item.color} />
-                              ))}
-                            </Pie>
-                          </PieChart>
-                          <div className="absolute text-center">
+                        <div className="relative mx-auto flex items-center justify-center">
+                          <div className="aspect-square w-40">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={segment.segments}
+                                  dataKey="value"
+                                  innerRadius="60%"
+                                  outerRadius="80%"
+                                  stroke="transparent"
+                                  paddingAngle={4}
+                                  cornerRadius={12}
+                                  startAngle={90}
+                                  endAngle={-270}
+                                  cx="50%"
+                                  cy="50%"
+                                  isAnimationActive={false}
+                                >
+                                  {segment.segments.map((item, index) => (
+                                    <Cell key={`${segment.title}-${item.label}-${index}`} fill={item.color} />
+                                  ))}
+                                </Pie>
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                             <p className="text-sm text-muted-foreground">Total</p>
                             <p className="text-xl font-semibold">{formatNumber(total, { maximumFractionDigits: 1 })}</p>
                           </div>
@@ -1015,38 +1019,40 @@ const AnalysisDetail = () => {
               </Card>
 
               <Card className={analyticPanelClass}>
-                <CardHeader className="pb-4 text-center">
+                <CardHeader className="pb-4">
                   <CardTitle>Price Positioning</CardTitle>
                   <CardDescription>Comparing market price and value score</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-6">
                   {pricePositioningBreakdown.length ? (
                     <>
-                      <div className="relative h-44 w-44">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={pricePositioningBreakdown}
-                              dataKey="price"
-                              nameKey="name"
-                              innerRadius={64}
-                              outerRadius={82}
-                              stroke="transparent"
-                              paddingAngle={2}
-                              cornerRadius={6}
-                              startAngle={90}
-                              endAngle={-270}
-                              cx="50%"
-                              cy="50%"
-                              isAnimationActive={false}
-                            >
-                              {pricePositioningBreakdown.map((entry) => (
-                                <Cell key={entry.name} fill={entry.color} />
-                              ))}
-                            </Pie>
-                          </PieChart>
-                        </ResponsiveContainer>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <div className="relative mx-auto flex items-center justify-center">
+                        <div className="aspect-square w-44">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={pricePositioningBreakdown}
+                                dataKey="price"
+                                nameKey="name"
+                                innerRadius="60%"
+                                outerRadius="80%"
+                                stroke="transparent"
+                                paddingAngle={4}
+                                cornerRadius={12}
+                                startAngle={90}
+                                endAngle={-270}
+                                cx="50%"
+                                cy="50%"
+                                isAnimationActive={false}
+                              >
+                                {pricePositioningBreakdown.map((entry) => (
+                                  <Cell key={entry.name} fill={entry.color} />
+                                ))}
+                              </Pie>
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                           <p className="text-xs text-muted-foreground">Avg value score</p>
                           <p className="text-2xl font-semibold">
                             {formatNumber(
