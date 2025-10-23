@@ -443,6 +443,7 @@ const AnalysisDetail = () => {
   const primaryColor = themePalette[0];
   const secondaryColor = themePalette[1];
   const accentColor = themePalette[2];
+  const donutPalette = COLORS;
   const elevatedCardClass = "group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-primary/5 via-background/90 to-background/95 backdrop-blur-xl shadow-2xl";
   const analyticPanelClass = "group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background/98 via-muted/30 to-background/95 backdrop-blur-xl shadow-2xl";
   const highlightPanelClass = `${analyticPanelClass}`;
@@ -491,25 +492,25 @@ const AnalysisDetail = () => {
   const channelMixSegments = safeArray(currentReport?.gtmStrategy?.channelPrioritization).map((item, idx) => ({
     label: item.channel,
     value: coerceNumber(item.budgetShare),
-    color: themePalette[idx % themePalette.length],
+    color: donutPalette[idx % donutPalette.length],
   }));
 
   const deviceMixSegments = safeArray(currentReport?.customerInsights?.deviceUsage).map((item, idx) => ({
     label: item.label ?? `Device ${idx + 1}`,
     value: coerceNumber(item.percentage),
-    color: themePalette[(idx + 1) % themePalette.length],
+    color: donutPalette[(idx + 1) % donutPalette.length],
   }));
 
   const journeySegments = safeArray(currentReport?.customerInsights?.purchaseJourney).map((item, idx) => ({
     label: item.stage,
     value: coerceNumber(item.conversionRate),
-    color: themePalette[(idx + 2) % themePalette.length],
+    color: donutPalette[(idx + 2) % donutPalette.length],
   }));
 
   const regionalOpportunitySegments = safeArray(currentReport?.opportunityForecast?.regionalOpportunity).map((item, idx) => ({
     label: item.region,
     value: coerceNumber(item.score),
-    color: themePalette[(idx + 3) % themePalette.length],
+    color: donutPalette[(idx + 3) % donutPalette.length],
   }));
 
   const segmentCards = [
@@ -540,7 +541,7 @@ const AnalysisDetail = () => {
     name: entry.company,
     price: coerceNumber(entry.price),
     valueScore: coerceNumber(entry.valueScore),
-    color: themePalette[idx % themePalette.length],
+    color: donutPalette[idx % donutPalette.length],
   }));
 
   const growthTimelineData = safeArray(currentReport?.opportunityForecast?.growthTimeline).map((point) => ({
