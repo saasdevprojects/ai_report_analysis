@@ -819,8 +819,8 @@ const AnalysisDetail = () => {
             </p>
           </div>
 
-          <div className="space-y-6">
-            <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
+          <div className="space-y-8">
+            <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
               <Card className={analyticPanelClass}>
                 <CardHeader className="pb-4">
                   <CardDescription>User Adoption Overview</CardDescription>
@@ -933,7 +933,7 @@ const AnalysisDetail = () => {
             </div>
 
             {segmentCards.length ? (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                 {segmentCards.map((segment) => {
                   const total = segment.segments.reduce((sum, item) => sum + item.value, 0);
                   return (
@@ -1101,7 +1101,7 @@ const AnalysisDetail = () => {
         </div>
 
         {/* Market Readiness Score */}
-        <Card className={highlightPanelClass}>
+        <Card className={`${highlightPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-6 w-6 text-primary" />
@@ -1334,7 +1334,7 @@ const AnalysisDetail = () => {
                       cornerRadius={6}
                       stroke="transparent"
                       isAnimationActive={false}
-                      label
+                      
                     >
                       {geoChartData.map((entry: any, index: number) => (
                         <Cell key={`geo-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -1362,7 +1362,7 @@ const AnalysisDetail = () => {
           </Card>
         </div>
 
-        <Card className={analyticPanelClass}>
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LineChartIcon className="h-5 w-5 text-primary" />
@@ -1387,7 +1387,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Competitive Landscape */}
-        <Card className={analyticPanelClass}>
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
@@ -1521,7 +1521,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Customer Insights */}
-        <Card className={`${analyticPanelClass} mb-8`}>
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -1561,7 +1561,7 @@ const AnalysisDetail = () => {
               })}
             </div>
 
-            <div className="rounded-xl p-4">
+            <div className={subPanelClass}>
               <h4 className="text-sm font-semibold mb-3">Buyer Sentiment Mix</h4>
               {hasSocialToneData ? (
                 <ResponsiveContainer width="100%" height={220}>
@@ -1576,8 +1576,7 @@ const AnalysisDetail = () => {
                       cornerRadius={6}
                       stroke="transparent"
                       isAnimationActive={false}
-                      labelLine={false}
-                      label={renderSentimentLabel}
+                      
                     >
                       {socialToneChartData.map((item, idx) => (
                         <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
@@ -1624,11 +1623,11 @@ const AnalysisDetail = () => {
         </Card>
 
         {hasFinancialPlanningData ? (
-          <Card className={analyticPanelClass}>
+          <Card className={`${analyticPanelClass} mb-12`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-primary" />
-                Financial Planning & Runway
+                Financial Planning & Budget Allocation
               </CardTitle>
               <CardDescription>Budget discipline, runway outlook, and regional allocation strategy</CardDescription>
             </CardHeader>
@@ -1787,7 +1786,7 @@ const AnalysisDetail = () => {
         ) : null}
 
         {/* Product Evaluation */}
-        <Card className={`${analyticPanelClass} mb-8`}>
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
@@ -1810,7 +1809,7 @@ const AnalysisDetail = () => {
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Feature Coverage</h4>
                 {featureCoverageData.length ? (
                   <ResponsiveContainer width="100%" height={260}>
@@ -1854,7 +1853,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Innovation Quotient</h4>
                 <p className="text-3xl font-bold text-primary">{innovationQuotient?.score ?? '—'}</p>
                 <p className="text-sm text-muted-foreground mt-2">{innovationQuotient?.summary}</p>
@@ -1864,46 +1863,47 @@ const AnalysisDetail = () => {
                   ))}
                 </ul>
               </div>
-              <div className={`${subPanelClass} space-y-4`}>
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-primary" />
-                    Technical Readiness Checklist
-                  </h4>
-                  <ul className="space-y-2 text-sm">
-                    {technicalReadiness.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                        <div>
-                          <p className="font-semibold">{item.item} — {item.status}</p>
-                          <p className="text-xs text-muted-foreground">{item.notes}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-primary" />
-                    Retention Risks
-                  </h4>
-                  <ul className="space-y-2 text-sm">
-                    {retentionRisk.map((risk, idx) => (
-                      <li key={idx} className="rounded-lg p-3 shadow-sm">
-                        <p className="font-semibold">{risk.riskType}</p>
-                        <p className="text-xs text-muted-foreground">Level: {risk.level}</p>
-                        <p className="text-xs text-muted-foreground mt-1">Mitigation: {risk.mitigation}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <div className={subPanelClass}>
+                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  Technical Readiness Checklist
+                </h4>
+                <ul className="space-y-2 text-sm">
+                  {technicalReadiness.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                      <div>
+                        <p className="font-semibold">{item.item} — {item.status}</p>
+                        <p className="text-xs text-muted-foreground">{item.notes}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className={subPanelClass}>
+                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-primary" />
+                  Retention Risks
+                </h4>
+                <ul className="space-y-2 text-sm">
+                  {retentionRisk.map((risk, idx) => (
+                    <li key={idx} className="rounded-lg p-3 shadow-sm">
+                      <p className="font-semibold">{risk.riskType}</p>
+                      <p className="text-xs text-muted-foreground">Level: {risk.level}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Mitigation: {risk.mitigation}</p>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Opportunity Detection */}
-        <Card className={`${analyticPanelClass} mb-8`}>
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -1940,7 +1940,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Regional Opportunity Heatmap</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={regionalOpportunity}>
@@ -1952,7 +1952,7 @@ const AnalysisDetail = () => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Growth Timeline</h4>
                 {growthTimeline.length ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -1984,7 +1984,7 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl p-4">
+            <div className={subPanelClass}>
               <h4 className="text-sm font-semibold mb-3">Threat Early-Warning Signals</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 {threatSignals.map((threat, idx) => (
@@ -2002,11 +2002,11 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* GTM Strategy */}
-        <Card className={`${analyticPanelClass} mb-8`}>
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Network className="h-5 w-5 text-primary" />
-              Go-to-Market Strategy Simulator
+              Go-To-Market Strategy & Positioning
             </CardTitle>
             <CardDescription>Messaging, channels, and ROI projections</CardDescription>
           </CardHeader>
@@ -2035,7 +2035,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Channel Prioritization</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={channelPrioritization}>
@@ -2047,7 +2047,7 @@ const AnalysisDetail = () => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">ROI Simulation Paths</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <ComposedChart data={roiSimulation}>
@@ -2062,7 +2062,7 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl p-4">
+            <div className={subPanelClass}>
               <h4 className="text-sm font-semibold mb-3">Competitive Keyword Tracking</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 {competitiveTracking.map((row, idx) => (
@@ -2208,7 +2208,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Sentiment & Voice Analysis */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -2218,12 +2218,12 @@ const AnalysisDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">News Sentiment Mix</h4>
                 {hasNewsSentimentData ? (
                   <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
-                      <Pie data={newsSentimentChartData} dataKey="value" nameKey="sentiment" innerRadius={50} outerRadius={80} paddingAngle={2} cornerRadius={6} stroke="transparent" isAnimationActive={false} label>
+                      <Pie data={newsSentimentChartData} dataKey="value" nameKey="sentiment" innerRadius={50} outerRadius={80} paddingAngle={2} cornerRadius={6} stroke="transparent" isAnimationActive={false}>
                         {newsSentimentChartData.map((item, idx) => (
                           <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                         ))}
@@ -2235,7 +2235,7 @@ const AnalysisDetail = () => {
                   <p className="text-sm text-muted-foreground">No news sentiment data available.</p>
                 )}
               </div>
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Reputation Index</h4>
                 {reputationIndex.length ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -2267,7 +2267,7 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl p-4">
+            <div className={subPanelClass}>
               <h4 className="text-sm font-semibold mb-3">Emerging Phrases</h4>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {emergingPhrases.map((phrase, idx) => (
@@ -2281,7 +2281,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Trending Stories</h4>
                 {trendingStories.length ? (
                   <div className="space-y-3 text-sm">
@@ -2315,7 +2315,7 @@ const AnalysisDetail = () => {
                 )}
               </div>
 
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Competitor Coverage</h4>
                 {competitorCoverage.length ? (
                   <div className="space-y-3 text-sm">
@@ -2352,9 +2352,9 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl p-4">
+            <div className={subPanelClass}>
               <h4 className="text-sm font-semibold mb-3">Emerging Phrases</h4>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {emergingPhrases.map((phrase, idx) => (
                   <div key={idx} className="rounded-lg p-3">
                     <p className="font-semibold">{phrase.phrase}</p>
@@ -2368,7 +2368,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Risk & Compliance */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
@@ -2378,7 +2378,7 @@ const AnalysisDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Policy Risk Scorecard</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={policyScores}>
@@ -2390,7 +2390,7 @@ const AnalysisDetail = () => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Technology Compliance</h4>
                 <ul className="space-y-3 text-sm">
                   {technologyRisk.map((risk, idx) => (
@@ -2408,7 +2408,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <div className="flex items-start justify-between">
                   <h4 className="text-sm font-semibold mb-3">Risk Exposure Overview</h4>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -2431,7 +2431,7 @@ const AnalysisDetail = () => {
                   <p className="text-sm text-muted-foreground">No risk exposure data available.</p>
                 )}
               </div>
-              <div className="rounded-xl p-4 space-y-3">
+              <div className={`${subPanelClass} space-y-3`}>
                 <h4 className="text-sm font-semibold mb-3">Financial & Geopolitical Factors</h4>
                 {financialGeopolitical.map((factor, idx) => (
                   <div key={idx} className="rounded-lg p-3">
@@ -2443,7 +2443,7 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl p-4">
+            <div className={subPanelClass}>
               <h4 className="text-sm font-semibold mb-3">Compliance Status</h4>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {complianceStatus.map((item, idx) => (
@@ -2459,7 +2459,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Predictive Analysis */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
@@ -2484,7 +2484,7 @@ const AnalysisDetail = () => {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-xl p-4">
+              <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">User Adoption Projection</h4>
                 {userAdoption.length ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -2522,7 +2522,7 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl p-4">
+            <div className={subPanelClass}>
               <h4 className="text-sm font-semibold mb-3">Scenario Modeling</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <ComposedChart data={scenarioModelingData}>
@@ -2540,7 +2540,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Strategic Recommendations */}
-        <Card className="shadow-lg mb-8">
+        <Card className={`${analyticPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lightbulb className="h-5 w-5 text-primary" />
@@ -2580,7 +2580,7 @@ const AnalysisDetail = () => {
         </Card>
 
         {/* Source Attribution */}
-        <Card className="shadow-lg">
+        <Card className={analyticPanelClass}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Network className="h-5 w-5 text-primary" />
