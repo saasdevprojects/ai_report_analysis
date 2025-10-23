@@ -938,16 +938,29 @@ const AnalysisDetail = () => {
                   const total = segment.segments.reduce((sum, item) => sum + item.value, 0);
                   return (
                     <Card key={segment.title} className={analyticPanelClass}>
-                      <CardHeader className="pb-4">
+                      <CardHeader className="pb-4 text-center">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg">{segment.title}</CardTitle>
                           <span className="text-xs text-muted-foreground">{segment.timeframe}</span>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="flex flex-col items-center gap-5">
                         <div className="relative flex items-center justify-center">
-                          <PieChart width={140} height={140}>
-                            <Pie data={segment.segments} dataKey="value" innerRadius={56} outerRadius={72} stroke="transparent" paddingAngle={2} cornerRadius={6} isAnimationActive={false}>
+                          <PieChart width={148} height={148}>
+                            <Pie
+                              data={segment.segments}
+                              dataKey="value"
+                              innerRadius={60}
+                              outerRadius={76}
+                              stroke="transparent"
+                              paddingAngle={2}
+                              cornerRadius={6}
+                              startAngle={90}
+                              endAngle={-270}
+                              cx="50%"
+                              cy="50%"
+                              isAnimationActive={false}
+                            >
                               {segment.segments.map((item, index) => (
                                 <Cell key={`${segment.title}-${item.label}-${index}`} fill={item.color} />
                               ))}
@@ -958,7 +971,7 @@ const AnalysisDetail = () => {
                             <p className="text-xl font-semibold">{formatNumber(total, { maximumFractionDigits: 1 })}</p>
                           </div>
                         </div>
-                        <div className="space-y-2 text-sm">
+                        <div className="w-full space-y-2 text-sm">
                           {segment.segments.map((item) => (
                             <div key={item.label} className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
@@ -1002,7 +1015,7 @@ const AnalysisDetail = () => {
               </Card>
 
               <Card className={analyticPanelClass}>
-                <CardHeader className="pb-4">
+                <CardHeader className="pb-4 text-center">
                   <CardTitle>Price Positioning</CardTitle>
                   <CardDescription>Comparing market price and value score</CardDescription>
                 </CardHeader>
@@ -1016,11 +1029,15 @@ const AnalysisDetail = () => {
                               data={pricePositioningBreakdown}
                               dataKey="price"
                               nameKey="name"
-                              innerRadius={60}
-                              outerRadius={80}
+                              innerRadius={64}
+                              outerRadius={82}
                               stroke="transparent"
                               paddingAngle={2}
                               cornerRadius={6}
+                              startAngle={90}
+                              endAngle={-270}
+                              cx="50%"
+                              cy="50%"
                               isAnimationActive={false}
                             >
                               {pricePositioningBreakdown.map((entry) => (
