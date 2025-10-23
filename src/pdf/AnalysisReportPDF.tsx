@@ -61,25 +61,124 @@ const palette = {
   accent: "#0ea5e9",
 };
 
-const PieChart = ({ segments }: { segments: { label: string; value: number; color: string }[] }) => {
+const PieChart = ({
+  segments,
+  totalLabel = "Total",
+}: {
+  segments: { label: string; value: number; color: string }[];
+  totalLabel?: string;
+}) => {
   const total = segments.reduce((sum, segment) => sum + segment.value, 0) || 1;
-  let startAngle = 0;
-  const radius = 58;
+  const radiusOuter = 60;
+  const radiusInner = 34;
+  let startAngle = -Math.PI / 2;
+  const totalFormatted = new Intl.NumberFormat("en", { maximumFractionDigits: total >= 100 ? 0 : 1 }).format(total);
 
   return (
-    <Svg width={140} height={140} viewBox="0 0 140 140">
-      <Rect x={0} y={0} width={140} height={140} fill="#ffffff" />
-      {segments.map((segment, index) => {
-        const sweep = (segment.value / total) * Math.PI * 2;
-        const endAngle = startAngle + sweep;
-        const largeArc = sweep > Math.PI ? 1 : 0;
-        const x1 = 70 + radius * Math.cos(startAngle);
-        const y1 = 70 + radius * Math.sin(startAngle);
-        const x2 = 70 + radius * Math.cos(endAngle);
-        const y2 = 70 + radius * Math.sin(endAngle);
-        const pathData = `M70 70 L${x1.toFixed(2)} ${y1.toFixed(2)} A${radius} ${radius} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`;
-        startAngle = endAngle;
-        return <Path key={`${segment.label}-${index}`} d={pathData} fill={segment.color} stroke="#ffffff" strokeWidth={2} />;
+    <View style={{ alignItems: "center" }}>
+      <Svg width={180} height={180} viewBox="0 0 180 180">
+        <Rect x={0} y={0} width={180} height={180} fill="#ffffff" />
+        {segments.map((segment, index) => {
+          const sweep = (segment.value / total) * Math.PI * 2;
+          const endAngle = startAngle + sweep;
+          const largeArc = sweep > Math.PI ? 1 : 0;
+          const x1 = 90 + radiusOuter * Math.cos(startAngle);
+          const y1 = 90 + radiusOuter * Math.sin(startAngle);
+          const x2 = 90 + radiusOuter * Math.cos(endAngle);
+          const y2 = 90 + radiusOuter * Math.sin(endAngle);
+          const innerX2 = 90 + radiusInner * Math.cos(endAngle);
+          const innerY2 = 90 + radiusInner * Math.sin(endAngle);
+          const innerX1 = 90 + radiusInner * Math.cos(startAngle);
+          const innerY1 = 90 + radiusInner * Math.sin(startAngle);
+          const pathData = [
+            `M ${x1.toFixed(2)} ${y1.toFixed(2)}`,
+            `A ${radiusOuter} ${radiusOuter} 0 ${largeArc} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`,
+            `L ${innerX2.toFixed(2)} ${innerY2.toFixed(2)}`,
+            `A ${radiusInner} ${radiusInner} 0 ${largeArc} 0 ${innerX1.toFixed(2)} ${innerY1.toFixed(2)}`,
+            "Z",
+          ].join(" ");
+          startAngle = endAngle;
+          return <Path key={`${segment.label}-${index}`} d={pathData} fill={segment.color} stroke="#ffffff" strokeWidth={1} />;
+        })}
+        <Circle cx={90} cy={90} r={radiusInner} fill="#ffffff" stroke={palette.border} strokeWidth={1} />
+      </Svg>
+      <Text style={{ fontSize: 10, color: palette.softSlate, marginTop: 8 }}>{totalLabel}</Text>
+      <Text style={{ fontFamily: "Bebas Neue", fontSize: 20, color: palette.navy }}>{totalFormatted}</Text>
+    </View>
+  );
+};
+
+const LineAreaChart = ({
+  data,
+  primaryKey,
+  secondaryKey,
+  labels,
+  colors,
+  height = 180,
+  width = 440,
+}: {
+  data: { [key: string]: number | string | undefined }[];
+  primaryKey: string;
+  secondaryKey?: string;
+  labels: string;
+  colors: { primary: string; secondary?: string; grid: string; axis: string };
+  height?: number;
+  width?: number;
+}) => {
+  if (!data.length) {
+    return <Text style={{ fontSize: 10, color: palette.softSlate }}>No chart data</Text>;
+  }
+
+  const paddingX = 36;
+  const paddingY = 24;
+  const drawableWidth = width - paddingX * 2;
+  const drawableHeight = height - paddingY * 2;
+
+  const numericValues = data.flatMap((point) => [
+    typeof point[primaryKey] === "number" ? (point[primaryKey] as number) : 0,
+    secondaryKey && typeof point[secondaryKey] === "number" ? (point[secondaryKey] as number) : 0,
+  ]);
+
+  const maxValue = numericValues.length ? Math.max(...numericValues, 1) : 1;
+
+  const scaleX = (index: number) => paddingX + (drawableWidth * index) / Math.max(data.length - 1, 1);
+  const scaleY = (value: number) => paddingY + drawableHeight - (drawableHeight * value) / maxValue;
+
+  const areaPath = data
+    .map((point, index) => {
+      const value = typeof point[primaryKey] === "number" ? (point[primaryKey] as number) : 0;
+      const x = scaleX(index);
+      const y = scaleY(value);
+      return `${index === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(" ");
+
+  const areaClosing = `L ${paddingX + drawableWidth} ${paddingY + drawableHeight} L ${paddingX} ${paddingY + drawableHeight} Z`;
+
+  const linePath = secondaryKey
+    ? data
+        .map((point, index) => {
+          const value = typeof point[secondaryKey] === "number" ? (point[secondaryKey] as number) : 0;
+          const x = scaleX(index);
+          const y = scaleY(value);
+          return `${index === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+        })
+        .join(" ")
+    : undefined;
+
+  return (
+    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <Rect x={0} y={0} width={width} height={height} fill="#ffffff" />
+      {Array.from({ length: 5 }).map((_, index) => {
+        const y = paddingY + (drawableHeight * index) / 4;
+        return <Line key={`grid-${index}`} x1={paddingX} y1={y} x2={paddingX + drawableWidth} y2={y} stroke={colors.grid} strokeWidth={1} />;
+      })}
+      <Path d={`${areaPath} ${areaClosing}`} fill={`${colors.primary}33`} stroke={colors.primary} strokeWidth={2} />
+      {linePath ? <Path d={linePath} stroke={colors.secondary ?? palette.navy} strokeWidth={2} fill="none" /> : null}
+      {data.map((point, index) => {
+        const label = String(point.period ?? point.label ?? index + 1);
+        const x = scaleX(index);
+        return <Line key={`tick-${label}`} x1={x} y1={paddingY + drawableHeight} x2={x} y2={paddingY + drawableHeight + 6} stroke={colors.axis} strokeWidth={1} />;
       })}
     </Svg>
   );
@@ -497,6 +596,25 @@ const styles = StyleSheet.create({
     padding: 16,
     marginTop: 12,
   },
+  legendList: {
+    marginTop: 12,
+    gap: 8,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  legendSwatch: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    marginRight: 6,
+  },
+  legendLabel: {
+    fontSize: 10,
+    color: palette.slate,
+  },
   tableNote: {
     fontSize: 9,
     color: palette.softSlate,
@@ -844,12 +962,27 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
         <View style={styles.sectionCard} wrap={false}>
           <Text style={styles.cardTitle}>Growth Timeline</Text>
           <Text style={styles.cardBody}>Opportunity index trend derived from predictive forecast.</Text>
-          <QuadrantArea data={growthTimeline.map((item) => ({ period: item.period, value: item.growthIndex }))} fill={palette.navy} />
+          <View style={styles.chartWrapper}>
+            <LineAreaChart
+              data={growthTimeline.map((item) => ({ period: item.period, value: item.growthIndex }))}
+              primaryKey="value"
+              labels="period"
+              colors={{ primary: palette.navy, grid: palette.powder, axis: palette.softSlate }}
+            />
+          </View>
         </View>
         <View style={styles.sectionCard} wrap={false}>
           <Text style={styles.cardTitle}>Adoption & Sentiment</Text>
           <Text style={styles.cardBody}>Quarterly adoption rate alongside sentiment score confidence.</Text>
-          <QuadrantArea data={adoption.map((item) => ({ period: item.period, value: item.adoptionRate }))} fill={palette.sky} />
+          <View style={styles.chartWrapper}>
+            <LineAreaChart
+              data={adoption.map((item) => ({ period: item.period, adoptionRate: item.adoptionRate ?? 0, sentimentScore: item.sentimentScore ?? 0 }))}
+              primaryKey="adoptionRate"
+              secondaryKey="sentimentScore"
+              labels="period"
+              colors={{ primary: palette.sky, secondary: palette.navy, grid: palette.powder, axis: palette.softSlate }}
+            />
+          </View>
         </View>
         <View style={styles.statGroup}>
           <View style={styles.statItem}>
@@ -931,15 +1064,29 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
         <Text style={styles.sectionSubtitle}>Market growth, regional distribution, and competitor benchmarking.</Text>
         <View style={styles.sectionCard} wrap={false}>
           <Text style={styles.cardTitle}>Market Growth Forecast</Text>
-          <QuadrantArea
-            data={marketSizeForecast.map((item) => ({ period: item.year ?? String(item.year), value: item.value ?? 0 }))}
-            fill={palette.navy}
-          />
+          <View style={styles.chartWrapper}>
+            <LineAreaChart
+              data={marketSizeForecast.map((item) => ({ period: item.year ?? String(item.year), value: item.value ?? 0 }))}
+              primaryKey="value"
+              labels="period"
+              colors={{ primary: palette.navy, grid: palette.powder, axis: palette.softSlate }}
+            />
+          </View>
           <Text style={styles.caption}>Currency: {report.marketEnvironment?.marketSize?.currency ?? currency}</Text>
         </View>
         <View style={styles.sectionCard} wrap={false}>
           <Text style={styles.cardTitle}>Regional Opportunity</Text>
-          <PieChart segments={regionPie.length ? regionPie : [{ label: "Global", value: 1, color: palette.navy }]} />
+          <View style={[styles.chartWrapper, { alignItems: "center" }]}> 
+            <PieChart segments={regionPie.length ? regionPie : [{ label: "Global", value: 1, color: palette.navy }]} />
+            <View style={styles.legendList}>
+              {(regionPie.length ? regionPie : [{ label: "Global", value: 1, color: palette.navy }]).map((segment) => (
+                <View key={segment.label} style={styles.legendItem}>
+                  <View style={[styles.legendSwatch, { backgroundColor: segment.color }]} />
+                  <Text style={styles.legendLabel}>{segment.label} · {formatPercent(segment.value ?? 0)}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
           <Text style={styles.caption}>Top regions by opportunity score</Text>
         </View>
         <View style={styles.sectionCard} wrap={false}>
@@ -1020,10 +1167,14 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
         <Text style={styles.sectionSubtitle}>Emerging segments, partnerships, scenario modeling, and ROI.</Text>
         <View style={styles.sectionCard} wrap={false}>
           <Text style={styles.cardTitle}>Scenario Modeling</Text>
-          <QuadrantArea
-            data={scenarioModeling.map((scenario, index) => ({ period: scenario.scenario ?? `Scenario ${index + 1}`, value: scenario.revenueProjection ?? 0 }))}
-            fill={palette.aqua}
-          />
+          <View style={styles.chartWrapper}>
+            <LineAreaChart
+              data={scenarioModeling.map((scenario, index) => ({ period: scenario.scenario ?? `Scenario ${index + 1}`, value: scenario.revenueProjection ?? 0 }))}
+              primaryKey="value"
+              labels="period"
+              colors={{ primary: palette.aqua, grid: palette.powder, axis: palette.softSlate }}
+            />
+          </View>
           <Text style={styles.caption}>Growth rate range: {formatPercent(scenarioModeling.reduce((max, entry) => Math.max(max, entry.growthRate ?? 0), 0))}</Text>
         </View>
         <View style={styles.sectionCard} wrap={false}>
