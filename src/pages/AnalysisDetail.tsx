@@ -213,11 +213,16 @@ interface Analysis {
 }
 
 const COLORS = [
-  'hsl(var(--chart-1, var(--primary)))',
-  'hsl(var(--chart-2, var(--secondary)))',
-  'hsl(var(--chart-3, var(--accent)))',
-  'hsl(var(--chart-4, var(--muted-foreground)))',
-  'hsl(var(--chart-5, var(--primary-foreground)))',
+  '#F59E0B', // amber
+  '#3B82F6', // blue
+  '#10B981', // emerald
+  '#EF4444', // red
+  '#A78BFA', // violet
+  '#22C55E', // green
+  '#F97316', // orange
+  '#06B6D4', // cyan
+  '#EAB308', // yellow
+  '#8B5CF6', // purple
 ];
 
 type PersonaCard = PersonaProfile & { title?: string };
@@ -438,10 +443,10 @@ const AnalysisDetail = () => {
   const primaryColor = themePalette[0];
   const secondaryColor = themePalette[1];
   const accentColor = themePalette[2];
-  const elevatedCardClass = "group relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-background/80 to-background/95 backdrop-blur-xl shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl";
-  const analyticPanelClass = "group relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-background/95 via-muted/30 to-background/90 backdrop-blur-xl shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl";
-  const highlightPanelClass = `${analyticPanelClass} border-primary/40 shadow-2xl`;
-  const subPanelClass = "rounded-2xl border border-border/50 bg-gradient-to-br from-background/92 via-muted/20 to-background/96 p-5 shadow-lg backdrop-blur-sm";
+  const elevatedCardClass = "group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-primary/5 via-background/90 to-background/95 backdrop-blur-xl shadow-2xl";
+  const analyticPanelClass = "group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background/98 via-muted/30 to-background/95 backdrop-blur-xl shadow-2xl";
+  const highlightPanelClass = `${analyticPanelClass}`;
+  const subPanelClass = "rounded-2xl border-0 bg-gradient-to-br from-background/96 via-muted/20 to-background/98 p-5 shadow-lg backdrop-blur-sm";
 
   const userAdoptionData = safeArray(currentReport?.predictiveDashboard?.userAdoption).map((point) => ({
     period: point.period,
@@ -743,8 +748,8 @@ const AnalysisDetail = () => {
         </div>
 
         {/* Header */}
-        <div className="relative mb-10 overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-background/80 to-background/95 p-8 shadow-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,theme(colors.primary/20),transparent_60%)]" />
+        <div className="relative mb-10 overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-primary/5 via-background/90 to-background/95 p-8 shadow-2xl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,theme(colors.primary/15),transparent_60%)]" />
           <div className="relative">
             <h1 className="mb-2 text-4xl font-bold">{analysis.product_name}</h1>
             <p className="text-lg text-muted-foreground">{analysis.product_description}</p>
@@ -863,8 +868,8 @@ const AnalysisDetail = () => {
                           <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
                           <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
                           <Tooltip />
-                          <Line type="monotone" dataKey="adoptionRate" stroke={primaryColor} strokeWidth={3} dot={false} />
-                          <Line type="monotone" dataKey="sentimentScore" stroke={secondaryColor} strokeWidth={2} dot={false} />
+                          <Line type="monotone" dataKey="adoptionRate" stroke={primaryColor} strokeWidth={3} dot={false} isAnimationActive={false} />
+                          <Line type="monotone" dataKey="sentimentScore" stroke={secondaryColor} strokeWidth={2} dot={false} isAnimationActive={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
@@ -942,7 +947,7 @@ const AnalysisDetail = () => {
                       <CardContent className="space-y-4">
                         <div className="relative flex items-center justify-center">
                           <PieChart width={140} height={140}>
-                            <Pie data={segment.segments} dataKey="value" innerRadius={50} outerRadius={65} stroke="transparent">
+                            <Pie data={segment.segments} dataKey="value" innerRadius={56} outerRadius={72} stroke="transparent" paddingAngle={2} cornerRadius={6} isAnimationActive={false}>
                               {segment.segments.map((item, index) => (
                                 <Cell key={`${segment.title}-${item.label}-${index}`} fill={item.color} />
                               ))}
@@ -985,7 +990,7 @@ const AnalysisDetail = () => {
                         <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
                         <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} tickFormatter={(value) => `${formatNumber(value, { maximumFractionDigits: 1 })}%`} />
                         <Tooltip formatter={(value: number) => `${formatNumber(value, { maximumFractionDigits: 1 })}%`} />
-                        <Bar dataKey="margin" fill={primaryColor} radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="margin" fill={primaryColor} radius={[6, 6, 0, 0]} isAnimationActive={false} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
@@ -1014,6 +1019,9 @@ const AnalysisDetail = () => {
                               innerRadius={60}
                               outerRadius={80}
                               stroke="transparent"
+                              paddingAngle={2}
+                              cornerRadius={6}
+                              isAnimationActive={false}
                             >
                               {pricePositioningBreakdown.map((entry) => (
                                 <Cell key={entry.name} fill={entry.color} />
@@ -1078,8 +1086,8 @@ const AnalysisDetail = () => {
                       <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
                       <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
                       <Tooltip />
-                      <Area type="monotone" dataKey="growthIndex" stroke={accentColor} fill="url(#growthIndexGradient)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="confidence" stroke={secondaryColor} fill="url(#growthConfidenceGradient)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="growthIndex" stroke={accentColor} fill="url(#growthIndexGradient)" strokeWidth={2} isAnimationActive={false} />
+                      <Area type="monotone" dataKey="confidence" stroke={secondaryColor} fill="url(#growthConfidenceGradient)" strokeWidth={2} isAnimationActive={false} />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
@@ -1117,6 +1125,8 @@ const AnalysisDetail = () => {
                   <RadialBar
                     dataKey="value"
                     fill="#6366f1"
+                    isAnimationActive={false}
+                    cornerRadius={8}
                   />
                   <text
                     x={112}
@@ -1173,7 +1183,7 @@ const AnalysisDetail = () => {
                       <PolarGrid />
                       <PolarAngleAxis dataKey="axis" />
                       <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                      <Radar dataKey="score" stroke="#6366f1" fill="#6366f1" fillOpacity={0.4} />
+                      <Radar dataKey="score" stroke="#6366f1" fill="#6366f1" fillOpacity={0.4} isAnimationActive={false} />
                       <Tooltip />
                     </RadarChart>
                   </ResponsiveContainer>
@@ -1260,8 +1270,9 @@ const AnalysisDetail = () => {
                     strokeWidth={2}
                     fill="url(#improvementMatrixGradient)"
                     dot={{ r: 4, stroke: '#6366f1', fill: '#fff', strokeWidth: 2 }}
+                    isAnimationActive={false}
                   />
-                  <Line type="monotone" dataKey="expectedLift" stroke="#f97316" strokeWidth={2} dot={{ r: 4, stroke: '#f97316', fill: '#fff', strokeWidth: 2 }} />
+                  <Line type="monotone" dataKey="expectedLift" stroke="#f97316" strokeWidth={2} dot={{ r: 4, stroke: '#f97316', fill: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -1285,12 +1296,12 @@ const AnalysisDetail = () => {
                   <XAxis dataKey="year" />
                   <YAxis tickFormatter={(value) => formatNumber(value)} />
                   <Tooltip formatter={(value: number) => formatCurrency(value, marketSizeCurrency)} />
-                  <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} dot={false} />
+                  <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} dot={false} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
               <div className="grid gap-3 sm:grid-cols-3">
                 {cagrByRegion.map((region, idx) => (
-                  <div key={idx} className="rounded-lg border p-3">
+                  <div key={idx} className="rounded-lg p-3 shadow-sm">
                     <p className="text-xs text-muted-foreground">{region.region}</p>
                     <p className="text-lg font-semibold">{formatPercentage(region.value)}</p>
                   </div>
@@ -1317,7 +1328,12 @@ const AnalysisDetail = () => {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
+                      innerRadius={50}
                       outerRadius={80}
+                      paddingAngle={2}
+                      cornerRadius={6}
+                      stroke="transparent"
+                      isAnimationActive={false}
                       label
                     >
                       {geoChartData.map((entry: any, index: number) => (
@@ -1338,7 +1354,7 @@ const AnalysisDetail = () => {
                     <XAxis dataKey="region" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1357,7 +1373,7 @@ const AnalysisDetail = () => {
           <CardContent>
             <div className="space-y-3">
               {regulatoryEvents.map((event, idx) => (
-                <div key={idx} className="rounded-lg border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div key={idx} className="rounded-lg p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase text-muted-foreground tracking-wide">{event.year}</p>
                     <p className="font-semibold">{event.title}</p>
@@ -1420,7 +1436,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-3xl border border-border/50 bg-gradient-to-br from-background/90 via-muted/20 to-background/95 p-5 shadow-lg backdrop-blur">
+              <div className="rounded-3xl bg-gradient-to-br from-background/90 via-muted/20 to-background/95 p-5 shadow-lg backdrop-blur">
                 <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-primary" />
                   Market Share Overview
@@ -1431,8 +1447,8 @@ const AnalysisDetail = () => {
                     <XAxis dataKey={marketShareData.length ? "company" : "name"} />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey={marketShareData.length ? "share" : "value"} fill="#6366f1" radius={[8, 8, 0, 0]} />
-                    <Line type="monotone" dataKey={marketShareData.length ? "share" : "value"} stroke="#f97316" strokeWidth={2} />
+                    <Bar dataKey={marketShareData.length ? "share" : "value"} fill="#6366f1" radius={[8, 8, 0, 0]} isAnimationActive={false} />
+                    <Line type="monotone" dataKey={marketShareData.length ? "share" : "value"} stroke="#f97316" strokeWidth={2} isAnimationActive={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -1466,8 +1482,9 @@ const AnalysisDetail = () => {
                       strokeWidth={2}
                       fill="url(#priceFeatureGradient)"
                       dot={{ r: 4, stroke: '#22d3ee', fill: '#fff', strokeWidth: 2 }}
+                      isAnimationActive={false}
                     />
-                    <Line type="monotone" dataKey="pricePosition" stroke="#a855f7" strokeWidth={2} dot={{ r: 4, stroke: '#a855f7', fill: '#fff', strokeWidth: 2 }} />
+                    <Line type="monotone" dataKey="pricePosition" stroke="#a855f7" strokeWidth={2} dot={{ r: 4, stroke: '#a855f7', fill: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -1482,15 +1499,15 @@ const AnalysisDetail = () => {
                     <XAxis dataKey="company" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="patentsPerYear" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
-                    <Line type="monotone" dataKey="releaseCadence" stroke="#f59e0b" strokeWidth={2} />
+                    <Bar dataKey="patentsPerYear" fill="#8b5cf6" radius={[8, 8, 0, 0]} isAnimationActive={false} />
+                    <Line type="monotone" dataKey="releaseCadence" stroke="#f59e0b" strokeWidth={2} isAnimationActive={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
               <div className={`${subPanelClass} space-y-3`}>
                 <h4 className="text-sm font-semibold">Negative Signals</h4>
                 {negativeSignals.map((signal, idx) => (
-                  <div key={idx} className="rounded-lg border border-border/40 bg-background/80 p-3 shadow-sm">
+                  <div key={idx} className="rounded-lg bg-background/80 p-3 shadow-sm">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{signal.company}</p>
                       <Badge>{signal.severity}</Badge>
@@ -1517,7 +1534,7 @@ const AnalysisDetail = () => {
               {personaCards.map((persona, idx) => {
                 const personaName = persona.name ?? persona.title ?? "ICP Persona";
                 return (
-                  <div key={idx} className="rounded-3xl border border-border/50 bg-gradient-to-br from-muted/40 via-background/80 to-background/95 p-5 shadow-lg backdrop-blur">
+                  <div key={idx} className="rounded-3xl bg-gradient-to-br from-muted/40 via-background/80 to-background/95 p-5 shadow-lg backdrop-blur">
                     <p className="text-xs uppercase text-muted-foreground">{persona.role}</p>
                     <h4 className="text-lg font-semibold mt-1">{personaName}</h4>
                     <p className="text-xs text-muted-foreground mt-1">{persona.companySize}</p>
@@ -1544,7 +1561,7 @@ const AnalysisDetail = () => {
               })}
             </div>
 
-            <div className="rounded-xl border p-4">
+            <div className="rounded-xl p-4">
               <h4 className="text-sm font-semibold mb-3">Buyer Sentiment Mix</h4>
               {hasSocialToneData ? (
                 <ResponsiveContainer width="100%" height={220}>
@@ -1553,9 +1570,12 @@ const AnalysisDetail = () => {
                       data={socialToneChartData}
                       dataKey="value"
                       nameKey="sentiment"
-                      innerRadius={50}
-                      outerRadius={80}
+                      innerRadius={56}
+                      outerRadius={84}
                       paddingAngle={2}
+                      cornerRadius={6}
+                      stroke="transparent"
+                      isAnimationActive={false}
                       labelLine={false}
                       label={renderSentimentLabel}
                     >
@@ -1577,7 +1597,7 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Demand Drivers</h4>
                 <ul className="space-y-3 text-sm">
                   {behavioralSignals.map((signal, idx) => (
-                    <li key={idx} className="rounded-lg border p-3">
+                    <li key={idx} className="rounded-lg p-3 shadow-sm">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold">{signal.signal}</span>
                         <Badge>{formatPercentage(signal.influence)}</Badge>
@@ -1595,7 +1615,7 @@ const AnalysisDetail = () => {
                     <XAxis dataKey="stage" />
                     <YAxis />
                     <Tooltip />
-                    <Area type="monotone" dataKey="conversionRate" stroke="#22c55e" fill="#a7f3d0" />
+                    <Area type="monotone" dataKey="conversionRate" stroke="#22c55e" fill="#a7f3d0" isAnimationActive={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -1627,9 +1647,9 @@ const AnalysisDetail = () => {
                       <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} />
                       <Tooltip formatter={(value: number, name) => name === 'monthsOfRunway' ? `${value} months` : formatCurrency(value)} />
                       <Legend />
-                      <Bar yAxisId="left" dataKey="monthsOfRunway" fill="#6366f1" radius={[6, 6, 0, 0]} name="Runway" />
-                      <Line yAxisId="right" dataKey="cashBalance" type="monotone" stroke="#f97316" strokeWidth={2} name="Cash Balance" />
-                      <Line yAxisId="right" dataKey="burnRate" type="monotone" stroke="#0ea5e9" strokeWidth={2} name="Burn Rate" />
+                      <Bar yAxisId="left" dataKey="monthsOfRunway" fill="#6366f1" radius={[6, 6, 0, 0]} name="Runway" isAnimationActive={false} />
+                      <Line yAxisId="right" dataKey="cashBalance" type="monotone" stroke="#f97316" strokeWidth={2} name="Cash Balance" isAnimationActive={false} />
+                      <Line yAxisId="right" dataKey="burnRate" type="monotone" stroke="#0ea5e9" strokeWidth={2} name="Burn Rate" isAnimationActive={false} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
@@ -1658,16 +1678,17 @@ const AnalysisDetail = () => {
                           strokeWidth={2}
                           fill="url(#budgetPlannedGradient)"
                           dot={{ r: 4, stroke: '#94a3b8', fill: '#fff', strokeWidth: 2 }}
+                          isAnimationActive={false}
                           name="Planned"
                         />
-                        <Line type="monotone" dataKey="actual" stroke="#6366f1" strokeWidth={3} dot={{ r: 5, fill: '#fff', stroke: '#6366f1', strokeWidth: 2 }} name="Actual" />
+                        <Line type="monotone" dataKey="actual" stroke="#6366f1" strokeWidth={3} dot={{ r: 5, fill: '#fff', stroke: '#6366f1', strokeWidth: 2 }} name="Actual" isAnimationActive={false} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="space-y-3">
                     <h4 className="text-sm font-semibold">Variance Insights</h4>
                     {financialBudgetAllocation.map((item, idx) => (
-                      <div key={idx} className="rounded-lg border p-3">
+                      <div key={idx} className="rounded-lg p-3 shadow-sm">
                         <div className="flex items-center justify-between">
                           <p className="font-semibold">{item.category}</p>
                           <Badge variant={item.variance <= 0 ? "secondary" : "destructive"}>
@@ -1705,10 +1726,11 @@ const AnalysisDetail = () => {
                         strokeWidth={2}
                         fill="url(#cashFlowNetGradient)"
                         dot={{ r: 4, stroke: '#6366f1', fill: '#fff', strokeWidth: 2 }}
+                        isAnimationActive={false}
                         name="Net Cash"
                       />
-                      <Line type="monotone" dataKey="inflow" stroke="#22c55e" strokeWidth={2} dot={{ r: 4, stroke: '#22c55e', fill: '#fff', strokeWidth: 2 }} name="Inflow" />
-                      <Line type="monotone" dataKey="outflow" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, stroke: '#ef4444', fill: '#fff', strokeWidth: 2 }} name="Outflow" />
+                      <Line type="monotone" dataKey="inflow" stroke="#22c55e" strokeWidth={2} dot={{ r: 4, stroke: '#22c55e', fill: '#fff', strokeWidth: 2 }} name="Inflow" isAnimationActive={false} />
+                      <Line type="monotone" dataKey="outflow" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, stroke: '#ef4444', fill: '#fff', strokeWidth: 2 }} name="Outflow" isAnimationActive={false} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -1724,13 +1746,13 @@ const AnalysisDetail = () => {
                       <YAxis tickFormatter={(value) => `${value}%`} />
                       <Tooltip formatter={(value: number, name) => name === 'budgetWeight' ? `${value}%` : formatCurrency(value)} />
                       <Legend />
-                      <Bar dataKey="budgetWeight" fill="#0ea5e9" radius={[6, 6, 0, 0]} name="Budget Weight" />
-                      <Line type="monotone" dataKey="projectedRevenue" stroke="#6366f1" strokeWidth={2} name="Projected Revenue" />
+                      <Bar dataKey="budgetWeight" fill="#0ea5e9" radius={[6, 6, 0, 0]} name="Budget Weight" isAnimationActive={false} />
+                      <Line type="monotone" dataKey="projectedRevenue" stroke="#6366f1" strokeWidth={2} name="Projected Revenue" isAnimationActive={false} />
                     </BarChart>
                   </ResponsiveContainer>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     {financialPlanningMap.map((node, idx) => (
-                      <div key={idx} className="rounded-lg border p-3 space-y-1">
+                      <div key={idx} className="rounded-lg p-3 space-y-1 shadow-sm">
                         <p className="font-semibold">{node.region}</p>
                         <p className="text-sm text-muted-foreground">
                           Priority: <span className="font-medium text-primary">{node.priority}</span>
@@ -1788,7 +1810,7 @@ const AnalysisDetail = () => {
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Feature Coverage</h4>
                 {featureCoverageData.length ? (
                   <ResponsiveContainer width="100%" height={260}>
@@ -1832,7 +1854,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Innovation Quotient</h4>
                 <p className="text-3xl font-bold text-primary">{innovationQuotient?.score ?? '—'}</p>
                 <p className="text-sm text-muted-foreground mt-2">{innovationQuotient?.summary}</p>
@@ -1867,7 +1889,7 @@ const AnalysisDetail = () => {
                   </h4>
                   <ul className="space-y-2 text-sm">
                     {retentionRisk.map((risk, idx) => (
-                      <li key={idx} className="rounded-lg border p-3">
+                      <li key={idx} className="rounded-lg p-3 shadow-sm">
                         <p className="font-semibold">{risk.riskType}</p>
                         <p className="text-xs text-muted-foreground">Level: {risk.level}</p>
                         <p className="text-xs text-muted-foreground mt-1">Mitigation: {risk.mitigation}</p>
@@ -1895,7 +1917,7 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Unexplored Segments</h4>
                 <ul className="space-y-3 text-sm">
                   {unexploredSegments.map((segment, idx) => (
-                    <li key={idx} className="rounded-lg border p-3">
+                    <li key={idx} className="rounded-lg p-3 shadow-sm">
                       <p className="font-semibold">{segment.segment}</p>
                       <p className="text-xs text-muted-foreground">Potential: {formatCurrency(segment.potentialValue)}</p>
                       <p className="text-xs text-muted-foreground mt-1">{segment.rationale}</p>
@@ -1911,14 +1933,14 @@ const AnalysisDetail = () => {
                     <XAxis dataKey="topic" interval={0} angle={-20} textAnchor="end" height={80} />
                     <YAxis domain={ensureUniPolarDomain(predictedShiftDomain, [0, 100])} tickFormatter={(value) => `${Math.round(value)}%`} allowDecimals={false} />
                     <Tooltip formatter={(value: number) => [`${Math.round(value)}%`, "Confidence"]} />
-                    <Bar dataKey="confidencePercent" fill="#f97316" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="confidencePercent" fill="#f97316" radius={[6, 6, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Regional Opportunity Heatmap</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={regionalOpportunity}>
@@ -1926,11 +1948,11 @@ const AnalysisDetail = () => {
                     <XAxis dataKey="region" />
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
-                    <Bar dataKey="score" fill="#10b981" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="score" fill="#10b981" radius={[6, 6, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Growth Timeline</h4>
                 {growthTimeline.length ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -1952,6 +1974,7 @@ const AnalysisDetail = () => {
                         strokeWidth={2}
                         fill="url(#opportunityGrowthGradient)"
                         dot={{ r: 4, stroke: '#6366f1', fill: '#fff', strokeWidth: 2 }}
+                        isAnimationActive={false}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -1961,11 +1984,11 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border p-4">
+            <div className="rounded-xl p-4">
               <h4 className="text-sm font-semibold mb-3">Threat Early-Warning Signals</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 {threatSignals.map((threat, idx) => (
-                  <div key={idx} className="rounded-lg border p-3">
+                  <div key={idx} className="rounded-lg p-3 shadow-sm">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{threat.threat}</p>
                       <Badge>{threat.severity}</Badge>
@@ -2012,7 +2035,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Channel Prioritization</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={channelPrioritization}>
@@ -2020,11 +2043,11 @@ const AnalysisDetail = () => {
                     <XAxis dataKey="channel" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="budgetShare" fill="#2563eb" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="budgetShare" fill="#2563eb" radius={[6, 6, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">ROI Simulation Paths</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <ComposedChart data={roiSimulation}>
@@ -2032,18 +2055,18 @@ const AnalysisDetail = () => {
                     <XAxis dataKey="path" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="projectedROI" fill="#22c55e" radius={[6, 6, 0, 0]} />
-                    <Line type="monotone" dataKey="paybackMonths" stroke="#f97316" strokeWidth={2} />
+                    <Bar dataKey="projectedROI" fill="#22c55e" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+                    <Line type="monotone" dataKey="paybackMonths" stroke="#f97316" strokeWidth={2} isAnimationActive={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            <div className="rounded-xl border p-4">
+            <div className="rounded-xl p-4">
               <h4 className="text-sm font-semibold mb-3">Competitive Keyword Tracking</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 {competitiveTracking.map((row, idx) => (
-                  <div key={idx} className="rounded-lg border p-3">
+                  <div key={idx} className="rounded-lg p-3 shadow-sm">
                     <p className="font-semibold">{row.competitor}</p>
                     <p className="text-xs text-muted-foreground mt-1">Ad spend est: {formatCurrency(row.adSpendEstimate)}</p>
                     <p className="text-xs text-muted-foreground mt-2">Keywords: {safeArray(row.keywords).join(', ')}</p>
@@ -2104,6 +2127,7 @@ const AnalysisDetail = () => {
                         strokeWidth={2}
                         fill="url(#pricePositioningGradient)"
                         dot={{ r: 4, stroke: 'hsl(var(--primary))', fill: '#fff', strokeWidth: 2 }}
+                        isAnimationActive={false}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -2146,15 +2170,15 @@ const AnalysisDetail = () => {
               <div className={subPanelClass}>
                 <h4 className="text-sm font-semibold mb-3">Unit Economics</h4>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-lg border border-border/40 bg-background/80 p-3 text-center shadow-sm">
+                  <div className="rounded-lg bg-background/80 p-3 text-center shadow-sm">
                     <p className="text-xs text-muted-foreground">CPA</p>
                     <p className="text-lg font-semibold">{formatCurrency(unitEconomics?.cpa)}</p>
                   </div>
-                  <div className="rounded-lg border border-border/40 bg-background/80 p-3 text-center shadow-sm">
+                  <div className="rounded-lg bg-background/80 p-3 text-center shadow-sm">
                     <p className="text-xs text-muted-foreground">CLV</p>
                     <p className="text-lg font-semibold">{formatCurrency(unitEconomics?.clv)}</p>
                   </div>
-                  <div className="rounded-lg border border-border/40 bg-background/80 p-3 text-center shadow-sm">
+                  <div className="rounded-lg bg-background/80 p-3 text-center shadow-sm">
                     <p className="text-xs text-muted-foreground">CLV:CAC</p>
                     <p className="text-lg font-semibold">{unitEconomics?.clvToCac ?? '—'}</p>
                   </div>
@@ -2194,12 +2218,12 @@ const AnalysisDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">News Sentiment Mix</h4>
                 {hasNewsSentimentData ? (
                   <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
-                      <Pie data={newsSentimentChartData} dataKey="value" nameKey="sentiment" label>
+                      <Pie data={newsSentimentChartData} dataKey="value" nameKey="sentiment" innerRadius={50} outerRadius={80} paddingAngle={2} cornerRadius={6} stroke="transparent" isAnimationActive={false} label>
                         {newsSentimentChartData.map((item, idx) => (
                           <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                         ))}
@@ -2211,7 +2235,7 @@ const AnalysisDetail = () => {
                   <p className="text-sm text-muted-foreground">No news sentiment data available.</p>
                 )}
               </div>
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Reputation Index</h4>
                 {reputationIndex.length ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -2233,6 +2257,7 @@ const AnalysisDetail = () => {
                         strokeWidth={2}
                         fill="url(#reputationGradient)"
                         dot={{ r: 4, stroke: '#8b5cf6', fill: '#fff', strokeWidth: 2 }}
+                        isAnimationActive={false}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -2242,11 +2267,11 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border p-4">
+            <div className="rounded-xl p-4">
               <h4 className="text-sm font-semibold mb-3">Emerging Phrases</h4>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {emergingPhrases.map((phrase, idx) => (
-                  <div key={idx} className="rounded-lg border p-3 bg-muted/40">
+                  <div key={idx} className="rounded-lg p-3">
                     <p className="font-semibold">{phrase.phrase}</p>
                     <p className="text-xs text-muted-foreground mt-1">Frequency: {phrase.frequency}</p>
                     <p className="text-xs text-muted-foreground">Sentiment: {phrase.sentiment}</p>
@@ -2256,12 +2281,12 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Trending Stories</h4>
                 {trendingStories.length ? (
                   <div className="space-y-3 text-sm">
                     {trendingStories.map((story, idx) => (
-                      <div key={idx} className="rounded-lg border p-3 bg-muted/40">
+                      <div key={idx} className="rounded-lg p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <a
@@ -2290,12 +2315,12 @@ const AnalysisDetail = () => {
                 )}
               </div>
 
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Competitor Coverage</h4>
                 {competitorCoverage.length ? (
                   <div className="space-y-3 text-sm">
                     {competitorCoverage.map((story, idx) => (
-                      <div key={idx} className="rounded-lg border p-3 bg-muted/40">
+                      <div key={idx} className="rounded-lg p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-xs uppercase text-muted-foreground">{story.competitor}</p>
@@ -2327,11 +2352,11 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border p-4">
+            <div className="rounded-xl p-4">
               <h4 className="text-sm font-semibold mb-3">Emerging Phrases</h4>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {emergingPhrases.map((phrase, idx) => (
-                  <div key={idx} className="rounded-lg border p-3 bg-muted/40">
+                  <div key={idx} className="rounded-lg p-3">
                     <p className="font-semibold">{phrase.phrase}</p>
                     <p className="text-xs text-muted-foreground mt-1">Frequency: {phrase.frequency}</p>
                     <p className="text-xs text-muted-foreground">Sentiment: {phrase.sentiment}</p>
@@ -2353,7 +2378,7 @@ const AnalysisDetail = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Policy Risk Scorecard</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={policyScores}>
@@ -2361,11 +2386,11 @@ const AnalysisDetail = () => {
                     <XAxis dataKey="region" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="score" fill="#f87171" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="score" fill="#f87171" radius={[6, 6, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">Technology Compliance</h4>
                 <ul className="space-y-3 text-sm">
                   {technologyRisk.map((risk, idx) => (
@@ -2383,7 +2408,7 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <div className="flex items-start justify-between">
                   <h4 className="text-sm font-semibold mb-3">Risk Exposure Overview</h4>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -2398,18 +2423,18 @@ const AnalysisDetail = () => {
                       <XAxis dataKey="risk" tick={{ fontSize: 12 }} interval={0} />
                       <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
                       <Tooltip formatter={(value: number, name) => [`${Math.round(value)}%`, name === 'impactPercent' ? 'Impact' : 'Probability']} />
-                      <Bar dataKey="impactPercent" fill="hsl(var(--muted-foreground))" radius={[6, 6, 0, 0]} maxBarSize={24} />
-                      <Bar dataKey="probabilityPercent" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={24} />
+                      <Bar dataKey="impactPercent" fill="hsl(var(--muted-foreground))" radius={[6, 6, 0, 0]} maxBarSize={24} isAnimationActive={false} />
+                      <Bar dataKey="probabilityPercent" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={24} isAnimationActive={false} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
                   <p className="text-sm text-muted-foreground">No risk exposure data available.</p>
                 )}
               </div>
-              <div className="rounded-xl border p-4 space-y-3">
+              <div className="rounded-xl p-4 space-y-3">
                 <h4 className="text-sm font-semibold mb-3">Financial & Geopolitical Factors</h4>
                 {financialGeopolitical.map((factor, idx) => (
-                  <div key={idx} className="rounded-lg border p-3">
+                  <div key={idx} className="rounded-lg p-3">
                     <p className="font-semibold">{factor.factor}</p>
                     <p className="text-xs text-muted-foreground">Impact: {factor.impact}</p>
                     <p className="text-xs text-muted-foreground">Probability: {formatPercentage(factor.probability)}</p>
@@ -2418,11 +2443,11 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border p-4">
+            <div className="rounded-xl p-4">
               <h4 className="text-sm font-semibold mb-3">Compliance Status</h4>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {complianceStatus.map((item, idx) => (
-                  <div key={idx} className="rounded-lg border p-3 bg-muted/40">
+                  <div key={idx} className="rounded-lg p-3">
                     <p className="font-semibold">{item.framework}</p>
                     <p className="text-xs text-muted-foreground">{item.status}</p>
                     <p className="text-xs text-muted-foreground mt-1">{item.notes}</p>
@@ -2448,7 +2473,7 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Competitor Moves</h4>
                 <ul className="space-y-3 text-sm">
                   {competitorMoves.map((move, idx) => (
-                    <li key={idx} className="rounded-lg border p-3">
+                    <li key={idx} className="rounded-lg p-3">
                       <div className="flex items-center justify-between">
                         <p className="font-semibold">{move.competitor}</p>
                         <Badge>{move.likelihood}%</Badge>
@@ -2459,7 +2484,7 @@ const AnalysisDetail = () => {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-xl border p-4">
+              <div className="rounded-xl p-4">
                 <h4 className="text-sm font-semibold mb-3">User Adoption Projection</h4>
                 {userAdoption.length ? (
                   <ResponsiveContainer width="100%" height={220}>
@@ -2486,8 +2511,9 @@ const AnalysisDetail = () => {
                         strokeWidth={2}
                         fill="url(#userAdoptionGradient)"
                         dot={{ r: 4, stroke: '#6366f1', fill: '#fff', strokeWidth: 2 }}
+                        isAnimationActive={false}
                       />
-                      <Line type="monotone" dataKey="sentimentScore" stroke="#f97316" strokeWidth={2} dot={{ r: 4, stroke: '#f97316', fill: '#fff', strokeWidth: 2 }} />
+                      <Line type="monotone" dataKey="sentimentScore" stroke="#f97316" strokeWidth={2} dot={{ r: 4, stroke: '#f97316', fill: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
@@ -2496,7 +2522,7 @@ const AnalysisDetail = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border p-4">
+            <div className="rounded-xl p-4">
               <h4 className="text-sm font-semibold mb-3">Scenario Modeling</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <ComposedChart data={scenarioModelingData}>
@@ -2505,8 +2531,8 @@ const AnalysisDetail = () => {
                   <YAxis yAxisId="left" domain={ensureUniPolarDomain(scenarioGrowthDomain, [0, 100])} tickFormatter={(value) => `${Math.round(value)}%`} />
                   <YAxis yAxisId="right" orientation="right" domain={createDynamicDomain(scenarioRevenueDomain)} tickFormatter={(value) => formatNumber(value, { maximumFractionDigits: 1 })} />
                   <Tooltip formatter={(value: number, name) => name === 'growthRate' ? `${Math.round(value)}%` : formatNumber(value, { maximumFractionDigits: 1 })} />
-                  <Bar yAxisId="left" dataKey="growthRate" fill="#22c55e" radius={[6, 6, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="revenueProjection" stroke="#6366f1" strokeWidth={2} />
+                  <Bar yAxisId="left" dataKey="growthRate" fill="#22c55e" radius={[6, 6, 0, 0]} isAnimationActive={false} />
+                  <Line yAxisId="right" type="monotone" dataKey="revenueProjection" stroke="#6366f1" strokeWidth={2} isAnimationActive={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -2565,7 +2591,7 @@ const AnalysisDetail = () => {
           <CardContent>
             <div className="space-y-3">
               {sources.map((source, idx) => (
-                <div key={idx} className="rounded-lg border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div key={idx} className="rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
                   <div>
                     <p className="font-semibold">{source.name}</p>
                     <p className="text-xs text-muted-foreground">{source.type}</p>
@@ -2594,7 +2620,7 @@ const AnalysisDetail = () => {
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                   {legacyTrends.map((trend, idx) => (
-                    <div key={idx} className="border rounded-lg p-4">
+                    <div key={idx} className="rounded-lg p-4 shadow-sm">
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-semibold">{trend.title}</h4>
                         <Badge className={getImpactBadge(trend.impact)}>{trend.impact}</Badge>
@@ -2613,7 +2639,7 @@ const AnalysisDetail = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="border rounded-lg p-4 bg-green-50/50">
+                  <div className="rounded-lg p-4 bg-green-50/50 shadow-sm">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-700">
                       <CheckCircle2 className="h-5 w-5" />
                       Strengths
@@ -2628,7 +2654,7 @@ const AnalysisDetail = () => {
                     </ul>
                   </div>
 
-                  <div className="border rounded-lg p-4 bg-red-50/50">
+                  <div className="rounded-lg p-4 bg-red-50/50 shadow-sm">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-red-700">
                       <XCircle className="h-5 w-5" />
                       Weaknesses
@@ -2643,7 +2669,7 @@ const AnalysisDetail = () => {
                     </ul>
                   </div>
 
-                  <div className="border rounded-lg p-4 bg-blue-50/50">
+                  <div className="rounded-lg p-4 bg-blue-50/50 shadow-sm">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-700">
                       <TrendingUp className="h-5 w-5" />
                       Opportunities
@@ -2658,7 +2684,7 @@ const AnalysisDetail = () => {
                     </ul>
                   </div>
 
-                  <div className="border rounded-lg p-4 bg-yellow-50/50">
+                  <div className="rounded-lg p-4 bg-yellow-50/50 shadow-sm">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-yellow-700">
                       <AlertTriangle className="h-5 w-5" />
                       Threats
