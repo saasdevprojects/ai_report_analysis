@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -448,6 +449,17 @@ const AnalysisDetail = () => {
   const analyticPanelClass = "group relative overflow-hidden rounded-3xl border border-[#efe4ff] bg-gradient-to-br from-white via-[#faf3ff] to-white shadow-sm";
   const highlightPanelClass = `${analyticPanelClass}`;
   const subPanelClass = "rounded-2xl border border-[#f2e8ff] bg-white/95 p-5 shadow-sm";
+  const pastelThemeOverrides = {
+    "--primary": "268 84% 64%",
+    "--primary-foreground": "0 0% 100%",
+    "--muted": "265 100% 97%",
+    "--muted-foreground": "265 24% 58%",
+    "--accent": "24 93% 64%",
+    "--accent-foreground": "0 0% 100%",
+    "--card": "0 0% 100%",
+    "--card-foreground": "266 32% 20%",
+    "--border": "268 50% 88%",
+  } as CSSProperties;
 
   const userAdoptionData = safeArray(currentReport?.predictiveDashboard?.userAdoption).map((point) => ({
     period: point.period,
@@ -804,7 +816,7 @@ const AnalysisDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted">
-      <div className="container mx-auto max-w-6xl px-4 py-10">
+      <div className="container mx-auto max-w-6xl px-4 py-10" style={pastelThemeOverrides}>
         <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-10">
           <aside className="hidden lg:flex">
             <div className="sticky top-10 h-[calc(100vh-5rem)] w-full">
