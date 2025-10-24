@@ -11,6 +11,9 @@ import {
   Path,
   Image,
   Circle,
+  Defs,
+  LinearGradient,
+  Stop,
 } from "@react-pdf/renderer";
 import { Fragment } from "react";
 import bebasNeue400 from "@/assets/fonts/bebas-neue-400.ttf";
@@ -61,6 +64,47 @@ const palette = {
   accent: "#0ea5e9",
 };
 
+const isValidHexColor = (hex: string) => /^#?[0-9A-Fa-f]{6}$/.test(hex);
+
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  if (!isValidHexColor(hex)) return null;
+  const normalized = hex.replace("#", "");
+  return {
+    r: parseInt(normalized.slice(0, 2), 16),
+    g: parseInt(normalized.slice(2, 4), 16),
+    b: parseInt(normalized.slice(4, 6), 16),
+  };
+};
+
+const rgbToHex = (r: number, g: number, b: number) =>
+  `#${[r, g, b]
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("")}`;
+
+const tintHex = (hex: string, amount: number) => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const mix = (channel: number) => Math.round(channel + (255 - channel) * Math.min(Math.max(amount, 0), 1));
+  return rgbToHex(mix(rgb.r), mix(rgb.g), mix(rgb.b));
+};
+
+const shadeHex = (hex: string, amount: number) => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const mix = (channel: number) => Math.round(channel * (1 - Math.min(Math.max(amount, 0), 1)));
+  return rgbToHex(mix(rgb.r), mix(rgb.g), mix(rgb.b));
+};
+
+const withOpacity = (hex: string, opacity: number) => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const clamped = Math.max(0, Math.min(1, opacity));
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamped.toFixed(2)})`;
+};
+
+let uniqueIdCounter = 0;
+const getUniqueId = (prefix: string) => `${prefix}-${(uniqueIdCounter += 1).toString(36)}`;
+
 const PieChart = ({
   segments,
   totalLabel = "Total",
@@ -73,11 +117,29 @@ const PieChart = ({
   const radiusInner = 34;
   let startAngle = -Math.PI / 2;
   const totalFormatted = new Intl.NumberFormat("en", { maximumFractionDigits: total >= 100 ? 0 : 1 }).format(total);
+  const gradientBaseId = getUniqueId("pie-gradient");
+  const gradients = segments.map((segment, index) => ({
+    id: `${gradientBaseId}-${index}`,
+    start: shadeHex(segment.color, 0.1),
+    end: tintHex(segment.color, 0.15),
+  }));
 
   return (
     <View style={{ alignItems: "center" }}>
       <Svg width={180} height={180} viewBox="0 0 180 180">
-        <Rect x={0} y={0} width={180} height={180} fill="#ffffff" />
+        <Defs>
+          {gradients.map((gradient) => (
+            <LinearGradient key={gradient.id} id={gradient.id} x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0%" stopColor={gradient.start} />
+              <Stop offset="100%" stopColor={gradient.end} />
+            </LinearGradient>
+          ))}
+          <LinearGradient id={`${gradientBaseId}-inner`} x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0%" stopColor={palette.powder} />
+            <Stop offset="100%" stopColor={withOpacity(palette.sky, 0.35)} />
+          </LinearGradient>
+        </Defs>
+        <Rect x={0} y={0} width={180} height={180} fill="#ffffff" rx={18} ry={18} />
         {segments.map((segment, index) => {
           const sweep = (segment.value / total) * Math.PI * 2;
           const endAngle = startAngle + sweep;
@@ -98,12 +160,25 @@ const PieChart = ({
             "Z",
           ].join(" ");
           startAngle = endAngle;
-          return <Path key={`${segment.label}-${index}`} d={pathData} fill={segment.color} stroke="#ffffff" strokeWidth={1} />;
+          const gradientId = gradients[index]?.id;
+          const midAngle = startAngle - sweep / 2;
+          const labelX = 90 + (radiusOuter + 12) * Math.cos(midAngle);
+          const labelY = 90 + (radiusOuter + 12) * Math.sin(midAngle);
+          return (
+            <Fragment key={`${segment.label}-${index}`}>
+              <Path d={pathData} fill={gradientId ? `url(#${gradientId})` : segment.color} stroke="#ffffff" strokeWidth={1} />
+              <Line x1={90 + radiusInner * Math.cos(midAngle)} y1={90 + radiusInner * Math.sin(midAngle)} x2={labelX} y2={labelY} stroke={withOpacity(segment.color, 0.45)} strokeWidth={0.6} />
+              <Text x={labelX} y={labelY} textAnchor="middle" style={{ fontSize: 9, color: palette.slate }}>
+                {`${segment.label} (${Math.round((segment.value / total) * 100)}%)`}
+              </Text>
+            </Fragment>
+          );
         })}
-        <Circle cx={90} cy={90} r={radiusInner} fill="#ffffff" stroke={palette.border} strokeWidth={1} />
+        <Circle cx={90} cy={90} r={radiusInner + 4} fill={withOpacity(palette.powder, 0.65)} />
+        <Circle cx={90} cy={90} r={radiusInner} fill={`url(#${gradientBaseId}-inner)`} stroke={withOpacity(palette.navy, 0.15)} strokeWidth={1} />
       </Svg>
-      <Text style={{ fontSize: 10, color: palette.softSlate, marginTop: 8 }}>{totalLabel}</Text>
-      <Text style={{ fontFamily: "Bebas Neue", fontSize: 20, color: palette.navy }}>{totalFormatted}</Text>
+      <Text style={{ fontSize: 10, color: palette.softSlate, marginTop: 8, textTransform: "uppercase", letterSpacing: 0.8 }}>{totalLabel}</Text>
+      <Text style={{ fontFamily: "Bebas Neue", fontSize: 22, color: palette.navy, letterSpacing: 0.6 }}>{totalFormatted}</Text>
     </View>
   );
 };
@@ -129,10 +204,11 @@ const LineAreaChart = ({
     return <Text style={{ fontSize: 10, color: palette.softSlate }}>No chart data</Text>;
   }
 
-  const paddingX = 36;
-  const paddingY = 24;
+  const paddingX = 48;
+  const paddingTop = 32;
+  const paddingBottom = 42;
   const drawableWidth = width - paddingX * 2;
-  const drawableHeight = height - paddingY * 2;
+  const drawableHeight = height - paddingTop - paddingBottom;
 
   const numericValues = data.flatMap((point) => [
     typeof point[primaryKey] === "number" ? (point[primaryKey] as number) : 0,
@@ -141,10 +217,14 @@ const LineAreaChart = ({
 
   const maxValue = numericValues.length ? Math.max(...numericValues, 1) : 1;
 
-  const scaleX = (index: number) => paddingX + (drawableWidth * index) / Math.max(data.length - 1, 1);
-  const scaleY = (value: number) => paddingY + drawableHeight - (drawableHeight * value) / maxValue;
+  const gradientBaseId = getUniqueId("line-area");
+  const areaGradientId = `${gradientBaseId}-fill`;
+  const backdropGradientId = `${gradientBaseId}-bg`;
 
-  const areaPath = data
+  const scaleX = (index: number) => paddingX + (drawableWidth * index) / Math.max(data.length - 1, 1);
+  const scaleY = (value: number) => paddingTop + drawableHeight - (drawableHeight * value) / maxValue;
+
+  const areaSegments = data
     .map((point, index) => {
       const value = typeof point[primaryKey] === "number" ? (point[primaryKey] as number) : 0;
       const x = scaleX(index);
@@ -153,9 +233,9 @@ const LineAreaChart = ({
     })
     .join(" ");
 
-  const areaClosing = `L ${paddingX + drawableWidth} ${paddingY + drawableHeight} L ${paddingX} ${paddingY + drawableHeight} Z`;
+  const areaPath = `${areaSegments} L ${paddingX + drawableWidth} ${paddingTop + drawableHeight} L ${paddingX} ${paddingTop + drawableHeight} Z`;
 
-  const linePath = secondaryKey
+  const secondaryPath = secondaryKey
     ? data
         .map((point, index) => {
           const value = typeof point[secondaryKey] === "number" ? (point[secondaryKey] as number) : 0;
@@ -166,29 +246,179 @@ const LineAreaChart = ({
         .join(" ")
     : undefined;
 
+  const axisSteps = 4;
+  const yAxisMarkers = Array.from({ length: axisSteps + 1 }, (_, step) => {
+    const ratio = step / axisSteps;
+    const value = maxValue * (1 - ratio);
+    const y = paddingTop + drawableHeight * ratio;
+    return { value, y, key: `y-${step}` };
+  });
+
+  const formatAxisValue = (value: number) => {
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+    if (maxValue >= 10) return value.toFixed(0);
+    return value.toFixed(1);
+  };
+
+  const verticalStep = Math.max(1, Math.floor(data.length / 6));
+  const showXLabels = data.length <= 9;
+  const xAxisLabels = data.map((point, index) => ({
+    label: String(point.period ?? point.label ?? index + 1),
+    x: scaleX(index),
+    index,
+  }));
+
+  const lastPoint = data[data.length - 1];
+  const lastValue = typeof lastPoint?.[primaryKey] === "number" ? (lastPoint[primaryKey] as number) : undefined;
+  const lastCoords =
+    typeof lastValue === "number"
+      ? {
+          x: scaleX(data.length - 1),
+          y: scaleY(lastValue),
+        }
+      : undefined;
+
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Rect x={0} y={0} width={width} height={height} fill="#ffffff" />
-      {Array.from({ length: 5 }).map((_, index) => {
-        const y = paddingY + (drawableHeight * index) / 4;
-        return <Line key={`grid-${index}`} x1={paddingX} y1={y} x2={paddingX + drawableWidth} y2={y} stroke={colors.grid} strokeWidth={1} />;
-      })}
-      <Path d={`${areaPath} ${areaClosing}`} fill={`${colors.primary}33`} stroke={colors.primary} strokeWidth={2} />
-      {linePath ? <Path d={linePath} stroke={colors.secondary ?? palette.navy} strokeWidth={2} fill="none" /> : null}
-      {data.map((point, index) => {
-        const label = String(point.period ?? point.label ?? index + 1);
+      <Defs>
+        <LinearGradient id={backdropGradientId} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0%" stopColor={withOpacity(colors.primary, 0.08)} />
+          <Stop offset="100%" stopColor={withOpacity(colors.primary, 0.02)} />
+        </LinearGradient>
+        <LinearGradient id={areaGradientId} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0%" stopColor={withOpacity(colors.primary, 0.48)} />
+          <Stop offset="100%" stopColor={withOpacity(colors.primary, 0.08)} />
+        </LinearGradient>
+      </Defs>
+      <Rect x={0} y={0} width={width} height={height} rx={18} ry={18} fill={`url(#${backdropGradientId})`} />
+      <Rect
+        x={paddingX - 8}
+        y={paddingTop - 12}
+        width={drawableWidth + 16}
+        height={drawableHeight + 24}
+        rx={14}
+        ry={14}
+        fill="#ffffff"
+        stroke={withOpacity(colors.axis, 0.18)}
+        strokeWidth={1}
+      />
+      {yAxisMarkers.map((marker, index) => (
+        <Fragment key={marker.key}>
+          {index !== yAxisMarkers.length - 1 ? (
+            <Line
+              x1={paddingX}
+              y1={marker.y}
+              x2={paddingX + drawableWidth}
+              y2={marker.y}
+              stroke={withOpacity(colors.grid, 0.65)}
+              strokeWidth={0.8}
+            />
+          ) : null}
+          <Text x={paddingX - 14} y={marker.y + 4} textAnchor="end" style={{ fontSize: 9, color: colors.axis }}>
+            {formatAxisValue(marker.value)}
+          </Text>
+        </Fragment>
+      ))}
+      {Array.from({ length: Math.floor(data.length / verticalStep) + 1 }).map((_, idx) => {
+        const index = Math.min(idx * verticalStep, data.length - 1);
         const x = scaleX(index);
-        return <Line key={`tick-${label}`} x1={x} y1={paddingY + drawableHeight} x2={x} y2={paddingY + drawableHeight + 6} stroke={colors.axis} strokeWidth={1} />;
+        return (
+          <Line
+            key={`v-${index}`}
+            x1={x}
+            y1={paddingTop}
+            x2={x}
+            y2={paddingTop + drawableHeight}
+            stroke={withOpacity(colors.grid, 0.35)}
+            strokeWidth={0.6}
+          />
+        );
       })}
+      <Line
+        x1={paddingX}
+        y1={paddingTop + drawableHeight}
+        x2={paddingX + drawableWidth}
+        y2={paddingTop + drawableHeight}
+        stroke={withOpacity(colors.axis, 0.45)}
+        strokeWidth={1}
+      />
+      <Path d={areaPath} fill={`url(#${areaGradientId})`} stroke="none" />
+      <Path d={areaSegments} stroke={colors.primary} strokeWidth={2} fill="none" />
+      {secondaryPath ? (
+        <Path d={secondaryPath} stroke={colors.secondary ?? palette.navy} strokeWidth={1.5} fill="none" strokeDasharray="4 3" />
+      ) : null}
+      {data.map((point, index) => {
+        const value = typeof point[primaryKey] === "number" ? (point[primaryKey] as number) : 0;
+        const x = scaleX(index);
+        const y = scaleY(value);
+        return (
+          <Fragment key={`dot-${index}`}>
+            <Circle cx={x} cy={y} r={3.6} fill="#ffffff" stroke={withOpacity(colors.primary, 0.5)} strokeWidth={1.2} />
+            <Circle cx={x} cy={y} r={2.2} fill={colors.primary} />
+          </Fragment>
+        );
+      })}
+      {showXLabels
+        ? xAxisLabels.map((item) => (
+            <Fragment key={`label-${item.index}`}>
+              <Line
+                x1={item.x}
+                y1={paddingTop + drawableHeight}
+                x2={item.x}
+                y2={paddingTop + drawableHeight + 6}
+                stroke={withOpacity(colors.axis, 0.4)}
+                strokeWidth={0.8}
+              />
+              <Text x={item.x} y={paddingTop + drawableHeight + 16} textAnchor="middle" style={{ fontSize: 9, color: colors.axis }}>
+                {item.label}
+              </Text>
+            </Fragment>
+          ))
+        : null}
+      {!showXLabels
+        ? Array.from({ length: Math.floor(data.length / verticalStep) + 1 }).map((_, idx) => {
+            const index = Math.min(idx * verticalStep, data.length - 1);
+            const item = xAxisLabels[index];
+            return (
+              <Text key={`label-${item.index}`} x={item.x} y={paddingTop + drawableHeight + 16} textAnchor="middle" style={{ fontSize: 9, color: colors.axis }}>
+                {item.label}
+              </Text>
+            );
+          })
+        : null}
+      {lastCoords ? (
+        <Fragment>
+          <Rect
+            x={Math.min(lastCoords.x + 8, paddingX + drawableWidth - 68)}
+            y={Math.max(lastCoords.y - 32, paddingTop - 6)}
+            width={64}
+            height={20}
+            rx={6}
+            ry={6}
+            fill="#ffffff"
+            stroke={withOpacity(colors.primary, 0.35)}
+            strokeWidth={0.8}
+          />
+          <Text
+            x={Math.min(lastCoords.x + 40, paddingX + drawableWidth - 28)}
+            y={Math.max(lastCoords.y - 18, paddingTop + 2)}
+            textAnchor="middle"
+            style={{ fontSize: 9, color: colors.primary }}
+          >
+            {formatAxisValue(lastValue ?? 0)}
+          </Text>
+        </Fragment>
+      ) : null}
     </Svg>
   );
 };
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 48,
+    paddingTop: 42,
     paddingHorizontal: 48,
-    paddingBottom: 60,
+    paddingBottom: 54,
     backgroundColor: "#ffffff",
     color: palette.ink,
     fontFamily: "Inter",
@@ -206,26 +436,27 @@ const styles = StyleSheet.create({
   subheading: {
     fontSize: 12,
     color: palette.slate,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionCard: {
     borderRadius: 16,
     borderWidth: 1,
     borderColor: palette.border,
     backgroundColor: "#ffffff",
-    padding: 20,
-    marginBottom: 16,
+    padding: 18,
+    marginBottom: 10,
   },
   cardTitle: {
     fontFamily: "Bebas Neue",
     fontSize: 24,
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   cardBody: {
     fontSize: 11,
     color: palette.slate,
-    marginBottom: 12,
+    marginBottom: 8,
+    lineHeight: 1.45,
   },
   flexRow: {
     flexDirection: "row",
@@ -482,12 +713,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     letterSpacing: 1,
     color: palette.ink,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 11,
     color: palette.slate,
-    marginBottom: 20,
+    marginBottom: 14,
   },
   statGroup: {
     flexDirection: "row",
@@ -500,7 +731,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.border,
     backgroundColor: "#ffffff",
-    padding: 14,
+    padding: 12,
   },
   statLabelSmall: {
     fontSize: 10,
@@ -513,6 +744,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: palette.navy,
     marginTop: 4,
+    marginBottom: 6,
   },
   chipRow: {
     flexDirection: "row",
@@ -563,8 +795,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.powder,
     backgroundColor: "#f0f9ff",
-    padding: 18,
-    marginBottom: 16,
+    padding: 16,
+    marginBottom: 12,
   },
   calloutTitle: {
     fontFamily: "Bebas Neue",
@@ -593,17 +825,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.border,
     backgroundColor: "#ffffff",
-    padding: 16,
-    marginTop: 12,
+    padding: 14,
+    marginTop: 8,
   },
   legendList: {
-    marginTop: 12,
-    gap: 8,
+    marginTop: 8,
+    gap: 6,
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 4,
   },
   legendSwatch: {
     width: 10,
@@ -686,31 +918,85 @@ const QuadrantArea = ({
 
   const width = 420;
   const height = 160;
+  const paddingX = 52;
+  const paddingTop = 26;
+  const paddingBottom = 36;
+  const drawableWidth = width - paddingX * 2;
+  const drawableHeight = height - paddingTop - paddingBottom;
   const maxValue = Math.max(...data.map((item) => item.value)) || 1;
+  const gradientBaseId = getUniqueId("quadrant");
+  const areaGradientId = `${gradientBaseId}-area`;
+  const backdropGradientId = `${gradientBaseId}-backdrop`;
 
-  let d = `M0 ${height}`;
-  data.forEach((point, index) => {
-    const x = (index / Math.max(data.length - 1, 1)) * width;
-    const y = height - (point.value / maxValue) * (height - 18);
-    d += ` L${x.toFixed(2)} ${y.toFixed(2)}`;
-  });
-  d += ` L${width} ${height} Z`;
+  const scaleX = (index: number) => paddingX + (drawableWidth * index) / Math.max(data.length - 1, 1);
+  const scaleY = (value: number) => paddingTop + drawableHeight - (drawableHeight * value) / maxValue;
+
+  const areaSegments = data
+    .map((point, index) => {
+      const x = scaleX(index);
+      const y = scaleY(point.value);
+      return `${index === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(" ");
+
+  const areaPath = `${areaSegments} L ${paddingX + drawableWidth} ${paddingTop + drawableHeight} L ${paddingX} ${paddingTop + drawableHeight} Z`;
+  const yAxisSteps = 4;
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Rect x={0} y={0} width={width} height={height} fill="#ffffff" />
-      {Array.from({ length: 5 }).map((_, index) => (
-        <Line
-          key={index}
-          x1={0}
-          y1={(index / 4) * (height - 18)}
-          x2={width}
-          y2={(index / 4) * (height - 18)}
-          stroke={palette.powder}
-          strokeWidth={1}
-        />
-      ))}
-      <Path d={d} fill={`${fill}55`} stroke={fill} strokeWidth={2} />
+      <Defs>
+        <LinearGradient id={backdropGradientId} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0%" stopColor={withOpacity(fill, 0.1)} />
+          <Stop offset="100%" stopColor={withOpacity(fill, 0.02)} />
+        </LinearGradient>
+        <LinearGradient id={areaGradientId} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0%" stopColor={withOpacity(fill, 0.45)} />
+          <Stop offset="100%" stopColor={withOpacity(fill, 0.08)} />
+        </LinearGradient>
+      </Defs>
+      <Rect x={0} y={0} width={width} height={height} rx={16} ry={16} fill={`url(#${backdropGradientId})`} />
+      <Rect
+        x={paddingX - 10}
+        y={paddingTop - 12}
+        width={drawableWidth + 20}
+        height={drawableHeight + 24}
+        rx={14}
+        ry={14}
+        fill="#ffffff"
+        stroke={withOpacity(fill, 0.18)}
+        strokeWidth={1}
+      />
+      {Array.from({ length: yAxisSteps + 1 }).map((_, index) => {
+        const ratio = index / yAxisSteps;
+        const y = paddingTop + drawableHeight * ratio;
+        return (
+          <Line
+            key={`h-${index}`}
+            x1={paddingX}
+            y1={y}
+            x2={paddingX + drawableWidth}
+            y2={y}
+            stroke={withOpacity(fill, index === yAxisSteps ? 0.3 : 0.15)}
+            strokeWidth={index === yAxisSteps ? 1.2 : 0.8}
+          />
+        );
+      })}
+      {data.map((_, index) => {
+        if (index === 0 || index === data.length - 1) return null;
+        const x = scaleX(index);
+        return <Line key={`v-${index}`} x1={x} y1={paddingTop} x2={x} y2={paddingTop + drawableHeight} stroke={withOpacity(fill, 0.12)} strokeWidth={0.7} />;
+      })}
+      <Path d={areaPath} fill={`url(#${areaGradientId})`} stroke={withOpacity(fill, 0.65)} strokeWidth={2} />
+      {data.map((point, index) => {
+        const x = scaleX(index);
+        const y = scaleY(point.value);
+        return (
+          <Fragment key={`node-${index}`}>
+            <Circle cx={x} cy={y} r={3.4} fill="#ffffff" stroke={withOpacity(fill, 0.55)} strokeWidth={1.2} />
+            <Circle cx={x} cy={y} r={2} fill={shadeHex(fill, 0.1)} />
+          </Fragment>
+        );
+      })}
     </Svg>
   );
 };
@@ -727,21 +1013,47 @@ const BarComparison = ({
   }
 
   const width = 420;
-  const height = 160;
+  const height = 180;
+  const paddingX = 160;
+  const paddingY = 22;
   const barHeight = 18;
-  const gap = 16;
+  const gap = 18;
+  const drawableWidth = width - paddingX - 32;
   const maxValue = Math.max(...data.map((item) => item.value)) || 1;
+  const gradientBaseId = getUniqueId("bar");
+
+  const formatValue = (value: number) => {
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+    return value.toFixed(0);
+  };
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Rect x={0} y={0} width={width} height={height} fill="#ffffff" />
+      <Defs>
+        {colors.map((color, index) => (
+          <LinearGradient key={`${gradientBaseId}-${index}`} id={`${gradientBaseId}-${index}`} x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0%" stopColor={shadeHex(color, 0.1)} />
+            <Stop offset="100%" stopColor={tintHex(color, 0.2)} />
+          </LinearGradient>
+        ))}
+      </Defs>
+      <Rect x={0} y={0} width={width} height={height} rx={18} ry={18} fill={withOpacity(palette.powder, 0.45)} />
+      <Rect x={16} y={16} width={width - 32} height={height - 32} rx={14} ry={14} fill="#ffffff" stroke={withOpacity(palette.border, 0.6)} strokeWidth={1} />
       {data.map((item, index) => {
-        const y = index * (barHeight + gap) + 10;
-        const barWidth = (item.value / maxValue) * (width - 120);
+        const y = paddingY + index * (barHeight + gap);
+        const barWidth = (item.value / maxValue) * drawableWidth;
+        const color = colors[index % colors.length];
         return (
           <Fragment key={item.label}>
-            <Rect x={0} y={y} width={width} height={barHeight} fill={palette.powder} rx={4} />
-            <Rect x={0} y={y} width={barWidth} height={barHeight} fill={colors[index % colors.length]} rx={4} />
+            <Text x={32} y={y + barHeight - 2} style={{ fontSize: 10, color: palette.slate }}>
+              {item.label}
+            </Text>
+            <Rect x={paddingX} y={y} width={drawableWidth} height={barHeight} fill={withOpacity(color, 0.12)} rx={9} />
+            <Rect x={paddingX} y={y} width={Math.max(6, barWidth)} height={barHeight} fill={`url(#${gradientBaseId}-${index % colors.length})`} rx={9} />
+            <Text x={paddingX + barWidth + 12} y={y + barHeight - 2} textAnchor="start" style={{ fontSize: 10, color: color }}>
+              {formatValue(item.value)}
+            </Text>
           </Fragment>
         );
       })}
@@ -959,10 +1271,10 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
       <Page size="A4" style={styles.page}>
         <Text style={styles.sectionHeading}>Performance Overview</Text>
         <Text style={styles.sectionSubtitle}>Growth, adoption, sentiment, and revenue development.</Text>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Growth Timeline</Text>
           <Text style={styles.cardBody}>Opportunity index trend derived from predictive forecast.</Text>
-          <View style={styles.chartWrapper}>
+          <View style={styles.chartWrapper} wrap={false}>
             <LineAreaChart
               data={growthTimeline.map((item) => ({ period: item.period, value: item.growthIndex }))}
               primaryKey="value"
@@ -971,10 +1283,10 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
             />
           </View>
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Adoption & Sentiment</Text>
           <Text style={styles.cardBody}>Quarterly adoption rate alongside sentiment score confidence.</Text>
-          <View style={styles.chartWrapper}>
+          <View style={styles.chartWrapper} wrap={false}>
             <LineAreaChart
               data={adoption.map((item) => ({ period: item.period, adoptionRate: item.adoptionRate ?? 0, sentimentScore: item.sentimentScore ?? 0 }))}
               primaryKey="adoptionRate"
@@ -1029,14 +1341,14 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
             </View>
           </View>
           <View style={styles.gridItem}>
-            <View style={styles.sectionCard} wrap={false}>
+            <View style={styles.sectionCard}>
               <Text style={styles.cardTitle}>Sentiment Highlights</Text>
               <BulletList items={sentimentSummary} />
               <Text style={styles.caption}>Aggregated positive vs negative tone by channel</Text>
             </View>
           </View>
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Demand Signals</Text>
           {behavioralSignals.length ? (
             behavioralSignals.slice(0, 4).map((signal, index) => (
@@ -1050,7 +1362,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
             <Text style={styles.cardBody}>No behavioral signals available.</Text>
           )}
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Journey & Channel Mix</Text>
           <BulletList items={purchaseJourney.map((item) => `${item.stage}: ${formatPercent(item.conversionRate ?? 0)}`)} limit={6} />
           <View style={styles.spacer} />
@@ -1062,9 +1374,9 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
       <Page size="A4" style={styles.page}>
         <Text style={styles.sectionHeading}>Competitive & Market Landscape</Text>
         <Text style={styles.sectionSubtitle}>Market growth, regional distribution, and competitor benchmarking.</Text>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Market Growth Forecast</Text>
-          <View style={styles.chartWrapper}>
+          <View style={styles.chartWrapper} wrap={false}>
             <LineAreaChart
               data={marketSizeForecast.map((item) => ({ period: item.year ?? String(item.year), value: item.value ?? 0 }))}
               primaryKey="value"
@@ -1074,9 +1386,9 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
           </View>
           <Text style={styles.caption}>Currency: {report.marketEnvironment?.marketSize?.currency ?? currency}</Text>
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Regional Opportunity</Text>
-          <View style={[styles.chartWrapper, { alignItems: "center" }]}> 
+          <View style={[styles.chartWrapper, { alignItems: "center" }]} wrap={false}>
             <PieChart segments={regionPie.length ? regionPie : [{ label: "Global", value: 1, color: palette.navy }]} />
             <View style={styles.legendList}>
               {(regionPie.length ? regionPie : [{ label: "Global", value: 1, color: palette.navy }]).map((segment) => (
@@ -1121,14 +1433,14 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
       <Page size="A4" style={styles.page}>
         <Text style={styles.sectionHeading}>Product Evaluation & Fit</Text>
         <Text style={styles.sectionSubtitle}>Performance radar, feature coverage, innovation, and risks.</Text>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Performance Radar</Text>
           <BarComparison
             data={performanceRadar.map((metric) => ({ label: metric.axis, value: metric.product ?? 0 }))}
             colors={[palette.navy, palette.sky, palette.aqua, palette.powder]}
           />
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Feature Coverage</Text>
           <BulletList
             items={featureOverlap.map((feature) => `${feature.feature}: product ${formatPercent(feature.product ?? 0)} vs competitors ${formatPercent(feature.competitorAverage ?? 0)}`)}
@@ -1136,7 +1448,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
         </View>
         <View style={styles.gridTwo}>
           <View style={styles.gridItem}>
-            <View style={styles.sectionCard} wrap={false}>
+            <View style={styles.sectionCard}>
               <Text style={styles.cardTitle}>Innovation Quotient</Text>
               <Text style={styles.statValueSmall}>{innovationQuotient?.score ?? "-"}</Text>
               <Text style={styles.cardBody}>{innovationQuotient?.summary}</Text>
@@ -1144,7 +1456,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
             </View>
           </View>
           <View style={styles.gridItem}>
-            <View style={styles.sectionCard} wrap={false}>
+            <View style={styles.sectionCard}>
               <Text style={styles.cardTitle}>Technical Readiness Checklist</Text>
               <BulletList
                 items={technicalReadiness.map((item) => `${item.item}: ${item.status} · ${item.notes}`)}
@@ -1153,7 +1465,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
             </View>
           </View>
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Retention Risks</Text>
           <BulletList
             items={retentionRisk.map((risk) => `${risk.riskType}: ${risk.level} · Mitigation ${risk.mitigation}`)}
@@ -1165,9 +1477,9 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
       <Page size="A4" style={styles.page}>
         <Text style={styles.sectionHeading}>Opportunity Forecast & GTM Strategy</Text>
         <Text style={styles.sectionSubtitle}>Emerging segments, partnerships, scenario modeling, and ROI.</Text>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Scenario Modeling</Text>
-          <View style={styles.chartWrapper}>
+          <View style={styles.chartWrapper} wrap={false}>
             <LineAreaChart
               data={scenarioModeling.map((scenario, index) => ({ period: scenario.scenario ?? `Scenario ${index + 1}`, value: scenario.revenueProjection ?? 0 }))}
               primaryKey="value"
@@ -1177,7 +1489,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
           </View>
           <Text style={styles.caption}>Growth rate range: {formatPercent(scenarioModeling.reduce((max, entry) => Math.max(max, entry.growthRate ?? 0), 0))}</Text>
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Unexplored Segments</Text>
           <BulletList
             items={safeArray(report.opportunityForecast?.unexploredSegments).map(
@@ -1185,7 +1497,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
             )}
           />
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>GTM Channel Prioritization</Text>
           <BulletList items={safeArray(report.gtmStrategy?.channelPrioritization).map((item) => `${item.channel}: ${formatPercent(item.budgetShare ?? 0)}`)} />
           <Text style={styles.caption}>ROI Simulation: {safeArray(report.gtmStrategy?.roiSimulation).map((item) => `${item.path}: ROI ${formatPercent(item.projectedROI ?? 0)} in ${item.paybackMonths} months`).join(" · ")}</Text>
@@ -1196,7 +1508,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
       <Page size="A4" style={styles.page}>
         <Text style={styles.sectionHeading}>Financial Planning & Benchmark</Text>
         <Text style={styles.sectionSubtitle}>Budget allocation, runway scenarios, cash flow, and unit economics.</Text>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Runway Scenarios</Text>
           {runwayScenarios.length ? (
             <View style={styles.table}>
@@ -1219,13 +1531,13 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
             <Text style={styles.cardBody}>No runway data available.</Text>
           )}
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Budget Allocation</Text>
           <BulletList
             items={budgetAllocation.map((item) => `${item.category}: planned ${formatCurrency(item.planned, currency)} vs actual ${formatCurrency(item.actual, currency)} (variance ${formatCurrency(item.variance, currency)})`)}
           />
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Unit Economics</Text>
           <BulletList
             items={unitEconomics
@@ -1237,7 +1549,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
               : ["Unit economics not available."]}
           />
         </View>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Financial Notes</Text>
           <BulletList items={financialPlanningNotes} />
         </View>
@@ -1279,7 +1591,7 @@ const AnalysisReportDocument = ({ analysisName, report, generatedAt }: AnalysisR
       <Page size="A4" style={styles.page}>
         <Text style={styles.sectionHeading}>Risk & Compliance</Text>
         <Text style={styles.sectionSubtitle}>Policy exposure, technology compliance, risk matrix, and IP conflicts.</Text>
-        <View style={styles.sectionCard} wrap={false}>
+        <View style={styles.sectionCard}>
           <Text style={styles.cardTitle}>Risk Exposure Overview</Text>
           <View style={styles.table}>
             <View style={styles.tableHeader}>
