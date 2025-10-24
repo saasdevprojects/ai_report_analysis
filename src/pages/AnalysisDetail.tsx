@@ -444,10 +444,10 @@ const AnalysisDetail = () => {
   const secondaryColor = themePalette[1];
   const accentColor = themePalette[2];
   const donutPalette = COLORS;
-  const elevatedCardClass = "group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-primary/5 via-background/90 to-background/95 backdrop-blur-xl shadow-2xl";
-  const analyticPanelClass = "group relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-background/98 via-muted/30 to-background/95 backdrop-blur-xl shadow-2xl";
+  const elevatedCardClass = "group relative overflow-hidden rounded-3xl border border-[#efe4ff] bg-gradient-to-br from-white via-[#f5ecff] to-white shadow-sm";
+  const analyticPanelClass = "group relative overflow-hidden rounded-3xl border border-[#efe4ff] bg-gradient-to-br from-white via-[#faf3ff] to-white shadow-sm";
   const highlightPanelClass = `${analyticPanelClass}`;
-  const subPanelClass = "rounded-2xl border-0 bg-gradient-to-br from-background/96 via-muted/20 to-background/98 p-5 shadow-lg backdrop-blur-sm";
+  const subPanelClass = "rounded-2xl border border-[#f2e8ff] bg-white/95 p-5 shadow-sm";
 
   const userAdoptionData = safeArray(currentReport?.predictiveDashboard?.userAdoption).map((point) => ({
     period: point.period,
@@ -805,61 +805,67 @@ const AnalysisDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted">
       <div className="container mx-auto max-w-6xl px-4 py-10">
-        <div className="grid gap-10 lg:grid-cols-[260px_1fr]">
-          <aside className="hidden lg:block">
-            <Card className="sticky top-8 space-y-6 rounded-3xl border border-primary/10 bg-white/80 p-6 shadow-xl backdrop-blur">
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-primary">{analysis.product_name}</p>
-                <p className="text-xs text-muted-foreground">AI Market Intelligence</p>
-              </div>
-              <nav className="space-y-2 text-sm">
-                {["Dashboard", "Reports", "Competitors", "Account"].map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors hover:bg-primary/5"
-                  >
-                    <span>{item}</span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                ))}
-              </nav>
-              <Button className="w-full rounded-2xl bg-orange-500 text-white hover:bg-orange-600">
-                Create New Report
-              </Button>
-              <div className="space-y-2 text-xs text-muted-foreground">
-                <button type="button" className="block w-full rounded-xl px-3 py-2 text-left hover:bg-primary/5">
-                  Settings
-                </button>
-                <button type="button" className="block w-full rounded-xl px-3 py-2 text-left hover:bg-primary/5">
-                  Logout
-                </button>
-              </div>
-            </Card>
+        <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-10">
+          <aside className="hidden lg:flex">
+            <div className="sticky top-10 h-[calc(100vh-5rem)] w-full">
+              <Card className="flex h-full flex-col justify-between rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-primary/10 to-white p-6 shadow-xl backdrop-blur">
+                <div className="space-y-6">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-primary">{analysis.product_name}</p>
+                    <p className="text-xs text-muted-foreground">AI Market Intelligence</p>
+                  </div>
+                  <nav className="space-y-2 text-sm">
+                    {["Dashboard", "Reports", "Competitors", "Account"].map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors hover:bg-primary/5"
+                      >
+                        <span>{item}</span>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+                <div className="space-y-6">
+                  <Button className="w-full rounded-2xl bg-orange-500 text-white transition hover:bg-orange-600">
+                    Create New Report
+                  </Button>
+                  <div className="space-y-2 text-xs text-muted-foreground">
+                    <button type="button" className="block w-full rounded-xl px-3 py-2 text-left transition-colors hover:bg-primary/5">
+                      Settings
+                    </button>
+                    <button type="button" className="block w-full rounded-xl px-3 py-2 text-left transition-colors hover:bg-primary/5">
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </aside>
 
-          <section className="space-y-10">
-            <div className="relative overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-primary/10 to-white p-8 shadow-2xl">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,138,76,0.2),transparent_55%)]" />
+          <section className="space-y-12">
+            <div className="relative overflow-hidden rounded-3xl border border-[#f0e3ff] bg-gradient-to-br from-[#fdfbff] via-[#f9f2ff] to-white p-8 shadow-lg">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(157,78,221,0.16),transparent_60%)]" />
               <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-4">
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-primary/80">AI Market Intelligence Report</p>
-                    <h1 className="text-4xl font-bold text-slate-900">{analysis.product_name}</h1>
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold uppercase tracking-widest text-[#7c3aed]">AI Market Intelligence Report</p>
+                    <h1 className="text-4xl font-bold text-[#271046]">{analysis.product_name}</h1>
                   </div>
-                  <p className="max-w-2xl text-base text-muted-foreground">{analysis.product_description}</p>
+                  <p className="max-w-2xl text-base text-[#5c4c71]">{analysis.product_description}</p>
                   {generatedDate ? (
-                    <p className="text-sm text-muted-foreground">Generated on {generatedDate}</p>
+                    <p className="text-sm font-medium text-[#7d6b9c]">Generated on {generatedDate}</p>
                   ) : null}
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button variant="outline" className="rounded-2xl" onClick={exportCompetitorsCSV}>
+                <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                  <Button variant="outline" className="rounded-full border-[#cbb4ff] text-[#4b1f78] hover:bg-[#f1e9ff]" onClick={exportCompetitorsCSV}>
                     <Download className="h-4 w-4" />
                     <span className="ml-2">Export CSV</span>
                   </Button>
-                  <Button variant="outline" className="rounded-2xl" onClick={exportReportPDF} disabled={isExportingPdf}>
+                  <Button variant="outline" className="rounded-full border-[#cbb4ff] text-[#4b1f78] hover:bg-[#f1e9ff]" onClick={exportReportPDF} disabled={isExportingPdf}>
                     <Download className="h-4 w-4" />
-                    <span className="ml-2">{isExportingPdf ? "Exporting..." : "Export PDF"}</span>
+                    <span className="ml-2">{isExportingPdf ? "Exporting..." : "Export Report"}</span>
                   </Button>
                 </div>
               </div>
@@ -867,14 +873,14 @@ const AnalysisDetail = () => {
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {summaryHighlights.map(({ title, description, Icon }) => (
-                <Card key={title} className="rounded-3xl border border-primary/10 bg-white/90 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+                <Card key={title} className="rounded-3xl border border-[#efe4ff] bg-white/95 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                   <CardContent className="flex h-full flex-col gap-3 p-6">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4ecff] text-[#8b5cf6]">
                       <Icon className="h-5 w-5" />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{title}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+                      <p className="text-sm font-semibold text-[#271046]">{title}</p>
+                      <p className="mt-1 text-sm text-[#6f5c8d]">{description}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -884,41 +890,41 @@ const AnalysisDetail = () => {
             <div className="space-y-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Key Metrics</h2>
-                  <p className="text-sm text-muted-foreground">Signal-rich overview of current market readiness</p>
+                  <h2 className="text-2xl font-bold text-[#271046]">Key Metrics</h2>
+                  <p className="text-sm text-[#7d6b9c]">Signal-rich overview of current market readiness</p>
                 </div>
-                <Button variant="ghost" className="w-max rounded-full px-4" onClick={() => navigate("/dashboard")}>
+                <Button variant="ghost" className="w-max rounded-full px-4 text-[#4b1f78] hover:bg-[#f4ecff]" onClick={() => navigate("/dashboard")}>
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
                 </Button>
               </div>
               <div className="grid gap-6 lg:grid-cols-2">
-                <Card className="rounded-3xl border border-primary/10 bg-white/90 shadow-xl">
+                <Card className="rounded-3xl border border-[#efe4ff] bg-white/95 shadow-sm">
                   <CardHeader className="pb-4">
-                    <CardDescription>Market Readiness Score</CardDescription>
-                    <CardTitle className="text-4xl font-bold text-orange-500">{readinessScoreTenScale * 10}%</CardTitle>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Composite of product-market fit, team strength, competitive landscape & financial viability</p>
+                    <CardDescription className="text-[#7d6b9c]">Market Readiness Score</CardDescription>
+                    <CardTitle className="text-4xl font-bold text-[#c056ff]">{readinessScoreTenScale * 10}%</CardTitle>
+                    <p className="text-xs uppercase tracking-wide text-[#998bbb]">Composite of product-market fit, team strength, competitive landscape & financial viability</p>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-3 rounded-2xl bg-orange-50/60 px-4 py-3 text-sm text-orange-700">
+                    <div className="flex items-center gap-3 rounded-2xl bg-[#f6ecff] px-4 py-3 text-sm text-[#7b3baf]">
                       <Target className="h-5 w-5" />
                       <span>{readinessNarrative || "Strong positioning with targeted improvements recommended."}</span>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {["Product-Market Fit", "Competitive Landscape", "Team Strength", "Financial Viability"].map((label) => (
-                        <div key={label} className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                          <span className="h-2 w-2 rounded-full bg-orange-400" />
+                        <div key={label} className="flex items-center gap-2 text-xs font-medium text-[#7d6b9c]">
+                          <span className="h-2 w-2 rounded-full bg-[#c056ff]" />
                           {label}
                         </div>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="rounded-3xl border border-primary/10 bg-white/90 shadow-xl">
+                <Card className="rounded-3xl border border-[#efe4ff] bg-white/95 shadow-sm">
                   <CardHeader className="pb-4">
-                    <CardDescription>Growth Potential</CardDescription>
-                    <CardTitle className="text-4xl font-bold text-slate-900">{growthHeadline}</CardTitle>
-                    <p className="text-sm text-emerald-600">YoY Growth</p>
-                    <p className="text-xs text-muted-foreground">{growthSubcopy}</p>
+                    <CardDescription className="text-[#7d6b9c]">Growth Potential</CardDescription>
+                    <CardTitle className="text-4xl font-bold text-[#271046]">{growthHeadline}</CardTitle>
+                    <p className="text-sm font-semibold text-[#16a34a]">YoY Growth</p>
+                    <p className="text-xs text-[#7d6b9c]">{growthSubcopy}</p>
                   </CardHeader>
                   <CardContent className="h-48">
                     {growthTimelineData.length ? (
@@ -926,19 +932,19 @@ const AnalysisDetail = () => {
                         <AreaChart data={growthTimelineData}>
                           <defs>
                             <linearGradient id="growthGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#fd923e" stopOpacity={0.4} />
-                              <stop offset="95%" stopColor="#fd923e" stopOpacity={0.05} />
+                              <stop offset="5%" stopColor="#f97316" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="#f97316" stopOpacity={0.05} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
-                          <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
+                          <CartesianGrid strokeDasharray="4 4" stroke="#efe4ff" />
+                          <XAxis dataKey="period" stroke="#998bbb" tickLine={false} axisLine={false} fontSize={12} />
+                          <YAxis stroke="#998bbb" tickLine={false} axisLine={false} fontSize={12} />
                           <Tooltip formatter={(value: number) => `${formatNumber(value, { maximumFractionDigits: 1 })}%`} />
-                          <Area type="monotone" dataKey="growthIndex" stroke="#fd923e" fill="url(#growthGradient)" strokeWidth={3} isAnimationActive={false} />
+                          <Area type="monotone" dataKey="growthIndex" stroke="#f97316" fill="url(#growthGradient)" strokeWidth={3} isAnimationActive={false} />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                      <div className="flex h-full items-center justify-center text-sm text-[#7d6b9c]">
                         No growth data available.
                       </div>
                     )}
@@ -948,20 +954,20 @@ const AnalysisDetail = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-              <Card className="rounded-3xl border border-primary/10 bg-white/90 shadow-xl">
+              <Card className="rounded-3xl border border-[#efe4ff] bg-white/95 shadow-sm">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-xl font-semibold text-slate-900">Competitor Overview</CardTitle>
-                  <CardDescription>Relative market share vs. category average</CardDescription>
+                  <CardTitle className="text-xl font-semibold text-[#271046]">Competitor Overview</CardTitle>
+                  <CardDescription className="text-[#7d6b9c]">Relative market share vs. category average</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {competitorBarItems.length ? (
                     competitorBarItems.map((entry) => (
                       <div key={entry.name} className="space-y-2">
-                        <div className="flex items-center justify-between text-sm font-medium text-slate-700">
+                        <div className="flex items-center justify-between text-sm font-medium text-[#4b1f78]">
                           <span>{entry.name}</span>
                           <span>{formatNumber(entry.value, { maximumFractionDigits: 1 })}%</span>
                         </div>
-                        <div className="h-3 rounded-full bg-muted">
+                        <div className="h-3 rounded-full bg-[#f4ecff]">
                           <div
                             className="h-3 rounded-full"
                             style={{
@@ -973,21 +979,21 @@ const AnalysisDetail = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">No competitor data available.</p>
+                    <p className="text-sm text-[#7d6b9c]">No competitor data available.</p>
                   )}
                 </CardContent>
               </Card>
-              <Card className="rounded-3xl border border-primary/10 bg-white/90 shadow-xl">
+              <Card className="rounded-3xl border border-[#efe4ff] bg-white/95 shadow-sm">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-xl font-semibold text-slate-900">Executive Summary</CardTitle>
-                  <CardDescription>AI synthesized narrative</CardDescription>
+                  <CardTitle className="text-xl font-semibold text-[#271046]">Executive Summary</CardTitle>
+                  <CardDescription className="text-[#7d6b9c]">AI synthesized narrative</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 text-sm text-muted-foreground">
+                <CardContent className="space-y-4 text-sm text-[#5c4c71]">
                   <p>{readinessNarrative || "Focus on unique differentiators and shore up integration coverage to win."}</p>
                   <div className="space-y-2">
                     {keyInsights.slice(0, 3).map((insight, index) => (
                       <div key={insight ?? index} className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-1 h-4 w-4 text-emerald-500" />
+                        <CheckCircle2 className="mt-1 h-4 w-4 text-[#8b5cf6]" />
                         <span>{insight}</span>
                       </div>
                     ))}
@@ -999,8 +1005,8 @@ const AnalysisDetail = () => {
             {/* Product Intelligence Dashboard */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-3xl font-bold">Product Intelligence</h2>
-                <p className="text-muted-foreground">
+                <h2 className="text-3xl font-bold text-[#271046]">Product Intelligence</h2>
+                <p className="text-sm text-[#7d6b9c]">
                   Live dashboards summarizing the latest AI report signals
                 </p>
               </div>
@@ -1009,57 +1015,57 @@ const AnalysisDetail = () => {
                 <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
                   <Card className={analyticPanelClass}>
                     <CardHeader className="pb-4">
-                      <CardDescription>User Adoption Overview</CardDescription>
-                      <CardTitle className="text-3xl">
+                      <CardDescription className="text-[#7d6b9c]">User Adoption Overview</CardDescription>
+                      <CardTitle className="text-3xl font-semibold text-[#271046]">
                         {formatNumber(latestAdoption?.adoptionRate, { maximumFractionDigits: 1 })}
                       </CardTitle>
-                      <div className="flex items-center gap-2 text-sm">
-                        <ArrowUpRight className="h-4 w-4 text-primary" />
-                        <span className={adoptionPercentChange && adoptionPercentChange < 0 ? "text-red-500" : "text-emerald-500"}>
+                      <div className="flex items-center gap-2 text-sm text-[#7d6b9c]">
+                        <ArrowUpRight className="h-4 w-4 text-[#8b5cf6]" />
+                        <span className={adoptionPercentChange && adoptionPercentChange < 0 ? "text-[#dc2626]" : "text-[#16a34a]"}>
                           {adoptionPercentChange !== null
                             ? `${formatNumber(adoptionPercentChange, { maximumFractionDigits: 1 })}% vs prior period`
                             : "No prior period"}
                         </span>
                       </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="text-[#5c4c71]">
                       <div className="grid gap-4 sm:grid-cols-3">
                         <div>
-                          <p className="text-xs uppercase text-muted-foreground">Sentiment Avg</p>
+                          <p className="text-xs uppercase tracking-wide text-[#998bbb]">Sentiment Avg</p>
                           <p className="mt-1 text-lg font-semibold">
                             {formatNumber(sentimentAverage, { maximumFractionDigits: 1 })}
                           </p>
-                          <span className="text-xs text-muted-foreground">Score across adoption periods</span>
+                          <span className="text-xs text-[#998bbb]">Score across adoption periods</span>
                         </div>
                         <div>
-                          <p className="text-xs uppercase text-muted-foreground">Top Scenario</p>
+                          <p className="text-xs uppercase tracking-wide text-[#998bbb]">Top Scenario</p>
                           <p className="mt-1 text-lg font-semibold">{topScenario?.scenario ?? "—"}</p>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-[#998bbb]">
                             Growth {formatNumber(topScenario?.growthRate, { maximumFractionDigits: 1 })}%
                           </span>
                         </div>
                         <div>
-                          <p className="text-xs uppercase text-muted-foreground">Revenue Projection</p>
+                          <p className="text-xs uppercase tracking-wide text-[#998bbb]">Revenue Projection</p>
                           <p className="mt-1 text-lg font-semibold">
                             {formatCurrency(topScenario?.revenueProjection)}
                           </p>
-                          <span className="text-xs text-muted-foreground">Scenario outlook</span>
+                          <span className="text-xs text-[#998bbb]">Scenario outlook</span>
                         </div>
                       </div>
                       <div className="mt-6 h-64">
                         {userAdoptionData.length ? (
                           <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={userAdoptionData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                              <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
-                              <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
+                              <CartesianGrid strokeDasharray="3 3" stroke="#efe4ff" />
+                              <XAxis dataKey="period" stroke="#998bbb" tickLine={false} axisLine={false} fontSize={12} />
+                              <YAxis stroke="#998bbb" tickLine={false} axisLine={false} fontSize={12} />
                               <Tooltip />
                               <Line type="monotone" dataKey="adoptionRate" stroke={primaryColor} strokeWidth={3} dot={false} isAnimationActive={false} />
                               <Line type="monotone" dataKey="sentimentScore" stroke={secondaryColor} strokeWidth={2} dot={false} isAnimationActive={false} />
                             </LineChart>
                           </ResponsiveContainer>
                         ) : (
-                          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                          <div className="flex h-full items-center justify-center text-sm text-[#7d6b9c]">
                             No adoption data available.
                           </div>
                         )}
