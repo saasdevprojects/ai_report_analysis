@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Building2, Users, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Target, Lightbulb, Download, Globe2, Activity, BarChart3, Sparkles, CircleDollarSign, Shield, Network, MapPin, LineChart as LineChartIcon, Wallet, Coins, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, Building2, Users, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Target, Lightbulb, Download, Globe2, Activity, BarChart3, Sparkles, CircleDollarSign, Shield, Network, MapPin, LineChart as LineChartIcon, Wallet, Coins, ArrowUpRight, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, RadialBarChart, RadialBar, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, ComposedChart } from "recharts";
 import type { ReportPayload, PersonaProfile } from "@/types/report";
@@ -673,7 +673,15 @@ const AnalysisDetail = () => {
 
     try {
       setIsExportingPdf(true);
-      const { generateAnalysisReportPdf } = await import("@/pdf/AnalysisReportPDF");
+      const pdfModule = await import("@/pdf/AnalysisReportPDF");
+      type GenerateAnalysisReportPdf = (args: { analysisName: string; report: ReportPayload; generatedAt?: string | null }) => Promise<Blob>;
+      const generateAnalysisReportPdf =
+        (pdfModule as unknown as { generateAnalysisReportPdf?: GenerateAnalysisReportPdf }).generateAnalysisReportPdf ??
+        (pdfModule as unknown as { default?: GenerateAnalysisReportPdf }).default ??
+        null;
+      if (!generateAnalysisReportPdf) {
+        throw new Error("PDF generator not available");
+      }
       const blob = await generateAnalysisReportPdf({
         analysisName: analysis.product_name,
         report,
@@ -725,217 +733,394 @@ const AnalysisDetail = () => {
     return colors[impact as keyof typeof colors] || colors.Medium;
   };
 
+  const generatedDate = currentReport?.generatedAt
+    ? new Date(currentReport.generatedAt).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : analysis.generated_at
+      ? formatDate(analysis.generated_at)
+      : null;
+  const keyInsights = safeArray(currentReport?.executiveSummary?.keyInsights);
+  const riskIndicators = safeArray(currentReport?.executiveSummary?.riskIndicators);
+  const topOpportunities = safeArray(currentReport?.executiveSummary?.topOpportunities);
+  const primaryOpportunity = topOpportunities[0];
+  const opportunityImpactLabel =
+    typeof primaryOpportunity?.impact === "number"
+      ? `${formatNumber(primaryOpportunity.impact, { maximumFractionDigits: 0 })} impact`
+      : null;
+  const primaryRisk = riskIndicators[0];
+  const growthPotentialSummary = currentReport?.executiveSummary?.growthPotential;
+  const targetPersona = personaCards[0];
+  const competitorOverviewRaw = marketShareData.length
+    ? marketShareData.map(item => ({ name: item.company, value: coerceNumber(item.share) }))
+    : readinessComparisonData.map(item => ({ name: item.name, value: coerceNumber(item.value) }));
+  const competitorOverview = competitorOverviewRaw.slice(0, 4);
+  const competitorMaxShare = competitorOverview.reduce((max, item) => Math.max(max, item.value), 0) || 100;
+
+  const latestGrowthPoint = growthTimelineData.at(-1);
+  const baselineGrowthValue = typeof latestGrowthPoint?.growthIndex === "number" ? latestGrowthPoint.growthIndex : null;
+  const growthHeadline = growthPotentialSummary?.trim().length
+    ? growthPotentialSummary
+    : baselineGrowthValue !== null
+      ? `${baselineGrowthValue >= 0 ? "+" : ""}${formatNumber(baselineGrowthValue, { maximumFractionDigits: 0 })}% YoY Growth`
+      : "Growth outlook pending";
+  const growthSubcopy = latestGrowthPoint?.period
+    ? `Projection through ${latestGrowthPoint.period}`
+    : "AI-estimated annual trajectory";
+  const competitorBarItems = competitorOverview.map((item, idx) => ({
+    name: item.name ?? `Competitor ${idx + 1}`,
+    value: item.value,
+    color: donutPalette[idx % donutPalette.length],
+  }));
+
+  const summaryHighlights = [
+    {
+      title: "Top Market Opportunity",
+      description: primaryOpportunity
+        ? `${primaryOpportunity.label}${opportunityImpactLabel ? ` · ${opportunityImpactLabel}` : ""}`
+        : keyInsights[0] ?? "AI identified the strongest growth lane for your product.",
+      Icon: Lightbulb,
+    },
+    {
+      title: "Key Differentiator",
+      description: keyInsights[1] ?? keyInsights[0] ?? "Your proprietary edge stands out in the current landscape.",
+      Icon: Sparkles,
+    },
+    {
+      title: "Primary Competitive Risk",
+      description: primaryRisk ?? riskIndicators[1] ?? "Monitor incumbent moves and pricing pressure.",
+      Icon: Shield,
+    },
+    {
+      title: "Target Audience Insight",
+      description: targetPersona
+        ? `${targetPersona.role} · ${targetPersona.companySize}`
+        : "Project managers need relief from manual workflows.",
+      Icon: Users,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted">
       <div className="container mx-auto max-w-6xl px-4 py-10">
-        <div className="mb-8 flex items-center justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/dashboard")}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={exportCompetitorsCSV}>
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-            <Button variant="outline" onClick={exportReportPDF} disabled={isExportingPdf}>
-              <Download className="h-4 w-4 mr-2" />
-              {isExportingPdf ? "Exporting..." : "Export PDF"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Header */}
-        <div className="relative mb-10 overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-primary/5 via-background/90 to-background/95 p-8 shadow-2xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,theme(colors.primary/15),transparent_60%)]" />
-          <div className="relative">
-            <h1 className="mb-2 text-4xl font-bold">{analysis.product_name}</h1>
-            <p className="text-lg text-muted-foreground">{analysis.product_description}</p>
-          {currentReport?.generatedAt && (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Generated: {new Date(currentReport.generatedAt).toLocaleString()}
-            </p>
-          )}
-        </div>
-        </div>
-
-        {/* KPI Cards */}
-        <div className="mb-12 grid gap-6 md:grid-cols-3">
-          <Card className={elevatedCardClass}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Market Readiness</p>
-                  <p className={`text-2xl font-bold ${getScoreColor(readinessScore)}`}>
-                    {readinessScoreTenScale} / 10
-                  </p>
-                </div>
-                <Target className="h-8 w-8 text-primary" />
+        <div className="grid gap-10 lg:grid-cols-[260px_1fr]">
+          <aside className="hidden lg:block">
+            <Card className="sticky top-8 space-y-6 rounded-3xl border border-primary/10 bg-white/80 p-6 shadow-xl backdrop-blur">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-primary">{analysis.product_name}</p>
+                <p className="text-xs text-muted-foreground">AI Market Intelligence</p>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className={elevatedCardClass}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Competitors Analyzed</p>
-                  <p className="text-2xl font-bold" style={{ color: "#fd923e" }}>
-                    {currentReport
-                      ? safeArray(currentReport?.competitiveLandscape?.topCompetitors).length
-                      : analysis.competitors?.length || 0}
-                  </p>
-                </div>
-                <Building2 className="h-8 w-8 text-primary" />
+              <nav className="space-y-2 text-sm">
+                {["Dashboard", "Reports", "Competitors", "Account"].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors hover:bg-primary/5"
+                  >
+                    <span>{item}</span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                ))}
+              </nav>
+              <Button className="w-full rounded-2xl bg-orange-500 text-white hover:bg-orange-600">
+                Create New Report
+              </Button>
+              <div className="space-y-2 text-xs text-muted-foreground">
+                <button type="button" className="block w-full rounded-xl px-3 py-2 text-left hover:bg-primary/5">
+                  Settings
+                </button>
+                <button type="button" className="block w-full rounded-xl px-3 py-2 text-left hover:bg-primary/5">
+                  Logout
+                </button>
               </div>
-            </CardContent>
-          </Card>
+            </Card>
+          </aside>
 
-          <Card className={elevatedCardClass}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Key Trends</p>
-                  <p className="text-2xl font-bold" style={{ color: "#fd923e" }}>
-                    {currentReport
-                      ? safeArray(currentReport?.marketEnvironment?.regulatoryTrends).length
-                      : analysis.market_trends?.length || 0}
-                  </p>
+          <section className="space-y-10">
+            <div className="relative overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-primary/10 to-white p-8 shadow-2xl">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,138,76,0.2),transparent_55%)]" />
+              <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-primary/80">AI Market Intelligence Report</p>
+                    <h1 className="text-4xl font-bold text-slate-900">{analysis.product_name}</h1>
+                  </div>
+                  <p className="max-w-2xl text-base text-muted-foreground">{analysis.product_description}</p>
+                  {generatedDate ? (
+                    <p className="text-sm text-muted-foreground">Generated on {generatedDate}</p>
+                  ) : null}
                 </div>
-                <TrendingUp className="h-8 w-8 text-primary" />
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button variant="outline" className="rounded-2xl" onClick={exportCompetitorsCSV}>
+                    <Download className="h-4 w-4" />
+                    <span className="ml-2">Export CSV</span>
+                  </Button>
+                  <Button variant="outline" className="rounded-2xl" onClick={exportReportPDF} disabled={isExportingPdf}>
+                    <Download className="h-4 w-4" />
+                    <span className="ml-2">{isExportingPdf ? "Exporting..." : "Export PDF"}</span>
+                  </Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
 
-        {/* Product Intelligence Dashboard */}
-        <div className="mb-10 space-y-6">
-          <div>
-            <h2 className="text-3xl font-bold">Product Intelligence</h2>
-            <p className="text-muted-foreground">
-              Live dashboards summarizing the latest AI report signals
-            </p>
-          </div>
-
-          <div className="space-y-8">
-            <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
-              <Card className={analyticPanelClass}>
-                <CardHeader className="pb-4">
-                  <CardDescription>User Adoption Overview</CardDescription>
-                  <CardTitle className="text-3xl">
-                    {formatNumber(latestAdoption?.adoptionRate, { maximumFractionDigits: 1 })}
-                  </CardTitle>
-                  <div className="flex items-center gap-2 text-sm">
-                    <ArrowUpRight className="h-4 w-4 text-primary" />
-                    <span className={adoptionPercentChange && adoptionPercentChange < 0 ? "text-red-500" : "text-emerald-500"}>
-                      {adoptionPercentChange !== null
-                        ? `${formatNumber(adoptionPercentChange, { maximumFractionDigits: 1 })}% vs prior period`
-                        : "No prior period"}
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {summaryHighlights.map(({ title, description, Icon }) => (
+                <Card key={title} className="rounded-3xl border border-primary/10 bg-white/90 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+                  <CardContent className="flex h-full flex-col gap-3 p-6">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+                      <Icon className="h-5 w-5" />
                     </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-3">
                     <div>
-                      <p className="text-xs uppercase text-muted-foreground">Sentiment Avg</p>
-                      <p className="mt-1 text-lg font-semibold">
-                        {formatNumber(sentimentAverage, { maximumFractionDigits: 1 })}
-                      </p>
-                      <span className="text-xs text-muted-foreground">Score across adoption periods</span>
+                      <p className="text-sm font-semibold text-slate-900">{title}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
                     </div>
-                    <div>
-                      <p className="text-xs uppercase text-muted-foreground">Top Scenario</p>
-                      <p className="mt-1 text-lg font-semibold">{topScenario?.scenario ?? "—"}</p>
-                      <span className="text-xs text-muted-foreground">
-                        Growth {formatNumber(topScenario?.growthRate, { maximumFractionDigits: 1 })}%
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase text-muted-foreground">Revenue Projection</p>
-                      <p className="mt-1 text-lg font-semibold">
-                        {formatCurrency(topScenario?.revenueProjection)}
-                      </p>
-                      <span className="text-xs text-muted-foreground">Scenario outlook</span>
-                    </div>
-                  </div>
-                  <div className="mt-6 h-64">
-                    {userAdoptionData.length ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={userAdoptionData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
-                          <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
-                          <Tooltip />
-                          <Line type="monotone" dataKey="adoptionRate" stroke={primaryColor} strokeWidth={3} dot={false} isAnimationActive={false} />
-                          <Line type="monotone" dataKey="sentimentScore" stroke={secondaryColor} strokeWidth={2} dot={false} isAnimationActive={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                        No adoption data available.
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-              <Card className={analyticPanelClass}>
-                <CardHeader className="pb-4">
-                  <CardDescription>Scenario Modeling</CardDescription>
-                  <CardTitle className="flex items-center gap-2 text-3xl">
-                    <Users className="h-6 w-6 text-primary" />
-                    {scenarioModelingData.length ? formatNumber(topScenario?.growthRate, { maximumFractionDigits: 1 }) + "%" : "—"}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">Growth rate for highest revenue projection</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="h-32">
-                    {scenarioModelingData.length ? (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">Key Metrics</h2>
+                  <p className="text-sm text-muted-foreground">Signal-rich overview of current market readiness</p>
+                </div>
+                <Button variant="ghost" className="w-max rounded-full px-4" onClick={() => navigate("/dashboard")}>
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+                </Button>
+              </div>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Card className="rounded-3xl border border-primary/10 bg-white/90 shadow-xl">
+                  <CardHeader className="pb-4">
+                    <CardDescription>Market Readiness Score</CardDescription>
+                    <CardTitle className="text-4xl font-bold text-orange-500">{readinessScoreTenScale * 10}%</CardTitle>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Composite of product-market fit, team strength, competitive landscape & financial viability</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3 rounded-2xl bg-orange-50/60 px-4 py-3 text-sm text-orange-700">
+                      <Target className="h-5 w-5" />
+                      <span>{readinessNarrative || "Strong positioning with targeted improvements recommended."}</span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {["Product-Market Fit", "Competitive Landscape", "Team Strength", "Financial Viability"].map((label) => (
+                        <div key={label} className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                          <span className="h-2 w-2 rounded-full bg-orange-400" />
+                          {label}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="rounded-3xl border border-primary/10 bg-white/90 shadow-xl">
+                  <CardHeader className="pb-4">
+                    <CardDescription>Growth Potential</CardDescription>
+                    <CardTitle className="text-4xl font-bold text-slate-900">{growthHeadline}</CardTitle>
+                    <p className="text-sm text-emerald-600">YoY Growth</p>
+                    <p className="text-xs text-muted-foreground">{growthSubcopy}</p>
+                  </CardHeader>
+                  <CardContent className="h-48">
+                    {growthTimelineData.length ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={scenarioModelingData}>
+                        <AreaChart data={growthTimelineData}>
                           <defs>
-                            <linearGradient id="scenarioGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={secondaryColor} stopOpacity={0.5} />
-                              <stop offset="95%" stopColor={secondaryColor} stopOpacity={0.05} />
+                            <linearGradient id="growthGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#fd923e" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="#fd923e" stopOpacity={0.05} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="scenario" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={11} />
-                          <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={11} tickFormatter={(value) => formatCurrency(value)} />
-                          <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                          <Area type="monotone" dataKey="revenueProjection" stroke={secondaryColor} fill="url(#scenarioGradient)" strokeWidth={2} />
+                          <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
+                          <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
+                          <Tooltip formatter={(value: number) => `${formatNumber(value, { maximumFractionDigits: 1 })}%`} />
+                          <Area type="monotone" dataKey="growthIndex" stroke="#fd923e" fill="url(#growthGradient)" strokeWidth={3} isAnimationActive={false} />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                        No scenario modeling available.
+                        No growth data available.
                       </div>
                     )}
-                  </div>
-                  <div className="space-y-3 text-sm">
-                    {topScenario ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Top scenario</span>
-                        <span className="font-semibold">{topScenario.scenario}</span>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+              <Card className="rounded-3xl border border-primary/10 bg-white/90 shadow-xl">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl font-semibold text-slate-900">Competitor Overview</CardTitle>
+                  <CardDescription>Relative market share vs. category average</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {competitorBarItems.length ? (
+                    competitorBarItems.map((entry) => (
+                      <div key={entry.name} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm font-medium text-slate-700">
+                          <span>{entry.name}</span>
+                          <span>{formatNumber(entry.value, { maximumFractionDigits: 1 })}%</span>
+                        </div>
+                        <div className="h-3 rounded-full bg-muted">
+                          <div
+                            className="h-3 rounded-full"
+                            style={{
+                              width: `${Math.min(100, (entry.value / competitorMaxShare) * 100)}%`,
+                              backgroundColor: entry.color,
+                            }}
+                          />
+                        </div>
                       </div>
-                    ) : null}
-                    {topScenario ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Revenue projection</span>
-                        <span className="font-semibold">{formatCurrency(topScenario.revenueProjection)}</span>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No competitor data available.</p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="rounded-3xl border border-primary/10 bg-white/90 shadow-xl">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl font-semibold text-slate-900">Executive Summary</CardTitle>
+                  <CardDescription>AI synthesized narrative</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm text-muted-foreground">
+                  <p>{readinessNarrative || "Focus on unique differentiators and shore up integration coverage to win."}</p>
+                  <div className="space-y-2">
+                    {keyInsights.slice(0, 3).map((insight, index) => (
+                      <div key={insight ?? index} className="flex items-start gap-2">
+                        <CheckCircle2 className="mt-1 h-4 w-4 text-emerald-500" />
+                        <span>{insight}</span>
                       </div>
-                    ) : null}
+                    ))}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {segmentCards.length ? (
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                {segmentCards.map((segment) => {
+            {/* Product Intelligence Dashboard */}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold">Product Intelligence</h2>
+                <p className="text-muted-foreground">
+                  Live dashboards summarizing the latest AI report signals
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
+                  <Card className={analyticPanelClass}>
+                    <CardHeader className="pb-4">
+                      <CardDescription>User Adoption Overview</CardDescription>
+                      <CardTitle className="text-3xl">
+                        {formatNumber(latestAdoption?.adoptionRate, { maximumFractionDigits: 1 })}
+                      </CardTitle>
+                      <div className="flex items-center gap-2 text-sm">
+                        <ArrowUpRight className="h-4 w-4 text-primary" />
+                        <span className={adoptionPercentChange && adoptionPercentChange < 0 ? "text-red-500" : "text-emerald-500"}>
+                          {adoptionPercentChange !== null
+                            ? `${formatNumber(adoptionPercentChange, { maximumFractionDigits: 1 })}% vs prior period`
+                            : "No prior period"}
+                        </span>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-4 sm:grid-cols-3">
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Sentiment Avg</p>
+                          <p className="mt-1 text-lg font-semibold">
+                            {formatNumber(sentimentAverage, { maximumFractionDigits: 1 })}
+                          </p>
+                          <span className="text-xs text-muted-foreground">Score across adoption periods</span>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Top Scenario</p>
+                          <p className="mt-1 text-lg font-semibold">{topScenario?.scenario ?? "—"}</p>
+                          <span className="text-xs text-muted-foreground">
+                            Growth {formatNumber(topScenario?.growthRate, { maximumFractionDigits: 1 })}%
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Revenue Projection</p>
+                          <p className="mt-1 text-lg font-semibold">
+                            {formatCurrency(topScenario?.revenueProjection)}
+                          </p>
+                          <span className="text-xs text-muted-foreground">Scenario outlook</span>
+                        </div>
+                      </div>
+                      <div className="mt-6 h-64">
+                        {userAdoptionData.length ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={userAdoptionData}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
+                              <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
+                              <Tooltip />
+                              <Line type="monotone" dataKey="adoptionRate" stroke={primaryColor} strokeWidth={3} dot={false} isAnimationActive={false} />
+                              <Line type="monotone" dataKey="sentimentScore" stroke={secondaryColor} strokeWidth={2} dot={false} isAnimationActive={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                            No adoption data available.
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className={analyticPanelClass}>
+                    <CardHeader className="pb-4">
+                      <CardDescription>Scenario Modeling</CardDescription>
+                      <CardTitle className="flex items-center gap-2 text-3xl">
+                        <Users className="h-6 w-6 text-primary" />
+                        {scenarioModelingData.length ? formatNumber(topScenario?.growthRate, { maximumFractionDigits: 1 }) + "%" : "—"}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">Growth rate for highest revenue projection</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="h-32">
+                        {scenarioModelingData.length ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={scenarioModelingData}>
+                              <defs>
+                                <linearGradient id="scenarioGradient" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor={secondaryColor} stopOpacity={0.5} />
+                                  <stop offset="95%" stopColor={secondaryColor} stopOpacity={0.05} />
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis dataKey="scenario" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={11} />
+                              <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={11} tickFormatter={(value) => formatCurrency(value)} />
+                              <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                              <Area type="monotone" dataKey="revenueProjection" stroke={secondaryColor} fill="url(#scenarioGradient)" strokeWidth={2} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                            No scenario modeling available.
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-3 text-sm">
+                        {topScenario ? (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Top scenario</span>
+                            <span className="font-semibold">{topScenario.scenario}</span>
+                          </div>
+                        ) : null}
+                        {topScenario ? (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Revenue projection</span>
+                            <span className="font-semibold">{formatCurrency(topScenario.revenueProjection)}</span>
+                          </div>
+                        ) : null}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {segmentCards.length ? (
+                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                    {segmentCards.map((segment) => {
                   const total = segment.segments.reduce((sum, item) => sum + item.value, 0);
                   return (
                     <Card key={segment.title} className={analyticPanelClass}>
@@ -990,17 +1175,17 @@ const AnalysisDetail = () => {
                       </CardContent>
                     </Card>
                   );
-                })}
-              </div>
-            ) : null}
+                    })}
+                  </div>
+                ) : null}
 
-            <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-              <Card className={analyticPanelClass}>
-                <CardHeader className="pb-4">
+                <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
+                  <Card className={analyticPanelClass}>
+                    <CardHeader className="pb-4">
                   <CardTitle>Profit Margin Trend</CardTitle>
                   <CardDescription>Tracking margin swings over time</CardDescription>
-                </CardHeader>
-                <CardContent className="h-72">
+                    </CardHeader>
+                    <CardContent className="h-72">
                   {profitMarginTrend.length ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={profitMarginTrend}>
@@ -1016,15 +1201,15 @@ const AnalysisDetail = () => {
                       No profit margin data available.
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
 
-              <Card className={analyticPanelClass}>
-                <CardHeader className="pb-4">
+                  <Card className={analyticPanelClass}>
+                    <CardHeader className="pb-4">
                   <CardTitle>Price Positioning</CardTitle>
                   <CardDescription>Comparing market price and value score</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center gap-6">
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center gap-6">
                   {pricePositioningBreakdown.length ? (
                     <>
                       <div className="relative mx-auto flex items-center justify-center">
@@ -1080,19 +1265,19 @@ const AnalysisDetail = () => {
                       No price positioning data available.
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-            <Card className={analyticPanelClass}>
-              <CardHeader className="pb-4">
+                <Card className={analyticPanelClass}>
+                  <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-primary" />
                   Growth Timeline
                 </CardTitle>
                 <CardDescription>Growth index vs confidence across forecast periods</CardDescription>
-              </CardHeader>
-              <CardContent className="h-72">
+                  </CardHeader>
+                  <CardContent className="h-72">
                 {growthTimelineData.length ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={growthTimelineData}>
@@ -1119,13 +1304,13 @@ const AnalysisDetail = () => {
                     No growth forecast data available.
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
 
-        {/* Market Readiness Score */}
-        <Card className={`${highlightPanelClass} mb-12`}>
+            {/* Market Readiness Score */}
+            <Card className={`${highlightPanelClass} mb-12`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-6 w-6 text-primary" />
@@ -2727,8 +2912,10 @@ const AnalysisDetail = () => {
             </Card>
           </>
         )}
-      </div>
+      </section>
     </div>
+  </div>
+  </div>
   );
 };
 
