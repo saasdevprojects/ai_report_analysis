@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Building2, Users, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Target, Lightbulb, Download, Globe2, Activity, BarChart3, Sparkles, CircleDollarSign, Shield, Network, MapPin, LineChart as LineChartIcon, Wallet, Coins, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, RadialBarChart, RadialBar, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, ComposedChart } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, RadialBarChart, RadialBar, Legend, RadarChart, Radar, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, ComposedChart } from "recharts";
 import type { ReportPayload, PersonaProfile } from "@/types/report";
 
 function safeArray<T>(value: T[] | null | undefined): T[] {
@@ -445,10 +445,10 @@ const AnalysisDetail = () => {
   const secondaryColor = themePalette[1];
   const accentColor = themePalette[2];
   const donutPalette = COLORS;
-  const elevatedCardClass = "group relative overflow-hidden rounded-3xl border border-[#efe4ff] bg-gradient-to-br from-white via-[#f5ecff] to-white shadow-sm";
-  const analyticPanelClass = "group relative overflow-hidden rounded-3xl border border-[#efe4ff] bg-gradient-to-br from-white via-[#faf3ff] to-white shadow-sm";
+  const elevatedCardClass = "group relative overflow-hidden rounded-3xl border border-[#e4d6ff] bg-gradient-to-br from-white via-[#f7f0ff] to-[#ede6ff] shadow-[0_24px_50px_-30px_rgba(39,16,70,0.45)]";
+  const analyticPanelClass = "group relative overflow-hidden rounded-3xl border border-[#dfd0ff] bg-gradient-to-br from-white via-[#f8f3ff] to-[#eee7ff] shadow-[0_28px_55px_-26px_rgba(39,16,70,0.42)]";
   const highlightPanelClass = `${analyticPanelClass}`;
-  const subPanelClass = "rounded-2xl border border-[#f2e8ff] bg-white/95 p-5 shadow-sm";
+  const subPanelClass = "rounded-2xl border border-[#eadfff] bg-gradient-to-br from-white via-[#f9f6ff] to-[#ece4ff] p-5 shadow-[0_20px_45px_-28px_rgba(39,16,70,0.4)]";
   const pastelThemeOverrides = {
     "--primary": "268 84% 64%",
     "--primary-foreground": "0 0% 100%",
@@ -856,7 +856,23 @@ const AnalysisDetail = () => {
                   <p className="text-sm font-semibold uppercase tracking-widest text-[#7c3aed]">AI Market Intelligence Report</p>
                   <h1 className="text-4xl font-bold text-[#271046]">{analysis.product_name}</h1>
                 </div>
-                <p className="max-w-2xl text-base text-[#5c4c71]">{analysis.product_description}</p>
+                <div className="space-y-3 text-[#5c4c71]">
+                  <p className="max-w-3xl text-base leading-relaxed">
+                    {analysis.product_description || "This assessment blends market telemetry, customer sentiment, and runway projections to help you make defensible go-to-market decisions."}
+                  </p>
+                  <p className="max-w-3xl text-sm leading-relaxed text-[#6f5c8d]">
+                    Inside you will find a board-ready summary, drill-downs on competitive posture, and actionable recommendations tailored to executive, product, and revenue teams. Each section pairs narrative guidance with clean visuals so stakeholders can scan quickly while still understanding the underlying data story.
+                  </p>
+                  <div className="rounded-2xl border border-white/60 bg-white/70 p-4 text-sm leading-relaxed text-[#4b1f78] shadow-inner">
+                    <p className="font-semibold tracking-wide text-xs uppercase text-[#7c3aed]">How to navigate this report</p>
+                    <ul className="mt-2 space-y-1.5 text-[#5c4c71]">
+                      <li>• Start with the executive intelligence summary to align on product-market readiness and top-priority moves.</li>
+                      <li>• Explore Product Intelligence and Competitive Landscape to validate differentiation, pricing corridors, and innovation velocity.</li>
+                      <li>• Use Opportunity Detection and GTM Strategy to allocate budget, messaging, and geographic focus with confidence.</li>
+                      <li>• Review Risk & Compliance and Financial Planning sections to quantify exposure, runway, and capital efficiency before final sign-off.</li>
+                    </ul>
+                  </div>
+                </div>
                 {generatedDate ? (
                   <p className="text-sm font-medium text-[#7d6b9c]">Generated on {generatedDate}</p>
                 ) : null}
@@ -893,11 +909,12 @@ const AnalysisDetail = () => {
             <div className="space-y-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#271046]">Key Metrics</h2>
-                  <p className="text-sm text-[#7d6b9c]">Signal-rich overview of current market readiness</p>
+                  <h2 className="text-2xl font-bold text-[#271046]">Key Metrics Deep Dive</h2>
+                  <p className="text-sm text-[#7d6b9c]">
+                    These tiles align the leadership team around readiness, trajectory, and share of voice so that later sections build on a shared understanding of the baseline.
+                  </p>
                 </div>
-                <Button variant="ghost" className="w-max rounded-full px-4 text-[#4b1f78] hover:bg-[#f4ecff]" onClick={() => navigate("/dashboard")}>
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+                <Button variant="ghost" className="w-max rounded-full px-4 text-[#4b1f78] hover:bg-[#f4ecff]" onClick={() => navigate("/dashboard")}>\n                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
                 </Button>
               </div>
               <div className="grid gap-6 lg:grid-cols-2">
@@ -905,12 +922,16 @@ const AnalysisDetail = () => {
                   <CardHeader className="pb-4">
                     <CardDescription className="text-[#7d6b9c]">Market Readiness Score</CardDescription>
                     <CardTitle className="text-4xl font-bold text-[#c056ff]">{readinessScoreTenScale * 10}%</CardTitle>
-                    <p className="text-xs uppercase tracking-wide text-[#998bbb]">Composite of product-market fit, team strength, competitive landscape & financial viability</p>
+                    <p className="text-xs uppercase tracking-wide text-[#998bbb]">
+                      Composite pulse across product-market fit, team strength, competitive intensity, and cash runway.
+                    </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-3 rounded-2xl bg-[#f6ecff] px-4 py-3 text-sm text-[#7b3baf]">
                       <Target className="h-5 w-5" />
-                      <span>{readinessNarrative || "Strong positioning with targeted improvements recommended."}</span>
+                      <span>
+                        {readinessNarrative || "Momentum is solid. Prioritise deeper integrations, frictionless onboarding, and partner co-marketing to lift conversion in the next two quarters."}
+                      </span>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {["Product-Market Fit", "Competitive Landscape", "Team Strength", "Financial Viability"].map((label) => (
@@ -939,7 +960,6 @@ const AnalysisDetail = () => {
                               <stop offset="95%" stopColor="#f97316" stopOpacity={0.05} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="4 4" stroke="#efe4ff" />
                           <XAxis dataKey="period" stroke="#998bbb" tickLine={false} axisLine={false} fontSize={12} />
                           <YAxis stroke="#998bbb" tickLine={false} axisLine={false} fontSize={12} />
                           <Tooltip formatter={(value: number) => `${formatNumber(value, { maximumFractionDigits: 1 })}%`} />
@@ -1059,7 +1079,6 @@ const AnalysisDetail = () => {
                         {userAdoptionData.length ? (
                           <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={userAdoptionData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#efe4ff" />
                               <XAxis dataKey="period" stroke="#998bbb" tickLine={false} axisLine={false} fontSize={12} />
                               <YAxis stroke="#998bbb" tickLine={false} axisLine={false} fontSize={12} />
                               <Tooltip />
@@ -1096,7 +1115,6 @@ const AnalysisDetail = () => {
                                   <stop offset="95%" stopColor={secondaryColor} stopOpacity={0.05} />
                                 </linearGradient>
                               </defs>
-                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                               <XAxis dataKey="scenario" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={11} />
                               <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={11} tickFormatter={(value) => formatCurrency(value)} />
                               <Tooltip formatter={(value) => formatCurrency(value as number)} />
@@ -1198,7 +1216,6 @@ const AnalysisDetail = () => {
                   {profitMarginTrend.length ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={profitMarginTrend}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
                         <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} tickFormatter={(value) => `${formatNumber(value, { maximumFractionDigits: 1 })}%`} />
                         <Tooltip formatter={(value: number) => `${formatNumber(value, { maximumFractionDigits: 1 })}%`} />
@@ -1300,7 +1317,6 @@ const AnalysisDetail = () => {
                           <stop offset="95%" stopColor={secondaryColor} stopOpacity={0.05} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
                       <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} />
                       <Tooltip />
@@ -1339,7 +1355,6 @@ const AnalysisDetail = () => {
                   startAngle={90}
                   endAngle={-270}
                 >
-                  <PolarGrid radialLines={false} />
                   <RadialBar
                     dataKey="value"
                     fill="#6366f1"
@@ -1398,7 +1413,6 @@ const AnalysisDetail = () => {
                   </h4>
                   <ResponsiveContainer width="100%" height={180}>
                     <RadarChart data={safeArray(currentReport?.executiveSummary?.decisionRadar)}>
-                      <PolarGrid />
                       <PolarAngleAxis dataKey="axis" />
                       <PolarRadiusAxis angle={30} domain={[0, 100]} />
                       <Radar dataKey="score" stroke="#6366f1" fill="#6366f1" fillOpacity={0.4} isAnimationActive={false} />
@@ -1468,7 +1482,6 @@ const AnalysisDetail = () => {
                       <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                   <XAxis dataKey="effort" tick={{ fontSize: 12 }} />
                   <YAxis dataKey="impact" tickFormatter={(value) => `${Math.round(value as number)}%`} />
                   <Tooltip formatter={(value: number, name, props) => {
@@ -1510,7 +1523,6 @@ const AnalysisDetail = () => {
             <CardContent className="space-y-4">
               <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={marketSizeForecast}>
-                  <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="year" />
                   <YAxis tickFormatter={(value) => formatNumber(value)} />
                   <Tooltip formatter={(value: number) => formatCurrency(value, marketSizeCurrency)} />
@@ -1568,7 +1580,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-2">Competitive Density Index</h4>
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={competitiveDensity}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="region" />
                     <YAxis />
                     <Tooltip />
@@ -1661,7 +1672,6 @@ const AnalysisDetail = () => {
                 </h4>
                 <ResponsiveContainer width="100%" height={260}>
                   <ComposedChart data={marketShareData.length ? marketShareData : readinessComparisonData}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey={marketShareData.length ? "company" : "name"} />
                     <YAxis />
                     <Tooltip />
@@ -1684,7 +1694,6 @@ const AnalysisDetail = () => {
                         <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                     <XAxis dataKey="pricePosition" tickFormatter={(value) => `${Math.round(value as number)}%`} />
                     <YAxis dataKey="featureScore" tickFormatter={(value) => `${Math.round(value as number)}%`} />
                     <Tooltip formatter={(value: number, name, props) => {
@@ -1713,7 +1722,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-4">Innovation Frequency</h4>
                 <ResponsiveContainer width="100%" height={260}>
                   <ComposedChart data={innovationFrequency}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="company" />
                     <YAxis />
                     <Tooltip />
@@ -1828,7 +1836,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Purchase Journey</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <ComposedChart data={purchaseJourney}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="stage" />
                     <YAxis />
                     <Tooltip />
@@ -1858,7 +1865,6 @@ const AnalysisDetail = () => {
                   </h4>
                   <ResponsiveContainer width="100%" height={260}>
                     <ComposedChart data={runwayScenarios}>
-                      <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="scenario" />
                       <YAxis yAxisId="left" label={{ value: 'Months', angle: -90, position: 'insideLeft' }} />
                       <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => formatCurrency(value)} />
@@ -1884,7 +1890,6 @@ const AnalysisDetail = () => {
                             <stop offset="95%" stopColor="#cbd5f5" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                         <XAxis dataKey="category" tick={{ fontSize: 12 }} />
                         <YAxis tickFormatter={(value) => formatCurrency(value)} />
                         <Tooltip formatter={(value: number, name) => [formatCurrency(value), name === 'planned' ? 'Planned' : 'Actual']} />
@@ -1932,7 +1937,6 @@ const AnalysisDetail = () => {
                           <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                       <XAxis dataKey="period" tick={{ fontSize: 12 }} />
                       <YAxis tickFormatter={(value) => formatCurrency(value)} />
                       <Tooltip formatter={(value: number, name) => [formatCurrency(value), name === 'net' ? 'Net Cash' : name === 'inflow' ? 'Inflow' : 'Outflow']} />
@@ -1958,7 +1962,6 @@ const AnalysisDetail = () => {
                   <h4 className="text-sm font-semibold mb-3">Financial Planning Map</h4>
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={financialPlanningMap}>
-                      <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="region" />
                       <YAxis tickFormatter={(value) => `${value}%`} />
                       <Tooltip formatter={(value: number, name) => name === 'budgetWeight' ? `${value}%` : formatCurrency(value)} />
@@ -2018,7 +2021,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Performance vs Competitors</h4>
                 <ResponsiveContainer width="100%" height={260}>
                   <RadarChart data={performanceMetrics}>
-                    <PolarGrid />
                     <PolarAngleAxis dataKey="axis" />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} />
                     <Radar name="Product" dataKey="product" stroke="#6366f1" fill="#6366f1" fillOpacity={0.4} />
@@ -2042,7 +2044,6 @@ const AnalysisDetail = () => {
                           <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                       <XAxis dataKey="feature" interval={0} angle={-20} textAnchor="end" height={80} tick={{ fontSize: 12 }} />
                       <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
                       <Tooltip formatter={(value: number, name) => [`${Math.round(value as number)}%`, name === 'product' ? 'Product' : 'Competitor Avg']} />
@@ -2147,7 +2148,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Predicted Market Shifts</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={predictedShiftData}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="topic" interval={0} angle={-20} textAnchor="end" height={80} />
                     <YAxis domain={ensureUniPolarDomain(predictedShiftDomain, [0, 100])} tickFormatter={(value) => `${Math.round(value)}%`} allowDecimals={false} />
                     <Tooltip formatter={(value: number) => [`${Math.round(value)}%`, "Confidence"]} />
@@ -2162,7 +2162,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Regional Opportunity Heatmap</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={regionalOpportunity}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="region" />
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
@@ -2181,7 +2180,6 @@ const AnalysisDetail = () => {
                           <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                       <XAxis dataKey="period" tick={{ fontSize: 12 }} />
                       <YAxis tickFormatter={(value) => `${Math.round(value as number)}%`} />
                       <Tooltip formatter={(value: number) => [`${Math.round(value as number)}%`, 'Growth Index']} />
@@ -2257,7 +2255,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Channel Prioritization</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={channelPrioritization}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="channel" />
                     <YAxis />
                     <Tooltip />
@@ -2269,7 +2266,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">ROI Simulation Paths</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <ComposedChart data={roiSimulation}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="path" />
                     <YAxis />
                     <Tooltip />
@@ -2328,7 +2324,6 @@ const AnalysisDetail = () => {
                           <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} interval={0} />
                       <YAxis tickFormatter={(value) => `${value}`} />
                       <Tooltip formatter={(value: number, name, props) => {
@@ -2367,7 +2362,6 @@ const AnalysisDetail = () => {
                           <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                       <XAxis dataKey="period" tick={{ fontSize: 12 }} />
                       <YAxis tickFormatter={(value) => `${value}%`} />
                       <Tooltip formatter={(value: number) => [`${Math.round(value as number)}%`, 'Margin']} />
@@ -2464,7 +2458,6 @@ const AnalysisDetail = () => {
                           <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                       <XAxis dataKey="period" tick={{ fontSize: 12 }} />
                       <YAxis tickFormatter={(value) => `${value}`} />
                       <Tooltip formatter={(value: number) => [`${Math.round(value as number)}`, 'Score']} />
@@ -2600,7 +2593,6 @@ const AnalysisDetail = () => {
                 <h4 className="text-sm font-semibold mb-3">Policy Risk Scorecard</h4>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={policyScores}>
-                    <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="region" />
                     <YAxis />
                     <Tooltip />
@@ -2637,7 +2629,6 @@ const AnalysisDetail = () => {
                 {hasRiskMatrixData ? (
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={riskMatrixData} barGap={18} barCategoryGap="32%">
-                      <CartesianGrid vertical={false} strokeDasharray="3 3" strokeOpacity={0.4} />
                       <XAxis dataKey="risk" tick={{ fontSize: 12 }} interval={0} />
                       <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
                       <Tooltip formatter={(value: number, name) => [`${Math.round(value)}%`, name === 'impactPercent' ? 'Impact' : 'Probability']} />
@@ -2713,7 +2704,6 @@ const AnalysisDetail = () => {
                           <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                       <XAxis dataKey="period" tick={{ fontSize: 12 }} />
                       <YAxis tickFormatter={(value) => `${Math.round(value as number)}%`} />
                       <Tooltip formatter={(value: number, name) => {
@@ -2744,7 +2734,6 @@ const AnalysisDetail = () => {
               <h4 className="text-sm font-semibold mb-3">Scenario Modeling</h4>
               <ResponsiveContainer width="100%" height={260}>
                 <ComposedChart data={scenarioModelingData}>
-                  <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="scenario" />
                   <YAxis yAxisId="left" domain={ensureUniPolarDomain(scenarioGrowthDomain, [0, 100])} tickFormatter={(value) => `${Math.round(value)}%`} />
                   <YAxis yAxisId="right" orientation="right" domain={createDynamicDomain(scenarioRevenueDomain)} tickFormatter={(value) => formatNumber(value, { maximumFractionDigits: 1 })} />
