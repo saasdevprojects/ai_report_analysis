@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import PublicLayout from "@/components/layout/PublicLayout";
 import {
@@ -14,7 +16,6 @@ import {
   Minus,
   Check,
 } from "lucide-react";
-
 
 const valuePillars = [
   {
@@ -125,6 +126,32 @@ const Index = () => {
   const infinityPrice = billingCycle === "monthly" ? `$${infinityMonthlyPrice}` : `$${infinityAnnualPrice}`;
   const infinitySuffix = billingCycle === "monthly" ? "/month" : "/year";
   const starterSuffix = billingCycle === "monthly" ? "/month" : "/year";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (isMounted && data.session) {
+        navigate("/dashboard", { replace: true });
+      }
+    };
+
+    void checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (isMounted && session) {
+        navigate("/dashboard", { replace: true });
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   return (
     <PublicLayout>
