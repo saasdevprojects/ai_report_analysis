@@ -171,18 +171,18 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {analyses.map((analysis) => (
-        <Card 
-          key={analysis.id} 
-          className="group relative overflow-hidden border border-slate-200/80 bg-white/90 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
+        <Card
+          key={analysis.id}
+          className="group relative overflow-hidden border border-slate-200/80 bg-white/90 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl focus-visible:-translate-y-1 focus-visible:shadow-2xl cursor-pointer"
           onClick={() => navigate(`/analysis/${analysis.id}`)}
         >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/0 via-indigo-900/0 to-sky-700/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/0 via-indigo-900/0 to-sky-700/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-focus-visible:opacity-100" />
           <CardHeader className="relative z-10 pb-4">
             <div className="min-w-0 pr-10">
-              <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-white line-clamp-1">
+              <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-white group-active:text-white group-focus-visible:text-white line-clamp-1">
                 {analysis.product_name}
               </CardTitle>
-              <CardDescription className="flex items-center gap-2 text-xs transition-colors duration-300 group-hover:text-slate-200">
+              <CardDescription className="flex items-center gap-2 text-xs transition-colors duration-300 group-hover:text-slate-200 group-active:text-slate-200 group-focus-visible:text-slate-200">
                 <Calendar className="h-3 w-3" />
                 {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
               </CardDescription>
@@ -218,7 +218,7 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   disabled={deletingId === analysis.id}
-                  className="text-destructive focus:text-destructive"
+                  className="text-destructive focus:bg-red-500 focus:text-white data-[highlighted]:bg-red-500 data-[highlighted]:text-white"
                   onSelect={() => {
                     void handleDelete(analysis);
                   }}
@@ -230,15 +230,15 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
             </DropdownMenu>
           </CardHeader>
           <CardContent className="relative z-10 pt-0">
-            <p className="text-sm text-muted-foreground line-clamp-3 mb-4 transition-colors duration-300 group-hover:text-slate-200">
+            <p className="text-sm text-muted-foreground line-clamp-3 mb-4 transition-colors duration-300 group-hover:text-slate-200 group-active:text-slate-200 group-focus-visible:text-slate-200">
               {analysis.product_description}
             </p>
             <div className="flex items-center justify-between text-sm font-medium">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary group-hover:text-white transition-colors" />
-                <span className="text-slate-600 transition-colors duration-300 group-hover:text-slate-200">Readiness</span>
+                <TrendingUp className="h-4 w-4 text-primary transition-colors group-hover:text-white group-active:text-white group-focus-visible:text-white" />
+                <span className="text-slate-600 transition-colors duration-300 group-hover:text-slate-200 group-active:text-slate-200 group-focus-visible:text-slate-200">Readiness</span>
               </div>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors duration-300 group-hover:bg-white/20 group-hover:text-white">
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors duration-300 group-hover:bg-white/20 group-hover:text-white group-active:bg-white/25 group-active:text-white group-focus-visible:bg-white/20 group-focus-visible:text-white">
                 {Math.round((analysis.market_readiness_score ?? 0) / 10)}/10
               </span>
             </div>

@@ -1,16 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import PublicLayout from "@/components/layout/PublicLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [message, setMessage] = useState("Completing sign-in...");
 
   useEffect(() => {
+    let isMounted = true;
+
     const exchangeCode = async () => {
       const error = searchParams.get("error");
       const errorDescription = searchParams.get("error_description");
@@ -35,8 +34,9 @@ const AuthCallback = () => {
             throw new Error("Missing session after authentication");
           }
           window.location.hash = "";
-          setMessage("Redirecting to dashboard...");
-          navigate("/dashboard", { replace: true });
+          if (isMounted) {
+            navigate("/dashboard", { replace: true });
+          }
           return;
         }
 
@@ -44,8 +44,9 @@ const AuthCallback = () => {
         if (code) {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) throw exchangeError;
-          setMessage("Redirecting to dashboard...");
-          navigate("/dashboard", { replace: true });
+          if (isMounted) {
+            navigate("/dashboard", { replace: true });
+          }
           return;
         }
 
@@ -57,24 +58,13 @@ const AuthCallback = () => {
     };
 
     void exchangeCode();
+
+    return () => {
+      isMounted = false;
+    };
   }, [navigate, searchParams]);
 
-  return (
-    <PublicLayout>
-      <div className="bg-gradient-to-br from-primary via-primary-dark to-secondary py-16">
-        <div className="container mx-auto px-4">
-          <Card className="mx-auto w-full max-w-md border-0 shadow-xl">
-            <CardHeader className="text-center">
-              <CardTitle>Sign in with Google</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center text-sm text-muted-foreground">
-              {message}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </PublicLayout>
-  );
+  return null;
 };
 
 export default AuthCallback;
