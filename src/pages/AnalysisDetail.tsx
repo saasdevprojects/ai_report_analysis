@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Building2, Users, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Target, Lightbulb, Download, Globe2, Activity, BarChart3, Sparkles, CircleDollarSign, Shield, Network, MapPin, LineChart as LineChartIcon, Wallet, Coins, ArrowUpRight, ArrowRight } from "lucide-react";
+import { ArrowLeft, Building2, Users, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Target, Lightbulb, Download, Globe2, Activity, BarChart3, Sparkles, CircleDollarSign, Shield, Network, MapPin, LineChart as LineChartIcon, Wallet, Coins, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, RadialBarChart, RadialBar, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, ComposedChart } from "recharts";
 import type { ReportPayload, PersonaProfile } from "@/types/report";
@@ -817,71 +817,62 @@ const AnalysisDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-muted">
       <div className="container mx-auto max-w-6xl px-4 py-10" style={pastelThemeOverrides}>
-        <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-10">
-          <aside className="hidden lg:flex">
-            <div className="sticky top-10 h-[calc(100vh-5rem)] w-full">
-              <Card className="flex h-full flex-col justify-between rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-primary/10 to-white p-6 shadow-xl backdrop-blur">
-                <div className="space-y-6">
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-primary">{analysis.product_name}</p>
-                    <p className="text-xs text-muted-foreground">AI Market Intelligence</p>
-                  </div>
-                  <nav className="space-y-2 text-sm">
-                    {["Dashboard", "Reports", "Competitors", "Account"].map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left transition-colors hover:bg-primary/5"
-                      >
-                        <span>{item}</span>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-                <div className="space-y-6">
-                  <Button className="w-full rounded-2xl bg-orange-500 text-white transition hover:bg-orange-600">
-                    Create New Report
-                  </Button>
-                  <div className="space-y-2 text-xs text-muted-foreground">
-                    <button type="button" className="block w-full rounded-xl px-3 py-2 text-left transition-colors hover:bg-primary/5">
-                      Settings
-                    </button>
-                    <button type="button" className="block w-full rounded-xl px-3 py-2 text-left transition-colors hover:bg-primary/5">
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </aside>
+        <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-[#2a1609] sm:text-4xl">Product Strategy & Financial Outlook</h1>
+            {generatedDate ? (
+              <p className="mt-1 text-sm font-medium text-[#a15c3d]">
+                Report generated on: {generatedDate}
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-[#a15c3d]/70">Report generated date unavailable</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <Button
+              onClick={exportReportPDF}
+              disabled={isExportingPdf}
+              className="flex items-center gap-2 rounded-xl bg-[#fce7d8] px-5 py-2 text-sm font-semibold text-[#5d2a1a] shadow-sm transition hover:bg-[#f7d9c4] disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" />
+              {isExportingPdf ? "Exporting PDF..." : "Export PDF"}
+            </Button>
+            <Button
+              onClick={exportCompetitorsCSV}
+              className="flex items-center gap-2 rounded-xl bg-[#fce7d8] px-5 py-2 text-sm font-semibold text-[#5d2a1a] shadow-sm transition hover:bg-[#f7d9c4]"
+            >
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+        </header>
 
-          <section className="space-y-12">
-            <div className="relative overflow-hidden rounded-3xl border border-[#f0e3ff] bg-gradient-to-br from-[#fdfbff] via-[#f9f2ff] to-white p-8 shadow-lg">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(157,78,221,0.16),transparent_60%)]" />
-              <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold uppercase tracking-widest text-[#7c3aed]">AI Market Intelligence Report</p>
-                    <h1 className="text-4xl font-bold text-[#271046]">{analysis.product_name}</h1>
-                  </div>
-                  <p className="max-w-2xl text-base text-[#5c4c71]">{analysis.product_description}</p>
-                  {generatedDate ? (
-                    <p className="text-sm font-medium text-[#7d6b9c]">Generated on {generatedDate}</p>
-                  ) : null}
+        <section className="space-y-12">
+          <div className="relative overflow-hidden rounded-3xl border border-[#f0e3ff] bg-gradient-to-br from-[#fdfbff] via-[#f9f2ff] to-white p-8 shadow-lg">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(157,78,221,0.16),transparent_60%)]" />
+            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold uppercase tracking-widest text-[#7c3aed]">AI Market Intelligence Report</p>
+                  <h1 className="text-4xl font-bold text-[#271046]">{analysis.product_name}</h1>
                 </div>
-                <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-                  <Button variant="outline" className="rounded-full border-[#cbb4ff] text-[#4b1f78] hover:bg-[#f1e9ff]" onClick={exportCompetitorsCSV}>
-                    <Download className="h-4 w-4" />
-                    <span className="ml-2">Export CSV</span>
-                  </Button>
-                  <Button variant="outline" className="rounded-full border-[#cbb4ff] text-[#4b1f78] hover:bg-[#f1e9ff]" onClick={exportReportPDF} disabled={isExportingPdf}>
-                    <Download className="h-4 w-4" />
-                    <span className="ml-2">{isExportingPdf ? "Exporting..." : "Export Report"}</span>
-                  </Button>
-                </div>
+                <p className="max-w-2xl text-base text-[#5c4c71]">{analysis.product_description}</p>
+                {generatedDate ? (
+                  <p className="text-sm font-medium text-[#7d6b9c]">Generated on {generatedDate}</p>
+                ) : null}
+              </div>
+              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                <Button variant="outline" className="rounded-full border-[#cbb4ff] text-[#4b1f78] hover:bg-[#f1e9ff]" onClick={exportCompetitorsCSV}>
+                  <Download className="h-4 w-4" />
+                  <span className="ml-2">Export CSV</span>
+                </Button>
+                <Button variant="outline" className="rounded-full border-[#cbb4ff] text-[#4b1f78] hover:bg-[#f1e9ff]" onClick={exportReportPDF} disabled={isExportingPdf}>
+                  <Download className="h-4 w-4" />
+                  <span className="ml-2">{isExportingPdf ? "Exporting..." : "Export Report"}</span>
+                </Button>
               </div>
             </div>
+          </div>
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {summaryHighlights.map(({ title, description, Icon }) => (
@@ -2933,8 +2924,7 @@ const AnalysisDetail = () => {
       </section>
     </div>
   </div>
-  </div>
-  );
+);
 };
 
 export default AnalysisDetail;

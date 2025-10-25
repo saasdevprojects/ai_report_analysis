@@ -179,10 +179,10 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/20 via-indigo-900/15 to-sky-700/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-focus-visible:opacity-100" />
           <CardHeader className="relative z-10 pb-4">
             <div className="min-w-0 pr-10">
-              <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-white group-active:text-white group-focus-visible:text-white line-clamp-1">
+              <CardTitle className="text-lg font-semibold text-slate-900 transition-colors duration-300 line-clamp-1">
                 {analysis.product_name}
               </CardTitle>
-              <CardDescription className="flex items-center gap-2 text-xs transition-colors duration-300 group-hover:text-slate-200 group-active:text-slate-200 group-focus-visible:text-slate-200">
+              <CardDescription className="flex items-center gap-2 text-xs text-slate-500 transition-colors duration-300">
                 <Calendar className="h-3 w-3" />
                 {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
               </CardDescription>
@@ -230,15 +230,15 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
             </DropdownMenu>
           </CardHeader>
           <CardContent className="relative z-10 pt-0">
-            <p className="text-sm text-muted-foreground line-clamp-3 mb-4 transition-colors duration-300 group-hover:text-slate-200 group-active:text-slate-200 group-focus-visible:text-slate-200">
+            <p className="text-sm text-muted-foreground line-clamp-3 mb-4 transition-colors duration-300">
               {analysis.product_description}
             </p>
             <div className="flex items-center justify-between text-sm font-medium">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary transition-colors group-hover:text-white group-active:text-white group-focus-visible:text-white" />
-                <span className="text-slate-600 transition-colors duration-300 group-hover:text-slate-200 group-active:text-slate-200 group-focus-visible:text-slate-200">Readiness</span>
+                <TrendingUp className="h-4 w-4 text-primary transition-colors" />
+                <span className="text-slate-600 transition-colors duration-300">Readiness</span>
               </div>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors duration-300 group-hover:bg-white/20 group-hover:text-white group-active:bg-white/25 group-active:text-white group-focus-visible:bg-white/20 group-focus-visible:text-white">
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors duration-300">
                 {Math.round((analysis.market_readiness_score ?? 0) / 10)}/10
               </span>
             </div>
