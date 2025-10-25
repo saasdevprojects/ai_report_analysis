@@ -176,7 +176,7 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
           className="group relative overflow-hidden border border-slate-200/80 bg-white/90 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl focus-visible:-translate-y-1 focus-visible:shadow-2xl cursor-pointer"
           onClick={() => navigate(`/analysis/${analysis.id}`)}
         >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/0 via-indigo-900/0 to-sky-700/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-focus-visible:opacity-100" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/20 via-indigo-900/15 to-sky-700/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-focus-visible:opacity-100" />
           <CardHeader className="relative z-10 pb-4">
             <div className="min-w-0 pr-10">
               <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-white group-active:text-white group-focus-visible:text-white line-clamp-1">
