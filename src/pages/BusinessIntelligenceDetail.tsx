@@ -376,8 +376,8 @@ const BusinessIntelligenceDetail = () => {
           </div>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-3">
-          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-violet-50/80 to-indigo-100/60`}
+        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-3">
+          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-violet-50/80 to-indigo-100/60`}
             aria-label="Strategic intelligence narrative card">
             <CardHeader className="space-y-1">
               <CardDescription className="text-violet-600">Strategic Intelligence Narrative</CardDescription>
@@ -385,7 +385,7 @@ const BusinessIntelligenceDetail = () => {
                 Unify decisions with shared context
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{strategicNarrative}</p>
               <div className="grid gap-3 rounded-[28px] border border-violet-200/70 bg-white/75 p-5 backdrop-blur">
                 <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Headlines surfaced</p>
@@ -406,7 +406,7 @@ const BusinessIntelligenceDetail = () => {
             </CardContent>
           </Card>
 
-          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-slate-50/70 to-violet-100/50`}
+          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-slate-50/70 to-violet-100/50`}
             aria-label="Opportunity orchestration card">
             <CardHeader className="space-y-1">
               <CardDescription className="text-indigo-600">Opportunity Orchestration</CardDescription>
@@ -414,7 +414,7 @@ const BusinessIntelligenceDetail = () => {
                 Score, stage, and socialize growth bets
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{opportunityNarrative}</p>
               <Table className="overflow-hidden rounded-[28px] border border-indigo-200/70 bg-white/80 text-sm">
                 <TableHeader className="bg-indigo-500/10 text-indigo-700">
@@ -454,7 +454,7 @@ const BusinessIntelligenceDetail = () => {
             </CardContent>
           </Card>
 
-          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-rose-50/60 to-violet-100/40`}
+          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-rose-50/60 to-violet-100/40`}
             aria-label="Automation runway card">
             <CardHeader className="space-y-1">
               <CardDescription className="text-rose-500">Automation Runway</CardDescription>
@@ -462,7 +462,7 @@ const BusinessIntelligenceDetail = () => {
                 Turn intelligence into repeatable momentum
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{automationNarrative}</p>
               <Table className="overflow-hidden rounded-[28px] border border-rose-200/60 bg-white/80 text-sm">
                 <TableHeader className="bg-rose-500/10 text-rose-600">
@@ -506,8 +506,8 @@ const BusinessIntelligenceDetail = () => {
           </Card>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-slate-50/70 to-sky-100/50`}
+        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-[1.6fr_1fr]">
+          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-slate-50/70 to-sky-100/50`}
             aria-label="Futurecasting intelligence card">
             <CardHeader className="space-y-1">
               <CardDescription className="text-sky-600">Futurecasting & Resilience</CardDescription>
@@ -515,7 +515,7 @@ const BusinessIntelligenceDetail = () => {
                 Stay ahead of the next inflection point
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{futureNarrative}</p>
               <div className="space-y-4">
                 {futureSignals.map((signal, index) => (
@@ -541,7 +541,7 @@ const BusinessIntelligenceDetail = () => {
             </CardContent>
           </Card>
 
-          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-amber-50/60 to-violet-100/40`}
+          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-amber-50/60 to-violet-100/40`}
             aria-label="Risk navigation card">
             <CardHeader className="space-y-1">
               <CardDescription className="text-amber-600">Risk Navigation</CardDescription>
@@ -549,7 +549,7 @@ const BusinessIntelligenceDetail = () => {
                 Keep experiments bold and defensible
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-4 text-slate-700">
               <p className="leading-relaxed text-base">{`Risk attention is centered on ${riskSummary}. Encourage every team to capture mitigations in-line, so governance never slows momentum.`}</p>
               <div className="space-y-3">
                 {risks.map((risk, index) => (
@@ -570,8 +570,8 @@ const BusinessIntelligenceDetail = () => {
           </Card>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-emerald-50/60 to-violet-100/40`}
+        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-[1.2fr_1fr]">
+          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-emerald-50/60 to-violet-100/40`}
             aria-label="Attribution and data confidence card">
             <CardHeader className="space-y-1">
               <CardDescription className="text-emerald-600">Attribution & Evidence</CardDescription>
@@ -579,7 +579,7 @@ const BusinessIntelligenceDetail = () => {
                 Anchor every insight in transparent sources
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{attributionNarrative}</p>
               <div className="rounded-[28px] border border-emerald-200/70 bg-white/80 p-5">
                 <p className="text-sm font-semibold text-emerald-600">
@@ -612,7 +612,7 @@ const BusinessIntelligenceDetail = () => {
             </CardContent>
           </Card>
 
-          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-violet-50/70 to-indigo-100/40`}
+          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-violet-50/70 to-indigo-100/40`}
             aria-label="Executive recap card">
             <CardHeader className="space-y-1">
               <CardDescription className="text-violet-600">Executive Recap</CardDescription>
@@ -620,7 +620,7 @@ const BusinessIntelligenceDetail = () => {
                 Broadcast the story in one confident swipe
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-4 text-slate-700">
               <p className="leading-relaxed text-base">{recapNarrative}</p>
               <div className="rounded-[24px] border border-violet-200/70 bg-white/80 p-4 text-sm text-slate-700">
                 <p className="font-semibold text-slate-900">Share-ready headline</p>

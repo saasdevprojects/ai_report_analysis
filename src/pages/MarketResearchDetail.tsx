@@ -455,9 +455,9 @@ const MarketResearchDetail = () => {
           </div>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-3">
+        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-3">
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-sky-50/80 to-indigo-100/50`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-sky-50/80 to-indigo-100/50`}
             aria-label="Market intelligence narrative card"
           >
             <CardHeader className="space-y-1">
@@ -466,7 +466,7 @@ const MarketResearchDetail = () => {
                 Translate signal into confident action
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{insightNarrative}</p>
               <div className="grid gap-3 rounded-[28px] border border-sky-200/70 bg-white/80 p-5 backdrop-blur">
                 <p className="text-sm font-semibold uppercase tracking-wide text-sky-600">Spotlight insights</p>
@@ -490,7 +490,7 @@ const MarketResearchDetail = () => {
           </Card>
 
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-indigo-50/80 to-sky-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-indigo-50/80 to-sky-100/40`}
             aria-label="Forecast outlook card"
           >
             <CardHeader className="space-y-1">
@@ -499,7 +499,7 @@ const MarketResearchDetail = () => {
                 See where the category is headed next
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{forecastNarrative}</p>
               <Table className="overflow-hidden rounded-[28px] border border-indigo-200/70 bg-white/80 text-sm">
                 <TableHeader className="bg-indigo-500/10 text-indigo-700">
@@ -542,7 +542,7 @@ const MarketResearchDetail = () => {
           </Card>
 
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-purple-50/70 to-sky-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-purple-50/70 to-sky-100/40`}
             aria-label="Opportunity radar card"
           >
             <CardHeader className="space-y-1">
@@ -551,7 +551,7 @@ const MarketResearchDetail = () => {
                 Prioritize moves with shared evidence
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{opportunityNarrative}</p>
               <Table className="overflow-hidden rounded-[28px] border border-purple-200/70 bg-white/80 text-sm">
                 <TableHeader className="bg-purple-500/10 text-purple-700">
@@ -587,9 +587,9 @@ const MarketResearchDetail = () => {
           </Card>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-[1.4fr_1fr]">
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-sky-50/70 to-emerald-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-sky-50/70 to-emerald-100/40`}
             aria-label="Segmentation heatmap card"
           >
             <CardHeader className="space-y-1">
@@ -598,7 +598,7 @@ const MarketResearchDetail = () => {
                 Know exactly where demand concentrates
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{segmentationNarrative}</p>
               <div className="grid gap-6 lg:grid-cols-2">
                 <div className="space-y-4">
@@ -695,7 +695,7 @@ const MarketResearchDetail = () => {
           </Card>
 
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-sky-50/60 to-purple-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-sky-50/60 to-purple-100/40`}
             aria-label="Audience intelligence card"
           >
             <CardHeader className="space-y-1">
@@ -704,7 +704,7 @@ const MarketResearchDetail = () => {
                 Keep the voice of the buyer front and center
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{audienceNarrative}</p>
               <div className="space-y-4">
                 <p className="text-sm font-semibold uppercase tracking-wide text-purple-600">Core personas</p>
@@ -789,9 +789,9 @@ const MarketResearchDetail = () => {
           </Card>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-2">
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-indigo-50/70 to-slate-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-indigo-50/70 to-slate-100/40`}
             aria-label="Competitive landscape card"
           >
             <CardHeader className="space-y-1">
@@ -800,7 +800,7 @@ const MarketResearchDetail = () => {
                 Stay sharper than the incumbents
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{competitionNarrative}</p>
               <Table className="overflow-hidden rounded-[28px] border border-indigo-200/70 bg-white/80 text-sm">
                 <TableHeader className="bg-indigo-500/10 text-indigo-700">
@@ -856,7 +856,7 @@ const MarketResearchDetail = () => {
           </Card>
 
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-sky-50/70 to-amber-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-sky-50/70 to-amber-100/40`}
             aria-label="Journey and growth card"
           >
             <CardHeader className="space-y-1">
@@ -865,7 +865,7 @@ const MarketResearchDetail = () => {
                 Synchronize funnel health with future runway
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{journeyNarrative}</p>
               <Table className="overflow-hidden rounded-[28px] border border-amber-200/70 bg-white/80 text-sm">
                 <TableHeader className="bg-amber-500/10 text-amber-700">
@@ -932,9 +932,9 @@ const MarketResearchDetail = () => {
           </Card>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-[1.2fr_1fr]">
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-amber-50/70 to-rose-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-amber-50/70 to-rose-100/40`}
             aria-label="Regulation and risk card"
           >
             <CardHeader className="space-y-1">
@@ -943,7 +943,7 @@ const MarketResearchDetail = () => {
                 Keep bold moves compliant and resilient
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{regulationNarrative}</p>
               <div className="grid gap-3 rounded-[24px] border border-rose-200/60 bg-white/80 p-4">
                 <p className="text-sm font-semibold uppercase tracking-wide text-rose-600">Regulatory signals</p>
@@ -1000,7 +1000,7 @@ const MarketResearchDetail = () => {
           </Card>
 
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-emerald-50/70 to-sky-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-emerald-50/70 to-sky-100/40`}
             aria-label="Attribution and confidence card"
           >
             <CardHeader className="space-y-1">
@@ -1009,7 +1009,7 @@ const MarketResearchDetail = () => {
                 Show exactly where every insight originated
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
               <p className="leading-relaxed text-base">{attributionNarrative}</p>
               <div className="rounded-[28px] border border-emerald-200/70 bg-white/80 p-5">
                 <p className="text-sm font-semibold text-emerald-600">
@@ -1048,7 +1048,7 @@ const MarketResearchDetail = () => {
 
         <section className="grid gap-6">
           <Card
-            className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-sky-50/70 to-indigo-100/40`}
+            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-sky-50/70 to-indigo-100/40`}
             aria-label="Executive recap card"
           >
             <CardHeader className="space-y-1">
@@ -1057,7 +1057,7 @@ const MarketResearchDetail = () => {
                 Broadcast the market story in one confident swipe
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-4 text-slate-700">
               <p className="leading-relaxed text-base">{recapNarrative}</p>
               <div className="rounded-[24px] border border-sky-200/70 bg-white/80 p-4 text-sm text-slate-700">
                 <p className="font-semibold text-slate-900">Share-ready headline</p>
