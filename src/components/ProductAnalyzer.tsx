@@ -27,16 +27,12 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
     industryOther: "",
     geographies: "",
     geographiesOther: "",
-    competitors: [""],
-    goals: "",
-    goalsOther: "",
-    constraints: ""
+    competitors: [""]
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const industries = ['SaaS', 'Healthcare', 'Fintech', 'Edtech', 'E-commerce', 'Other'];
   const geographyOptions = ['USA', 'Europe', 'Asia', 'Canada', 'Australia', 'Other'];
-  const businessGoals = ['Launch', 'Partnership', 'Fundraising', 'Market Entry', 'Other'];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -84,9 +80,7 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
             productDescription: formData.productDescription,
             industry: formData.industry === 'Other' ? formData.industryOther : formData.industry,
             geographies: (formData.geographies === 'Other' ? formData.geographiesOther : formData.geographies) ? [formData.geographies === 'Other' ? formData.geographiesOther : formData.geographies] : [],
-            competitors: formData.competitors.filter(c => c.trim()),
-            goals: (formData.goals === 'Other' ? formData.goalsOther : formData.goals) ? [formData.goals === 'Other' ? formData.goalsOther : formData.goals] : [],
-            constraints: formData.constraints
+            competitors: formData.competitors.filter(c => c.trim())
           },
           headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
         }
@@ -118,8 +112,6 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
           industry: formData.industry === 'Other' ? formData.industryOther : formData.industry,
           geographies: (formData.geographies === 'Other' ? formData.geographiesOther : formData.geographies) ? [formData.geographies === 'Other' ? formData.geographiesOther : formData.geographies] : [],
           competitors_input: formData.competitors.filter(c => c.trim()),
-          business_goals: (formData.goals === 'Other' ? formData.goalsOther : formData.goals) ? [formData.goals === 'Other' ? formData.goalsOther : formData.goals] : [],
-          constraints: formData.constraints,
           competitors: legacy?.competitors ?? null,
           buyer_personas: legacy?.buyerPersonas ?? null,
           market_trends: legacy?.marketTrends ?? null,
@@ -160,7 +152,7 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
       <CardContent>
         <form onSubmit={handleAnalyze} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="productName">Product or Idea Name</Label>
+            <Label htmlFor="productName">Business Name</Label>
             <Input
               id="productName"
               name="productName"
@@ -173,7 +165,7 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="productDescription">Product Description</Label>
+            <Label htmlFor="productDescription">Goal</Label>
             <Textarea
               id="productDescription"
               name="productDescription"
@@ -188,7 +180,7 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="industry">Industry/Vertical Selection</Label>
+            <Label htmlFor="industry">Business Type</Label>
             <Select value={formData.industry} onValueChange={(value) => handleSelectChange('industry', value)} disabled={isAnalyzing}>
               <SelectTrigger>
                 <SelectValue placeholder="Select an industry" />
@@ -267,42 +259,6 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
               <Plus className="h-4 w-4 mr-2" />
               Add Competitor
             </Button>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="goals">Desired Business Goal</Label>
-            <Select value={formData.goals} onValueChange={(value) => handleSelectChange('goals', value)} disabled={isAnalyzing}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a business goal" />
-              </SelectTrigger>
-              <SelectContent>
-                {businessGoals.map(goal => (
-                  <SelectItem key={goal} value={goal}>{goal}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formData.goals === 'Other' && (
-              <Input
-                name="goalsOther"
-                placeholder="Please specify your business goal"
-                value={formData.goalsOther}
-                onChange={handleInputChange}
-                disabled={isAnalyzing}
-              />
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="constraints">Additional Constraints/Requirements</Label>
-            <Textarea
-              id="constraints"
-              name="constraints"
-              placeholder="Technical, timeline, integration, or product-specific requirements"
-              value={formData.constraints}
-              onChange={handleInputChange}
-              disabled={isAnalyzing}
-              rows={3}
-            />
           </div>
 
           <Button
