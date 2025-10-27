@@ -164,6 +164,7 @@ type RequestPayload = {
   competitors?: string[];
   goals?: string[];
   constraints?: string;
+  reportType?: "market_research" | "business_intelligence";
 };
 
 type ResearchSource = {
@@ -917,6 +918,17 @@ const buildGeminiPrompt = (payload: RequestPayload, research: ResearchSource[], 
     goals: payload.goals || [],
     constraints: payload.constraints || "",
   });
+  const focus = payload.reportType === "business_intelligence"
+    ? [
+        "Report type: Business Intelligence.",
+        "Heavily prioritize: executiveSummary.keyInsights (3-5 bullets, quantified), strategicRecommendations.actions (owners, timelines, ROI), gtmStrategy, financialPlanning.",
+        "Also include modern AI integration ideas tied to goals and constraints.",
+      ].join(" ")
+    : [
+        "Report type: Market Research.",
+        "Heavily prioritize: marketEnvironment (market size, forecast, segmentation), competitiveLandscape (topCompetitors, marketShare, featureBenchmark), customerInsights.",
+        "Ensure claims are grounded in the research findings and quantify wherever possible.",
+      ].join(" ");
   return [
     "You are an AI strategy analyst generating a venture-grade product intelligence report as JSON only.",
     "Match the exact schema shown below. Fill each numeric field with realistic numbers and ensure arrays contain at least three entries where relevant.",
@@ -926,6 +938,7 @@ const buildGeminiPrompt = (payload: RequestPayload, research: ResearchSource[], 
     context,
     "Research findings:",
     researchSummary || "No external research provided. Infer using best practices for B2B SaaS market analysis.",
+    focus,
     "Embed quantified insights from research when populating charts. Provide balanced opportunities and risks tied to the supplied goals and constraints.",
     "Return valid JSON with no surrounding text, explanations, or markdown fences.",
   ].join("\n\n");
@@ -1011,6 +1024,7 @@ const validatePayload = (payload: unknown): RequestPayload => {
     competitors: Array.isArray(data.competitors) ? data.competitors : [],
     goals: Array.isArray(data.goals) ? data.goals : [],
     constraints: typeof data.constraints === "string" ? data.constraints : undefined,
+    reportType: data.reportType === "business_intelligence" ? "business_intelligence" : "market_research",
   };
 };
 

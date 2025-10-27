@@ -1,6 +1,7 @@
 import { useEffect, useState, MouseEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { FileText, Calendar, TrendingUp, Trash2, Share2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -19,6 +20,7 @@ interface Analysis {
   product_description: string;
   market_readiness_score: number;
   created_at: string;
+  report_type?: string;
 }
 
 interface AnalysisListProps {
@@ -103,7 +105,7 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
       try {
         const { data, error } = await supabase
           .from('product_analyses')
-          .select('id, product_name, product_description, market_readiness_score, created_at')
+          .select('id, product_name, product_description, market_readiness_score, created_at, report_type')
           .eq('user_id', userId)
           .order('created_at', { ascending: false });
 
@@ -177,6 +179,11 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
           onClick={() => navigate(`/analysis/${analysis.id}`)}
         >
           <CardHeader className="relative z-10 pb-4">
+            <div className="absolute left-4 top-4">
+              <Badge className="rounded-full bg-[#ede9fe] text-[#5b21b6]">
+                {analysis.report_type === 'business_intelligence' ? 'Business Intelligence' : 'Market Research'}
+              </Badge>
+            </div>
             <div className="min-w-0 pr-10">
               <CardTitle className="text-lg font-semibold text-slate-900 transition-colors duration-300 line-clamp-1">
                 {analysis.product_name}

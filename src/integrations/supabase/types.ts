@@ -30,6 +30,7 @@ export type Database = {
           market_trends: Json | null
           product_description: string
           product_name: string
+          report_type: string
           report_payload: Json | null
           report_version: string
           readiness_advice: string | null
@@ -52,6 +53,7 @@ export type Database = {
           market_trends?: Json | null
           product_description: string
           product_name: string
+          report_type?: string
           report_payload?: Json | null
           report_version?: string
           readiness_advice?: string | null
@@ -74,6 +76,7 @@ export type Database = {
           market_trends?: Json | null
           product_description?: string
           product_name?: string
+          report_type?: string
           report_payload?: Json | null
           report_version?: string
           readiness_advice?: string | null

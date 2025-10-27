@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AnalysisDetail from "./pages/AnalysisDetail";
+import ReportRouter from "./pages/ReportRouter";
 import NotFound from "./pages/NotFound";
 import Features from "./pages/Features";
 import Pricing from "./pages/Pricing";
@@ -41,7 +42,7 @@ const App = () => (
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/analysis/:id" element={<AnalysisDetail />} />
+            <Route path="/analysis/:id" element={<ReportRouter />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

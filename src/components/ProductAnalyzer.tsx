@@ -30,6 +30,7 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
     competitors: [""]
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [reportType, setReportType] = useState<"market_research" | "business_intelligence">("market_research");
 
   const industries = ['SaaS', 'Healthcare', 'Fintech', 'Edtech', 'E-commerce', 'Other'];
   const geographyOptions = ['USA', 'Europe', 'Asia', 'Canada', 'Australia', 'Other'];
@@ -80,7 +81,8 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
             productDescription: formData.productDescription,
             industry: formData.industry === 'Other' ? formData.industryOther : formData.industry,
             geographies: (formData.geographies === 'Other' ? formData.geographiesOther : formData.geographies) ? [formData.geographies === 'Other' ? formData.geographiesOther : formData.geographies] : [],
-            competitors: formData.competitors.filter(c => c.trim())
+            competitors: formData.competitors.filter(c => c.trim()),
+            reportType,
           },
           headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined
         }
@@ -119,6 +121,7 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
           market_readiness_score: readinessScore,
           readiness_advice: readinessAdvice,
           report_version: analysisData.reportVersion,
+          report_type: reportType,
           report_payload: serializedReport,
           generated_at: analysisData.generatedAt,
         })
@@ -151,6 +154,18 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAnalyze} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="reportType">Report Type</Label>
+            <Select value={reportType} onValueChange={(value) => setReportType(value as typeof reportType)} disabled={isAnalyzing}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select report type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="market_research">AI Market Research Report</SelectItem>
+                <SelectItem value="business_intelligence">AI Business Intelligence Report</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="productName">Business Name</Label>
             <Input
@@ -273,7 +288,7 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
                 Analyzing with AI...
               </>
             ) : (
-              "Generate AI Market Analysis"
+              reportType === "business_intelligence" ? "Generate AI Business Intelligence Report" : "Generate AI Market Analysis"
             )}
           </Button>
 
