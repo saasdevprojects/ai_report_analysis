@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ReportPayload } from "@/types/report";
 import generateAnalysisReportPdf from "@/pdf/AnalysisReportPDF";
+
+const threeDCardClass =
+  "relative overflow-hidden rounded-[32px] border border-white/40 bg-white/[0.92] shadow-[0_45px_140px_-60px_rgba(79,70,229,0.35)] ring-1 ring-violet-200/70 backdrop-blur-2xl";
 
 function safeArray<T>(value: T[] | null | undefined): T[] {
   return Array.isArray(value) ? value : [];
@@ -36,6 +39,27 @@ function formatDate(value: string | null | undefined) {
   });
 }
 
+function describeItems(items: unknown[], fallback: string) {
+  const labels = items
+    .map((item) => {
+      if (!item) return null;
+      if (typeof item === "string") return item;
+      if (typeof item === "object") {
+        const candidate = item as Record<string, unknown>;
+        if (typeof candidate.label === "string") return candidate.label;
+        if (typeof candidate.name === "string") return candidate.name;
+        if (typeof candidate.title === "string") return candidate.title;
+      }
+      return null;
+    })
+    .filter((value): value is string => Boolean(value));
+
+  if (!labels.length) return fallback;
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(", ")}, and ${labels.slice(-1)}`;
+}
+
 type AnalysisRecord = {
   id: string;
   product_name: string;
@@ -43,6 +67,27 @@ type AnalysisRecord = {
   report_payload: ReportPayload | null;
   report_version?: string | null;
   generated_at?: string | null;
+};
+
+type OpportunityRow = {
+  title: string;
+  impact?: string;
+  timeframe?: string;
+  detail?: string;
+};
+
+type AutomationChecklistRow = {
+  title: string;
+  owner?: string | null;
+  timeline?: string | null;
+  priority?: string | null;
+  description?: string | null;
+};
+
+type FutureSignalRow = {
+  title: string;
+  detail?: string;
+  meta?: string;
 };
 
 const BusinessIntelligenceDetail = () => {
@@ -126,12 +171,166 @@ const BusinessIntelligenceDetail = () => {
   const runway = safeArray(currentReport?.financialPlanning?.runwayScenarios);
   const sources = safeArray(currentReport?.sourceAttribution?.sources);
 
+  const productName = analysis?.product_name ?? "your company";
+  const productOverview = analysis?.product_description ?? "its growth mission";
+  const primaryRegions = safeArray(currentReport?.marketEnvironment?.segmentation?.geography)
+    .slice(0, 3)
+    .map((item: any) => (typeof item === "string" ? item : item?.name))
+    .filter(Boolean);
+  const competitorNames = safeArray(currentReport?.competitiveLandscape?.topCompetitors)
+    .slice(0, 4)
+    .map((comp: any) => comp?.name)
+    .filter(Boolean);
+  const personaSignals = safeArray(currentReport?.customerInsights?.behavioralSignals).slice(0, 3);
+  const growthPeriods = safeArray(currentReport?.opportunityForecast?.growthTimeline)
+    .slice(0, 4)
+    .map((period) => period?.period)
+    .filter(Boolean);
+
+  const opportunityRows: OpportunityRow[] = topOpps.map((opp) => {
+    const base = opp as any;
+    return {
+      title: base?.label ?? base?.title ?? base?.name ?? "Emerging opportunity",
+      impact:
+        typeof base?.impact === "number"
+          ? `${formatNumber(base.impact, { maximumFractionDigits: 0 })}`
+          : typeof base?.impact === "string"
+          ? base.impact
+          : undefined,
+      timeframe: base?.timeframe ?? base?.timeline ?? base?.horizon ?? undefined,
+      detail: base?.detail ?? base?.description ?? base?.summary ?? undefined,
+    };
+  });
+
+  const automationRows: AutomationChecklistRow[] = actions.map((action) => {
+    const base = action as any;
+    return {
+      title: base?.title ?? "Priority initiative",
+      owner: base?.owner ?? null,
+      timeline: base?.timeline ?? base?.timeframe ?? null,
+      priority: base?.priority ?? base?.category ?? null,
+      description: base?.description ?? base?.summary ?? null,
+    };
+  });
+
+  const futureSignals: FutureSignalRow[] = safeArray(currentReport?.opportunityForecast?.predictedShifts)
+    .slice(0, 5)
+    .map((signal) => {
+      const base = signal as any;
+      const confidence =
+        typeof base?.confidence === "number" ? `${Math.round(base.confidence * 100)}% confidence` : null;
+      return {
+        title: base?.topic ?? "Emerging market signal",
+        detail: base?.direction ? `${base.direction} trajectory` : base?.detail ?? undefined,
+        meta: [base?.timeframe ?? base?.timeline ?? null, confidence].filter(Boolean).join(" • ") || undefined,
+      };
+    });
+
+  const runwayAverage =
+    runway.length > 0
+      ? Math.round(
+          runway.reduce(
+            (total, scenario) =>
+              total + (typeof scenario.monthsOfRunway === "number" ? scenario.monthsOfRunway : 0),
+            0,
+          ) / runway.length,
+        )
+      : null;
+
+  const keyInsightSummary = describeItems(keyInsights, "core strategic themes");
+  const riskSummary = describeItems(risks, "a manageable set of uncertainties");
+  const personaSummary = describeItems(
+    personaSignals.map((signal: any) => signal?.signal ?? signal?.title ?? signal?.name ?? null),
+    "emerging behaviors",
+  );
+  const regionSummary = describeItems(primaryRegions, "core launch territories");
+  const competitorSummary = describeItems(competitorNames, "established incumbents");
+  const channelSummary = describeItems(
+    channels.map((channel) => {
+      const base = channel as any;
+      return base?.channel ?? base?.name ?? null;
+    }),
+    "multi-channel outreach",
+  );
+  const growthSummary = describeItems(growthPeriods, "upcoming planning windows");
+
   const dataConfidence = useMemo(() => {
     const n = sources.length;
     if (n >= 9) return "High";
     if (n >= 5) return "Medium";
     return "Low";
   }, [sources.length]);
+
+  const strategicNarrative = useMemo(() => {
+    const sourceLabel = sources.length
+      ? `${sources.length} curated intelligence sources`
+      : "a focused set of intelligence sources";
+    const sentences = [
+      `This Business Intelligence panorama distills ${sourceLabel} into a briefing ${productName} can apply immediately across revenue, product, and operations.`,
+      `We translate ${keyInsightSummary} into accessible storytelling so every team understands how the data informs day-to-day decisions and not just high-level narratives.`,
+      `Customer behavior signals surface ${personaSummary}, highlighting where messaging, onboarding, and lifecycle plays can feel more human without losing scalability.`,
+      `Geographically, momentum is concentrating within ${regionSummary}, giving leaders clarity on where to double-down marketing spend and where to prepare localization.`,
+      `Competitive sensing shows ${competitorSummary} are shaping expectations, making it crucial to sharpen value communication while reinforcing differentiation.`,
+      `Risk triage keeps attention on ${riskSummary}, ensuring experimentation stays bold yet defensible as we orchestrate the next quarters of growth.`,
+      `Use this narrative as a shared language for cross-functional planning, so every sprint, campaign, and investment is anchored in the same intelligence.`,
+    ];
+    return sentences.join(" ");
+  }, [competitorSummary, keyInsightSummary, personaSummary, productName, regionSummary, riskSummary, sources.length]);
+
+  const opportunityNarrative = useMemo(() => {
+    const sentences = [
+      `Opportunity prioritization is anchored in ${growthSummary}, keeping commercial, product, and finance teams marching toward the same quarterly milestones.`,
+      `Each initiative blends qualitative insight with quantitative signal, marrying runway expectations with the actual buying triggers surfaced in the research.`,
+      `By pairing impact indicators with timeframes we make it easy to sequence experimentation, allocate budgets, and communicate expectations to stakeholders ahead of reviews.`,
+      `Lean into ${channelSummary} to create a coherent campaign arc that reinforces the strongest differentiators identified against ${competitorSummary}.`,
+      `Revisit this scorecard weekly so celebrations, course corrections, and risk mitigation all reference the same evidence-backed playbook.`,
+    ];
+    return sentences.join(" ");
+  }, [channelSummary, competitorSummary, growthSummary]);
+
+  const automationNarrative = useMemo(() => {
+    const sentences = [
+      `Automation readiness pairs people, process, and platform so ${productName} can scale without eroding the signature experience described in the product vision.`,
+      `Owners, timelines, and priority cues are surfaced together to remove ambiguity around who moves first and how success should be documented.`,
+      `Documenting descriptions directly inside the scorecard keeps context portable, enabling async updates and executive readouts without redundant slide building.`,
+      `Treat this checklist as a living artifact: note blockers, track small wins, and socialize the compounding ROI of automation to secure future investment.`,
+      `When every squad can see how their workflow upgrades ladder into the north-star metrics, momentum and morale stay synchronized.`,
+    ];
+    return sentences.join(" ");
+  }, [productName]);
+
+  const futureNarrative = useMemo(() => {
+    const runwayLabel = runwayAverage ? `${runwayAverage}-month average runway` : "a monitored runway trajectory";
+    const sentences = [
+      `Future-looking signals turn speculative noise into informed foresight so teams can design pilots before competitors saturate the channel.`,
+      `With ${runwayLabel}, leadership gains breathing room to invest in experimentation while still protecting the core business.`,
+      `Blend directional shifts with the growth timeline to time launches, partnerships, and capital raises around the most receptive customer moments.`,
+      `Capturing these foresight notes centrally prevents knowledge loss and keeps scenario planning rooted in the same shared evidence base.`,
+      `Keep iterating this board as new signals arrive so the organization always has a provocative yet pragmatic point of view on what comes next.`,
+    ];
+    return sentences.join(" ");
+  }, [runwayAverage]);
+
+  const attributionNarrative = useMemo(() => {
+    const sentences = [
+      `Every insight inside this playbook is backed by transparent attribution so teams can trace conclusions back to the original signal.`,
+      `A ${dataConfidence.toLowerCase()} confidence rating reflects the breadth and freshness of sources, prompting faster enrichment where coverage is light.`,
+      `Use the quick descriptors to brief stakeholders, then dive into linked references when deeper diligence is required for board updates or investor memos.`,
+      `Maintaining this transparent evidence trail makes it easier to onboard new teammates and preserves institutional knowledge even as strategies evolve.`,
+      `Treat the attribution wall as a living library: tag notable quotes, log contradictory findings, and surface wins to celebrate disciplined research habits.`,
+    ];
+    return sentences.join(" ");
+  }, [dataConfidence]);
+
+  const recapNarrative = useMemo(() => {
+    const sentences = [
+      `${productName} is primed to unlock growth by weaving together ${channelSummary} with product-led storytelling anchored in ${productOverview}.`,
+      `Lean on the prioritized opportunities to choreograph campaigns that prove value quickly, then feed learnings back into automation and roadmap rituals.`,
+      `Align go-to-market and product rituals around the same intelligence metrics so customer promises stay consistent from first touch to renewal.`,
+      `Keep iterating this recap as you execute; momentum compounds fastest when every leader references a single, shared snapshot of progress and potential.`,
+    ];
+    return sentences.join(" ");
+  }, [channelSummary, productName, productOverview]);
 
   if (isLoading || !analysis) {
     return (
@@ -177,236 +376,256 @@ const BusinessIntelligenceDetail = () => {
           </div>
         </header>
 
-        <section className="grid gap-6 md:grid-cols-2">
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>Executive Insight Summary</CardDescription>
-              <CardTitle>What matters now</CardTitle>
+        <section className="grid gap-6 lg:grid-cols-3">
+          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-violet-50/80 to-indigo-100/60`}
+            aria-label="Strategic intelligence narrative card">
+            <CardHeader className="space-y-1">
+              <CardDescription className="text-violet-600">Strategic Intelligence Narrative</CardDescription>
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+                Unify decisions with shared context
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ul className="list-disc space-y-2 pl-5 text-slate-700">
-                {keyInsights.slice(0, 4).map((ins, i) => (
-                  <li key={i}>{ins}</li>
-                ))}
-                {!keyInsights.length ? <li>No insights available yet.</li> : null}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>Snapshot</CardDescription>
-              <CardTitle>Opportunities and Risks</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <div>
-                <p className="mb-2 text-sm font-semibold text-slate-500">Major opportunities</p>
-                <ul className="list-disc space-y-2 pl-5 text-slate-700">
-                  {topOpps.map((o, i) => (
-                    <li key={i}>{o.label} — Impact {typeof o.impact === 'number' ? formatNumber(o.impact, { maximumFractionDigits: 0 }) : o.impact}</li>
+            <CardContent className="space-y-6 text-slate-700">
+              <p className="leading-relaxed text-base">{strategicNarrative}</p>
+              <div className="grid gap-3 rounded-[28px] border border-violet-200/70 bg-white/75 p-5 backdrop-blur">
+                <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Headlines surfaced</p>
+                <ul className="grid gap-3">
+                  {keyInsights.slice(0, 5).map((insight, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-violet-600">
+                        <CheckCircle2 className="h-4 w-4" />
+                      </span>
+                      <span className="text-sm leading-relaxed text-slate-800">{insight}</span>
+                    </li>
                   ))}
-                  {!topOpps.length ? <li>No opportunities listed yet.</li> : null}
-                </ul>
-              </div>
-              <div>
-                <p className="mb-2 text-sm font-semibold text-slate-500">Key risks</p>
-                <ul className="list-disc space-y-2 pl-5 text-slate-700">
-                  {risks.map((r, i) => (
-                    <li key={i}>{r}</li>
-                  ))}
-                  {!risks.length ? <li>No risks identified.</li> : null}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="grid gap-6 lg:grid-cols-2">
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>Deep Insight Analysis</CardDescription>
-              <CardTitle>Positioning, Competition, Customers</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-slate-700">
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Market positioning overview</p>
-                <p>Market size: {formatNumber(currentReport?.marketEnvironment?.marketSize?.current, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}. Top regions: {safeArray(currentReport?.marketEnvironment?.segmentation?.geography).slice(0, 2).map(s => s.name).join(', ') || '—'}.</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Competitor snapshot</p>
-                <ul className="list-disc pl-5">
-                  {safeArray(currentReport?.competitiveLandscape?.topCompetitors).slice(0, 3).map((c) => (
-                    <li key={c.name}><span className="font-medium">{c.name}</span> — {c.pricingModel}; strengths: {safeArray(c.strengths).slice(0, 1).join(', ') || '—'}</li>
-                  ))}
-                  {!safeArray(currentReport?.competitiveLandscape?.topCompetitors).length ? <li>Data pending</li> : null}
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Customer behavior insights</p>
-                <ul className="list-disc pl-5">
-                  {safeArray(currentReport?.customerInsights?.behavioralSignals).slice(0, 3).map((b, i) => (
-                    <li key={i}>{b.signal}: {b.description}</li>
-                  ))}
-                  {!safeArray(currentReport?.customerInsights?.behavioralSignals).length ? <li>Insights pending</li> : null}
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Data-backed forecast</p>
-                <ul className="list-disc pl-5">
-                  {safeArray(currentReport?.opportunityForecast?.growthTimeline).slice(0, 4).map((p) => (
-                    <li key={p.period}>{p.period}: Growth index {formatNumber(p.growthIndex, { maximumFractionDigits: 0 })} (confidence {formatPercentage(p.confidence * 100)})</li>
-                  ))}
-                  {!safeArray(currentReport?.opportunityForecast?.growthTimeline).length ? <li>Forecast pending</li> : null}
+                  {!keyInsights.length ? (
+                    <li className="text-sm text-muted-foreground">Insight bullets will appear once analysis is generated.</li>
+                  ) : null}
                 </ul>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>Modern Strategies & AI Integration</CardDescription>
-              <CardTitle>Where automation compounds</CardTitle>
+          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-slate-50/70 to-violet-100/50`}
+            aria-label="Opportunity orchestration card">
+            <CardHeader className="space-y-1">
+              <CardDescription className="text-indigo-600">Opportunity Orchestration</CardDescription>
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+                Score, stage, and socialize growth bets
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-slate-700">
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Marketing automation</p>
-                <ul className="list-disc pl-5">
-                  <li>Use Klaviyo AI for segmented lifecycle campaigns and churn-preventing win-backs.</li>
-                  <li>Adopt HubSpot AI for lead scoring, pipeline health, and predictive routing.</li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Product optimization</p>
-                <ul className="list-disc pl-5">
-                  <li>Use Amplitude+Notion AI for experiment briefs and insights synthesis.</li>
-                  <li>Leverage LaunchDarkly + analytics to rollout AI feature flags safely.</li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Support & supply chain</p>
-                <ul className="list-disc pl-5">
-                  <li>Integrate ChatGPT API as a tier-1 assistant with human-in-the-loop routing.</li>
-                  <li>Automate vendor and SLA health monitoring with anomaly alerts.</li>
-                </ul>
-              </div>
+            <CardContent className="space-y-6 text-slate-700">
+              <p className="leading-relaxed text-base">{opportunityNarrative}</p>
+              <Table className="overflow-hidden rounded-[28px] border border-indigo-200/70 bg-white/80 text-sm">
+                <TableHeader className="bg-indigo-500/10 text-indigo-700">
+                  <TableRow className="border-indigo-200/60">
+                    <TableHead className="font-semibold">Opportunity</TableHead>
+                    <TableHead className="text-right font-semibold">Impact</TableHead>
+                    <TableHead className="text-right font-semibold">Timeframe</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {opportunityRows.map((row, index) => (
+                    <TableRow key={index} className="border-indigo-100/60 bg-white/85 backdrop-blur">
+                      <TableCell>
+                        <div className="flex items-start gap-3">
+                          <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
+                            <CheckCircle2 className="h-4 w-4" />
+                          </span>
+                          <div className="space-y-1">
+                            <p className="font-semibold text-slate-900">{row.title}</p>
+                            {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
+                      <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.timeframe ?? "Ongoing"}</TableCell>
+                    </TableRow>
+                  ))}
+                  {!opportunityRows.length ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                        Opportunity scoring will populate when the analysis highlights specific moves.
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
-        </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>Market Opportunity Based on Product</CardDescription>
-              <CardTitle>Where to play</CardTitle>
+          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-rose-50/60 to-violet-100/40`}
+            aria-label="Automation runway card">
+            <CardHeader className="space-y-1">
+              <CardDescription className="text-rose-500">Automation Runway</CardDescription>
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+                Turn intelligence into repeatable momentum
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-slate-700">
-              <p><span className="font-semibold">Regional demand:</span> {safeArray(currentReport?.opportunityForecast?.regionalOpportunity).slice(0, 3).map(r => r.region).join(", ") || "—"}</p>
-              <p><span className="font-semibold">Emerging trends:</span> {safeArray(currentReport?.opportunityForecast?.predictedShifts).slice(0, 3).map(s => s.topic).join(", ") || "—"}</p>
-              <p><span className="font-semibold">Pricing/positioning:</span> Use financial benchmarks to validate tiering and value score; focus on {safeArray(currentReport?.financialBenchmark?.pricePositioning).slice(0, 1).map(p=>p.company).join(", ") || "peers"} differentials.</p>
-              <p><span className="font-semibold">Channels to expand:</span> {channels.slice(0, 3).map(c => c.channel).join(", ") || "—"}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>AI Tools Based on Your Business</CardDescription>
-              <CardTitle>Recommended stack</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc space-y-2 pl-5 text-slate-700">
-                <li>Use Klaviyo AI for segmented campaigns</li>
-                <li>Adopt SurferSEO for content optimization</li>
-                <li>Integrate ChatGPT API for personalized upsells</li>
-                <li>Use Jasper for ad copy and variant testing</li>
-                <li>HubSpot AI for CRM enrichment</li>
-              </ul>
+            <CardContent className="space-y-6 text-slate-700">
+              <p className="leading-relaxed text-base">{automationNarrative}</p>
+              <Table className="overflow-hidden rounded-[28px] border border-rose-200/60 bg-white/80 text-sm">
+                <TableHeader className="bg-rose-500/10 text-rose-600">
+                  <TableRow className="border-rose-200/60">
+                    <TableHead className="font-semibold">Action</TableHead>
+                    <TableHead className="text-right font-semibold">Owner</TableHead>
+                    <TableHead className="text-right font-semibold">Priority</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {automationRows.map((row, index) => (
+                    <TableRow key={index} className="border-rose-100/60 bg-white/85 backdrop-blur">
+                      <TableCell>
+                        <div className="flex items-start gap-3">
+                          <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
+                            <CheckCircle2 className="h-4 w-4" />
+                          </span>
+                          <div className="space-y-1">
+                            <p className="font-semibold text-slate-900">{row.title}</p>
+                            {row.description ? <p className="text-xs text-slate-500">{row.description}</p> : null}
+                            {row.timeline ? (
+                              <p className="text-xs uppercase tracking-wide text-rose-500">{row.timeline}</p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-sm font-medium text-slate-700">{row.owner ?? "TBD"}</TableCell>
+                      <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.priority ?? "Plan"}</TableCell>
+                    </TableRow>
+                  ))}
+                  {!automationRows.length ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                        Automation priorities populate as the AI surfaces explicit next moves.
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>Action Plan</CardDescription>
-              <CardTitle>30/60/90 day roadmap</CardTitle>
+        <section className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-slate-50/70 to-sky-100/50`}
+            aria-label="Futurecasting intelligence card">
+            <CardHeader className="space-y-1">
+              <CardDescription className="text-sky-600">Futurecasting & Resilience</CardDescription>
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+                Stay ahead of the next inflection point
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Phase 1: First 30 days</p>
-                <ul className="list-disc pl-5 text-slate-700">
-                  {actions.slice(0, 2).map(a => (
-                    <li key={a.title}>{a.title} — Owner: {a.owner}; ROI: {formatPercentage(Math.round(a.roi * 10))}</li>
-                  ))}
-                  {!actions.length ? <li>Define initial experiments and measurement plan.</li> : null}
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Phase 2: Next 60 days</p>
-                <ul className="list-disc pl-5 text-slate-700">
-                  {actions.slice(2, 4).map(a => (
-                    <li key={a.title}>{a.title} — Owner: {a.owner}; ROI: {formatPercentage(Math.round(a.roi * 10))}</li>
-                  ))}
-                  {actions.length < 3 ? <li>Automate key GTM workflows and attribution.</li> : null}
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-500">Phase 3: Next 90 days</p>
-                <ul className="list-disc pl-5 text-slate-700">
-                  {actions.slice(4, 6).map(a => (
-                    <li key={a.title}>{a.title} — Owner: {a.owner}; ROI: {formatPercentage(Math.round(a.roi * 10))}</li>
-                  ))}
-                  {actions.length < 5 ? <li>Scale winning variants and expand partnerships.</li> : null}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>Future of this Business / Niche</CardDescription>
-              <CardTitle>What to anticipate</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-slate-700">
-              <ul className="list-disc pl-5">
-                {safeArray(currentReport?.opportunityForecast?.predictedShifts).slice(0, 4).map((s, i) => (
-                  <li key={i}>{s.topic} — {s.direction}; confidence {formatPercentage(Math.round(s.confidence * 100))}</li>
-                ))}
-                {!safeArray(currentReport?.opportunityForecast?.predictedShifts).length ? <li>Predicted shifts will appear as data matures.</li> : null}
-              </ul>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="grid gap-6">
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>Data Sources & References</CardDescription>
-              <CardTitle>Attribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-3 text-sm text-slate-600">Data Confidence Level: <span className="font-semibold">{dataConfidence}</span> ({sources.length} sources)</div>
-              <div className="grid gap-3 md:grid-cols-2">
-                {sources.slice(0, 8).map((s) => (
-                  <div key={s.url} className="rounded-xl border bg-white p-4 text-sm">
-                    <p className="font-medium text-slate-900">{s.name}</p>
-                    <p className="text-xs text-slate-500">{s.type}</p>
-                    {s.url ? (
-                      <a href={s.url} className="text-xs font-semibold text-[#5b21b6] underline-offset-4 hover:underline" target="_blank" rel="noreferrer">{s.url}</a>
-                    ) : null}
+            <CardContent className="space-y-6 text-slate-700">
+              <p className="leading-relaxed text-base">{futureNarrative}</p>
+              <div className="space-y-4">
+                {futureSignals.map((signal, index) => (
+                  <div key={index} className="flex items-start gap-3 rounded-[24px] border border-sky-200/70 bg-white/80 p-4 backdrop-blur">
+                    <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-600">
+                      <CheckCircle2 className="h-4 w-4" />
+                    </span>
+                    <div className="space-y-1">
+                      <p className="font-semibold text-slate-900">{signal.title}</p>
+                      {signal.detail ? <p className="text-sm text-slate-600">{signal.detail}</p> : null}
+                      {signal.meta ? (
+                        <p className="text-xs uppercase tracking-wide text-sky-500">{signal.meta}</p>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
-                {!sources.length ? <p className="text-sm text-slate-500">No external sources recorded.</p> : null}
+                {!futureSignals.length ? (
+                  <p className="rounded-[24px] border border-dashed border-slate-300 bg-white/60 p-4 text-sm text-muted-foreground">
+                    Scenario signals will unlock once trend confidence crosses the reporting threshold.
+                  </p>
+                ) : null}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl">
-            <CardHeader>
-              <CardDescription>1-Line Recap (Share-ready)</CardDescription>
-              <CardTitle>Executive recap</CardTitle>
+          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-amber-50/60 to-violet-100/40`}
+            aria-label="Risk navigation card">
+            <CardHeader className="space-y-1">
+              <CardDescription className="text-amber-600">Risk Navigation</CardDescription>
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+                Keep experiments bold and defensible
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-slate-700">{analysis.product_name} can accelerate growth using AI-driven GTM automation and prioritized actions across {channels.slice(0,2).map(c=>c.channel).join(" & ") || "core channels"}; see plan above.</p>
+            <CardContent className="space-y-4 text-slate-700">
+              <p className="leading-relaxed text-base">{`Risk attention is centered on ${riskSummary}. Encourage every team to capture mitigations in-line, so governance never slows momentum.`}</p>
+              <div className="space-y-3">
+                {risks.map((risk, index) => (
+                  <div key={index} className="flex items-start gap-3 rounded-[24px] border border-amber-200/70 bg-white/75 p-4">
+                    <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-600">
+                      <CheckCircle2 className="h-4 w-4" />
+                    </span>
+                    <p className="text-sm leading-relaxed text-slate-800">{risk}</p>
+                  </div>
+                ))}
+                {!risks.length ? (
+                  <p className="rounded-[24px] border border-dashed border-slate-300 bg-white/60 p-4 text-sm text-muted-foreground">
+                    Risk indicators will populate as the analysis flags compliance or delivery watch-outs.
+                  </p>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-emerald-50/60 to-violet-100/40`}
+            aria-label="Attribution and data confidence card">
+            <CardHeader className="space-y-1">
+              <CardDescription className="text-emerald-600">Attribution & Evidence</CardDescription>
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+                Anchor every insight in transparent sources
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 text-slate-700">
+              <p className="leading-relaxed text-base">{attributionNarrative}</p>
+              <div className="rounded-[28px] border border-emerald-200/70 bg-white/80 p-5">
+                <p className="text-sm font-semibold text-emerald-600">
+                  Data confidence level: <span className="font-bold text-slate-900">{dataConfidence}</span> ({sources.length} sources)
+                </p>
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {sources.slice(0, 8).map((source) => (
+                    <div key={source.url ?? source.name} className="rounded-[20px] border border-emerald-200/60 bg-white/80 p-4 text-sm">
+                      <p className="font-medium text-slate-900">{source.name}</p>
+                      <p className="text-xs uppercase tracking-wide text-emerald-500">{source.type}</p>
+                      {source.url ? (
+                        <a
+                          href={source.url}
+                          className="text-xs font-semibold text-emerald-600 underline-offset-4 hover:underline"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {source.url}
+                        </a>
+                      ) : null}
+                    </div>
+                  ))}
+                  {!sources.length ? (
+                    <p className="rounded-[20px] border border-dashed border-slate-300 bg-white/60 p-4 text-sm text-muted-foreground">
+                      External citations will surface here after the next sync cycle.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={`${threeDCardClass} bg-gradient-to-br from-white/95 via-violet-50/70 to-indigo-100/40`}
+            aria-label="Executive recap card">
+            <CardHeader className="space-y-1">
+              <CardDescription className="text-violet-600">Executive Recap</CardDescription>
+              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+                Broadcast the story in one confident swipe
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-slate-700">
+              <p className="leading-relaxed text-base">{recapNarrative}</p>
+              <div className="rounded-[24px] border border-violet-200/70 bg-white/80 p-4 text-sm text-slate-700">
+                <p className="font-semibold text-slate-900">Share-ready headline</p>
+                <p className="mt-2 leading-relaxed">{analysis.product_name} can accelerate growth using AI-driven GTM automation and prioritized actions across {channels.slice(0, 2).map((c) => c.channel).join(" & ") || "core channels"}; align squads around the roadmap above.</p>
+              </div>
             </CardContent>
           </Card>
         </section>
