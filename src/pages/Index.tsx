@@ -340,10 +340,17 @@ const Index = () => {
                   Launch your first AI-powered analysis today and capture the competitive edge without building a research team.
                 </p>
                 <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-                  <Button className="w-full sm:w-auto rounded-full bg-[#fd8628] px-8 py-3 text-black shadow-md hover:bg-[#fd8628]/85">
+                  <Button
+                    className="w-full sm:w-auto rounded-full bg-[#fd8628] px-8 py-3 text-black shadow-md hover:bg-[#fd8628]/85"
+                    onClick={() => navigate("/pricing")}
+                  >
                     Start free trial
                   </Button>
-                  <Button variant="outline" className="w-full sm:w-auto rounded-full border border-[#fd8628] px-8 py-3 text-black hover:border-[#431139] hover:bg-[#431139] hover:text-white">
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto rounded-full border border-[#fd8628] px-8 py-3 text-black hover:border-[#431139] hover:bg-[#431139] hover:text-white"
+                    onClick={() => navigate("/contact")}
+                  >
                     Talk to sales
                   </Button>
                 </div>
