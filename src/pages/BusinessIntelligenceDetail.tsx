@@ -376,132 +376,132 @@ const BusinessIntelligenceDetail = () => {
           </div>
         </header>
 
-        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-3">
+        <section>
           <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-violet-50/80 to-indigo-100/60`}
-            aria-label="Strategic intelligence narrative card">
-            <CardHeader className="space-y-1">
-              <CardDescription className="text-violet-600">Strategic Intelligence Narrative</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+            aria-label="Strategic opportunity overview">
+            <CardHeader className="space-y-2">
+              <CardDescription className="text-violet-600">Intelligence Execution Hub</CardDescription>
+              <CardTitle className="text-3xl font-semibold tracking-tight text-slate-900">
                 Unify decisions with shared context
               </CardTitle>
+              <p className="max-w-3xl text-slate-600">
+                Align strategy, opportunity sequencing, and automation readiness inside one board so operators can act on
+                live intelligence without hopping between multiple sections.
+              </p>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
-              <p className="leading-relaxed text-base">{strategicNarrative}</p>
-              <div className="grid gap-3 rounded-[28px] border border-violet-200/70 bg-white/75 p-5 backdrop-blur">
-                <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Headlines surfaced</p>
-                <ul className="grid gap-3">
-                  {keyInsights.slice(0, 5).map((insight, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-violet-600">
-                        <CheckCircle2 className="h-4 w-4" />
-                      </span>
-                      <span className="text-sm leading-relaxed text-slate-800">{insight}</span>
-                    </li>
-                  ))}
-                  {!keyInsights.length ? (
-                    <li className="text-sm text-muted-foreground">Insight bullets will appear once analysis is generated.</li>
-                  ) : null}
-                </ul>
+            <CardContent className="grid gap-6 text-slate-700 lg:grid-cols-3">
+              <div className="flex flex-col gap-6 rounded-[28px] border border-violet-200/70 bg-white/85 p-5 backdrop-blur">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Strategic Intelligence Narrative</p>
+                  <h3 className="text-xl font-semibold text-slate-900">Unify decisions with shared context</h3>
+                </div>
+                <p className="leading-relaxed text-base">{strategicNarrative}</p>
+                <div className="grid gap-3 rounded-[24px] border border-violet-200/60 bg-white/90 p-4">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Headlines surfaced</p>
+                  <ul className="grid gap-3">
+                    {keyInsights.slice(0, 5).map((insight, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-violet-600">
+                          <CheckCircle2 className="h-4 w-4" />
+                        </span>
+                        <span className="text-sm leading-relaxed text-slate-800">{insight}</span>
+                      </li>
+                    ))}
+                    {!keyInsights.length ? (
+                      <li className="text-sm text-muted-foreground">Insight bullets will appear once analysis is generated.</li>
+                    ) : null}
+                  </ul>
+                </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-slate-50/70 to-violet-100/50`}
-            aria-label="Opportunity orchestration card">
-            <CardHeader className="space-y-1">
-              <CardDescription className="text-indigo-600">Opportunity Orchestration</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
-                Score, stage, and socialize growth bets
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
-              <p className="leading-relaxed text-base">{opportunityNarrative}</p>
-              <Table className="overflow-hidden rounded-[28px] border border-indigo-200/70 bg-white/80 text-sm">
-                <TableHeader className="bg-indigo-500/10 text-indigo-700">
-                  <TableRow className="border-indigo-200/60">
-                    <TableHead className="font-semibold">Opportunity</TableHead>
-                    <TableHead className="text-right font-semibold">Impact</TableHead>
-                    <TableHead className="text-right font-semibold">Timeframe</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {opportunityRows.map((row, index) => (
-                    <TableRow key={index} className="border-indigo-100/60 bg-white/85 backdrop-blur">
-                      <TableCell>
-                        <div className="flex items-start gap-3">
-                          <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
-                            <CheckCircle2 className="h-4 w-4" />
-                          </span>
-                          <div className="space-y-1">
-                            <p className="font-semibold text-slate-900">{row.title}</p>
-                            {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
+              <div className="flex flex-col gap-6 rounded-[28px] border border-indigo-200/70 bg-white/85 p-5 backdrop-blur">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Opportunity Orchestration</p>
+                  <h3 className="text-xl font-semibold text-slate-900">Score, stage, and socialize growth bets</h3>
+                </div>
+                <p className="leading-relaxed text-base">{opportunityNarrative}</p>
+                <Table className="overflow-hidden rounded-[24px] border border-indigo-200/60 bg-white/90 text-sm">
+                  <TableHeader className="bg-indigo-500/10 text-indigo-700">
+                    <TableRow className="border-indigo-200/60">
+                      <TableHead className="font-semibold">Opportunity</TableHead>
+                      <TableHead className="text-right font-semibold">Impact</TableHead>
+                      <TableHead className="text-right font-semibold">Timeframe</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {opportunityRows.map((row, index) => (
+                      <TableRow key={index} className="border-indigo-100/60 bg-white/95 backdrop-blur">
+                        <TableCell>
+                          <div className="flex items-start gap-3">
+                            <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
+                              <CheckCircle2 className="h-4 w-4" />
+                            </span>
+                            <div className="space-y-1">
+                              <p className="font-semibold text-slate-900">{row.title}</p>
+                              {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
-                      <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.timeframe ?? "Ongoing"}</TableCell>
-                    </TableRow>
-                  ))}
-                  {!opportunityRows.length ? (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
-                        Opportunity scoring will populate when the analysis highlights specific moves.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
+                        <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.timeframe ?? "Ongoing"}</TableCell>
+                      </TableRow>
+                    ))}
+                    {!opportunityRows.length ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                          Opportunity scoring will populate when the analysis highlights specific moves.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
 
-          <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-rose-50/60 to-violet-100/40`}
-            aria-label="Automation runway card">
-            <CardHeader className="space-y-1">
-              <CardDescription className="text-rose-500">Automation Runway</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
-                Turn intelligence into repeatable momentum
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
-              <p className="leading-relaxed text-base">{automationNarrative}</p>
-              <Table className="overflow-hidden rounded-[28px] border border-rose-200/60 bg-white/80 text-sm">
-                <TableHeader className="bg-rose-500/10 text-rose-600">
-                  <TableRow className="border-rose-200/60">
-                    <TableHead className="font-semibold">Action</TableHead>
-                    <TableHead className="text-right font-semibold">Owner</TableHead>
-                    <TableHead className="text-right font-semibold">Priority</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {automationRows.map((row, index) => (
-                    <TableRow key={index} className="border-rose-100/60 bg-white/85 backdrop-blur">
-                      <TableCell>
-                        <div className="flex items-start gap-3">
-                          <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
-                            <CheckCircle2 className="h-4 w-4" />
-                          </span>
-                          <div className="space-y-1">
-                            <p className="font-semibold text-slate-900">{row.title}</p>
-                            {row.description ? <p className="text-xs text-slate-500">{row.description}</p> : null}
-                            {row.timeline ? (
-                              <p className="text-xs uppercase tracking-wide text-rose-500">{row.timeline}</p>
-                            ) : null}
+              <div className="flex flex-col gap-6 rounded-[28px] border border-rose-200/70 bg-white/85 p-5 backdrop-blur">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-rose-500">Automation Runway</p>
+                  <h3 className="text-xl font-semibold text-slate-900">Turn intelligence into repeatable momentum</h3>
+                </div>
+                <p className="leading-relaxed text-base">{automationNarrative}</p>
+                <Table className="overflow-hidden rounded-[24px] border border-rose-200/60 bg-white/90 text-sm">
+                  <TableHeader className="bg-rose-500/10 text-rose-600">
+                    <TableRow className="border-rose-200/60">
+                      <TableHead className="font-semibold">Action</TableHead>
+                      <TableHead className="text-right font-semibold">Owner</TableHead>
+                      <TableHead className="text-right font-semibold">Priority</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {automationRows.map((row, index) => (
+                      <TableRow key={index} className="border-rose-100/60 bg-white/95 backdrop-blur">
+                        <TableCell>
+                          <div className="flex items-start gap-3">
+                            <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
+                              <CheckCircle2 className="h-4 w-4" />
+                            </span>
+                            <div className="space-y-1">
+                              <p className="font-semibold text-slate-900">{row.title}</p>
+                              {row.description ? <p className="text-xs text-slate-500">{row.description}</p> : null}
+                              {row.timeline ? (
+                                <p className="text-xs uppercase tracking-wide text-rose-500">{row.timeline}</p>
+                              ) : null}
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right text-sm font-medium text-slate-700">{row.owner ?? "TBD"}</TableCell>
-                      <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.priority ?? "Plan"}</TableCell>
-                    </TableRow>
-                  ))}
-                  {!automationRows.length ? (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
-                        Automation priorities populate as the AI surfaces explicit next moves.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
+                        </TableCell>
+                        <TableCell className="text-right text-sm font-medium text-slate-700">{row.owner ?? "TBD"}</TableCell>
+                        <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.priority ?? "Plan"}</TableCell>
+                      </TableRow>
+                    ))}
+                    {!automationRows.length ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                          Automation priorities populate as the AI surfaces explicit next moves.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </section>

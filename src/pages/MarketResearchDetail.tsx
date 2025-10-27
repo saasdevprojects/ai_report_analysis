@@ -455,134 +455,130 @@ const MarketResearchDetail = () => {
           </div>
         </header>
 
-        <section className="grid gap-6 lg:auto-rows-fr lg:grid-cols-3">
+        <section>
           <Card
             className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-sky-50/80 to-indigo-100/50`}
-            aria-label="Market intelligence narrative card"
+            aria-label="Market research narrative overview"
           >
-            <CardHeader className="space-y-1">
-              <CardDescription className="text-sky-600">Market Intelligence Narrative</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+            <CardHeader className="space-y-2">
+              <CardDescription className="text-sky-600">Narrative Intelligence Stack</CardDescription>
+              <CardTitle className="text-3xl font-semibold tracking-tight text-slate-900">
                 Translate signal into confident action
               </CardTitle>
+              <p className="max-w-3xl text-slate-600">
+                Brief leadership with a single canvas that blends market intelligence, forward-looking forecasts, and
+                prioritized opportunities without losing the supporting evidence.
+              </p>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
-              <p className="leading-relaxed text-base">{insightNarrative}</p>
-              <div className="grid gap-3 rounded-[28px] border border-sky-200/70 bg-white/80 p-5 backdrop-blur">
-                <p className="text-sm font-semibold uppercase tracking-wide text-sky-600">Spotlight insights</p>
-                <ul className="grid gap-3">
-                  {keyInsights.slice(0, 5).map((insight, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-600">
-                        <CheckCircle2 className="h-4 w-4" />
-                      </span>
-                      <span className="text-sm leading-relaxed text-slate-800">{insight}</span>
-                    </li>
-                  ))}
-                  {!keyInsights.length ? (
-                    <li className="text-sm text-muted-foreground">
-                      Insight bullets will appear once the analysis generates qualitative highlights.
-                    </li>
-                  ) : null}
-                </ul>
+            <CardContent className="grid gap-6 text-slate-700 lg:grid-cols-3">
+              <div className="flex flex-col gap-6 rounded-[28px] border border-sky-200/70 bg-white/85 p-5 backdrop-blur">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-sky-600">Market Intelligence Narrative</p>
+                  <h3 className="text-xl font-semibold text-slate-900">Translate signal into confident action</h3>
+                </div>
+                <p className="leading-relaxed text-base">{insightNarrative}</p>
+                <div className="grid gap-3 rounded-[24px] border border-sky-200/60 bg-white/90 p-4">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-sky-600">Spotlight insights</p>
+                  <ul className="grid gap-3">
+                    {keyInsights.slice(0, 5).map((insight, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-600">
+                          <CheckCircle2 className="h-4 w-4" />
+                        </span>
+                        <span className="text-sm leading-relaxed text-slate-800">{insight}</span>
+                      </li>
+                    ))}
+                    {!keyInsights.length ? (
+                      <li className="text-sm text-muted-foreground">
+                        Insight bullets will appear once the analysis generates qualitative highlights.
+                      </li>
+                    ) : null}
+                  </ul>
+                </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card
-            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-indigo-50/80 to-sky-100/40`}
-            aria-label="Forecast outlook card"
-          >
-            <CardHeader className="space-y-1">
-              <CardDescription className="text-indigo-600">Forecast Outlook</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
-                See where the category is headed next
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
-              <p className="leading-relaxed text-base">{forecastNarrative}</p>
-              <Table className="overflow-hidden rounded-[28px] border border-indigo-200/70 bg-white/80 text-sm">
-                <TableHeader className="bg-indigo-500/10 text-indigo-700">
-                  <TableRow className="border-indigo-200/60">
-                    <TableHead className="font-semibold">Year</TableHead>
-                    <TableHead className="text-right font-semibold">Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {forecast.map((point, index) => {
-                    const numericValue = asNumber(point?.value);
-                    const label = point?.year ?? `FY${index + 1}`;
-                    return (
-                      <TableRow key={`${label}-${index}`} className="border-indigo-100/60 bg-white/90 backdrop-blur">
-                        <TableCell className="font-medium text-slate-900">{label}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="space-y-2">
-                            <span className="font-semibold text-slate-800">{formatCurrency(numericValue, "USD")}</span>
-                            <div className="h-1.5 overflow-hidden rounded-full bg-indigo-100">
-                              <div
-                                className="h-full rounded-full bg-indigo-500"
-                                style={{ width: percentWidth(numericValue, forecastMax || numericValue || 1) }}
-                              />
+              <div className="flex flex-col gap-6 rounded-[28px] border border-indigo-200/70 bg-white/85 p-5 backdrop-blur">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Forecast Outlook</p>
+                  <h3 className="text-xl font-semibold text-slate-900">See where the category is headed next</h3>
+                </div>
+                <p className="leading-relaxed text-base">{forecastNarrative}</p>
+                <Table className="overflow-hidden rounded-[24px] border border-indigo-200/60 bg-white/90 text-sm">
+                  <TableHeader className="bg-indigo-500/10 text-indigo-700">
+                    <TableRow className="border-indigo-200/60">
+                      <TableHead className="font-semibold">Year</TableHead>
+                      <TableHead className="text-right font-semibold">Value</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {forecast.map((point, index) => {
+                      const numericValue = asNumber(point?.value);
+                      const label = point?.year ?? `FY${index + 1}`;
+                      return (
+                        <TableRow key={`${label}-${index}`} className="border-indigo-100/60 bg-white/95 backdrop-blur">
+                          <TableCell className="font-medium text-slate-900">{label}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="space-y-2">
+                              <span className="font-semibold text-slate-800">{formatCurrency(numericValue, "USD")}</span>
+                              <div className="h-1.5 overflow-hidden rounded-full bg-indigo-100">
+                                <div
+                                  className="h-full rounded-full bg-indigo-500"
+                                  style={{ width: percentWidth(numericValue, forecastMax || numericValue || 1) }}
+                                />
+                              </div>
                             </div>
-                          </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {!forecast.length ? (
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-center text-sm text-muted-foreground">
+                          Forecast projections will surface once the analysis has historical context.
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                  {!forecast.length ? (
-                    <TableRow>
-                      <TableCell colSpan={2} className="text-center text-sm text-muted-foreground">
-                        Forecast projections will surface once the analysis has historical context.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
 
-          <Card
-            className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-purple-50/70 to-sky-100/40`}
-            aria-label="Opportunity radar card"
-          >
-            <CardHeader className="space-y-1">
-              <CardDescription className="text-purple-600">Opportunity Radar</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
-                Prioritize moves with shared evidence
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
-              <p className="leading-relaxed text-base">{opportunityNarrative}</p>
-              <Table className="overflow-hidden rounded-[28px] border border-purple-200/70 bg-white/80 text-sm">
-                <TableHeader className="bg-purple-500/10 text-purple-700">
-                  <TableRow className="border-purple-200/60">
-                    <TableHead className="font-semibold">Opportunity</TableHead>
-                    <TableHead className="text-right font-semibold">Impact</TableHead>
-                    <TableHead className="text-right font-semibold">Urgency</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {opportunityRows.map((row, index) => (
-                    <TableRow key={`${row.title}-${index}`} className="border-purple-100/60 bg-white/85 backdrop-blur">
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-semibold text-slate-900">{row.title}</p>
-                          {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
-                      <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.urgency ?? "Plan"}</TableCell>
+              <div className="flex flex-col gap-6 rounded-[28px] border border-purple-200/70 bg-white/85 p-5 backdrop-blur">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-purple-600">Opportunity Radar</p>
+                  <h3 className="text-xl font-semibold text-slate-900">Prioritize moves with shared evidence</h3>
+                </div>
+                <p className="leading-relaxed text-base">{opportunityNarrative}</p>
+                <Table className="overflow-hidden rounded-[24px] border border-purple-200/60 bg-white/90 text-sm">
+                  <TableHeader className="bg-purple-500/10 text-purple-700">
+                    <TableRow className="border-purple-200/60">
+                      <TableHead className="font-semibold">Opportunity</TableHead>
+                      <TableHead className="text-right font-semibold">Impact</TableHead>
+                      <TableHead className="text-right font-semibold">Urgency</TableHead>
                     </TableRow>
-                  ))}
-                  {!opportunityRows.length ? (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
-                        Opportunity scoring will appear once the analysis ranks high-potential plays.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {opportunityRows.map((row, index) => (
+                      <TableRow key={`${row.title}-${index}`} className="border-purple-100/60 bg-white/95 backdrop-blur">
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="font-semibold text-slate-900">{row.title}</p>
+                            {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
+                        <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.urgency ?? "Plan"}</TableCell>
+                      </TableRow>
+                    ))}
+                    {!opportunityRows.length ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                          Opportunity scoring will appear once the analysis ranks high-potential plays.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </section>
