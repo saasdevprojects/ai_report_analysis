@@ -152,7 +152,7 @@ export const ProductAnalyzer = ({ onComplete, className }: ProductAnalyzerProps)
   return (
     <Card className={cn("shadow-xl", className)}>
       <CardHeader>
-        <CardTitle className="text-2xl">Analyze Your Product</CardTitle>
+        <CardTitle className="text-2xl">Ai Report Analysis</CardTitle>
         <CardDescription>
           Enter your product details and get comprehensive AI-powered market research
         </CardDescription>
