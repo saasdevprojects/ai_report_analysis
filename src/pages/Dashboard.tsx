@@ -144,8 +144,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b bg-white dark:bg-neutral-950 sticky top-0 z-20 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+
           <div className="flex items-center gap-2">
             <Zap className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-bold">Product Summary</h1>
@@ -163,7 +164,7 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pt-14 pb-10">
         <div className="grid gap-10 xl:grid-cols-[1.1fr_1fr]">
           <div className="relative">
             <div className="pointer-events-none absolute -inset-x-10 -top-20 -bottom-10 -z-10">
@@ -172,7 +173,7 @@ const Dashboard = () => {
             </div>
             <div className="relative">
               <ProductAnalyzer 
-                className="w-full rounded-3xl bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl border border-white/30 dark:border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/10"
+                className="w-full rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/10"
               />
             </div>
           </div>
