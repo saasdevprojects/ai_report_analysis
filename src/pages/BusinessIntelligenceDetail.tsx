@@ -389,7 +389,7 @@ const BusinessIntelligenceDetail = () => {
                 live intelligence without hopping between multiple sections.
               </p>
             </CardHeader>
-            <CardContent className="grid gap-6 text-slate-700 lg:grid-cols-[1.6fr_1fr]">
+            <CardContent className="flex flex-col gap-6 text-slate-700">
               <div className="flex flex-col gap-6 rounded-[28px] border border-violet-200/70 bg-white/85 p-5 backdrop-blur">
                 <div className="space-y-1">
                   <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Strategic Intelligence Narrative</p>
@@ -413,8 +413,7 @@ const BusinessIntelligenceDetail = () => {
                   </ul>
                 </div>
               </div>
-              <div className="flex flex-col gap-6 rounded-[28px] border border-indigo-200/60 bg-white/90 p-5 backdrop-blur">
-                <div className="space-y-5 rounded-[24px] border border-indigo-200/60 bg-white/95 p-4">
+              <div className="space-y-5 rounded-[24px] border border-indigo-200/60 bg-white/95 p-4">
                   <div className="space-y-1">
                     <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Opportunity Orchestration</p>
                     <h4 className="text-lg font-semibold text-slate-900">Score, stage, and socialize growth bets</h4>
@@ -458,7 +457,7 @@ const BusinessIntelligenceDetail = () => {
                     </TableBody>
                   </Table>
                 </div>
-                <div className="rounded-[24px] border border-rose-200/60 bg-white/95 p-4">
+              <div className="rounded-[24px] border border-rose-200/60 bg-white/95 p-4">
                   <div className="space-y-1">
                     <p className="text-sm font-semibold uppercase tracking-wide text-rose-500">Automation Runway</p>
                     <h4 className="text-lg font-semibold text-slate-900">Turn intelligence into repeatable momentum</h4>
@@ -503,7 +502,6 @@ const BusinessIntelligenceDetail = () => {
                     </TableBody>
                   </Table>
                 </div>
-              </div>
             </CardContent>
           </Card>
         </section>
