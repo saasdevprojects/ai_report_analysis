@@ -71,6 +71,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 const threeDCardClass =
   "relative overflow-hidden rounded-[32px] border border-white/40 bg-white/[0.92] shadow-[0_45px_140px_-60px_rgba(79,70,229,0.35)] ring-1 ring-violet-200/70 backdrop-blur-2xl";
 const modernCardClass = "rounded-xl border border-slate-200 bg-white shadow-sm";
+const forecastCardClass = "rounded-xl border-2 border-cyan-100 bg-cyan-50 shadow-sm";
 
 function safeArray<T>(value: T[] | null | undefined): T[] {
   return Array.isArray(value) ? value : [];
@@ -870,7 +871,7 @@ const BusinessIntelligenceDetail = () => {
   return (
     <div className="min-h-screen bg-slate-50 font-plex">
       <div className="container mx-auto max-w-6xl space-y-8 px-4 py-8">
-        <header className="flex flex-col gap-4 rounded-3xl border bg-white/90 p-6 backdrop-blur md:flex-row md:items-center md:justify-between">
+        <header className={`${modernCardClass} flex flex-col gap-4 rounded-3xl p-6 md:flex-row md:items-center md:justify-between`}>
           <div>
             <div className="flex items-center gap-2">
               <Badge className="rounded-full bg-[#ede9fe] text-[#5b21b6]">Business Intelligence</Badge>
@@ -1015,7 +1016,7 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="glossary" className="scroll-mt-24">
-              <div className={`${modernCardClass} p-6`}>
+              <div className={`${forecastCardClass} p-6`}>
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Glossary</h3>
                 </div>
@@ -1441,7 +1442,7 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="recommendations" className="scroll-mt-24">
-              <div className={`${modernCardClass} p-6`}>
+              <div className={`${forecastCardClass} p-6`}>
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Strategic Recommendations</h3>
                 </div>
@@ -1478,7 +1479,7 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="sources" className="scroll-mt-24">
-              <div className={`${modernCardClass} p-6`}>
+              <div className={`${forecastCardClass} p-6`}>
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Sources & Attribution</h3>
                 </div>
