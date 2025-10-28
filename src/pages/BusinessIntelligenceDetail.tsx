@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, Info } from "lucide-react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -652,6 +652,10 @@ const BusinessIntelligenceDetail = () => {
                   <h2 className="text-xl font-semibold tracking-tight text-slate-900">AI Market Intelligence Summary</h2>
                   <Badge className="rounded-full bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200">AI Generated Insights</Badge>
                 </div>
+                <p className="mb-4 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  Executive snapshot of your market position and the key narrative to align teams.
+                </p>
                 <div className="grid gap-6 md:grid-cols-[220px_1fr]">
                   <div className="relative">
                     <ResponsiveContainer width="100%" height={180}>
@@ -674,6 +678,10 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="market" className="scroll-mt-24">
+              <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                Tracks multi-year growth, TAM/CAGR/trends, and regions with strongest adoption.
+              </p>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className={`${modernCardClass} p-6`}>
                   <div className="mb-3 flex items-center justify-between">
@@ -725,6 +733,10 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="competitors" className="scroll-mt-24">
+              <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                Compares pricing vs features and capability profiles relative to top competitors.
+              </p>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className={`${modernCardClass} p-6`}>
                   <div className="mb-3 flex items-center justify-between">
@@ -765,6 +777,10 @@ const BusinessIntelligenceDetail = () => {
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">ROI by Channel</h3>
                   <span className="text-xs text-slate-500">Budget: {budget[0]}%</span>
                 </div>
+                <p className="mb-2 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  Expected ROI by acquisition channel; adjust the budget slider to explore allocations.
+                </p>
                 <div className="mb-4">
                   <Slider value={budget} onValueChange={setBudget} min={0} max={100} step={1} />
                 </div>
@@ -781,6 +797,10 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="customers" className="scroll-mt-24">
+              <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                Who buys, what pain they feel, and how demand converts across the funnel.
+              </p>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className={`${modernCardClass} p-6`}>
                   <div className="mb-3 flex items-center justify-between">
@@ -830,6 +850,10 @@ const BusinessIntelligenceDetail = () => {
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Product Benchmarking</h3>
                 </div>
+                <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  How the product stacks up versus market average across features, innovation, UX, and pricing.
+                </p>
                 <ResponsiveContainer width="100%" height={280}>
                   <RadarChart data={productBenchmarkData}>
                     <PolarGrid />
@@ -844,6 +868,10 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="forecast" className="scroll-mt-24">
+              <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                Where the next growth pockets are likely to emerge by region and theme.
+              </p>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className={`${modernCardClass} p-6`}>
                   <div className="mb-3 flex items-center justify-between">
@@ -875,6 +903,10 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="risk" className="scroll-mt-24">
+              <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                Key risks plotted by likelihood and impact, plus compliance hygiene and alerts.
+              </p>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className={`${modernCardClass} p-6`}>
                   <div className="mb-3 flex items-center justify-between">
@@ -920,6 +952,10 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="finance" className="scroll-mt-24">
+              <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                Unit economics trends and KPIs to monitor for sustainable growth.
+              </p>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className={`${modernCardClass} p-6`}>
                   <div className="mb-3 flex items-center justify-between">
@@ -983,6 +1019,10 @@ const BusinessIntelligenceDetail = () => {
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Strategic Recommendations</h3>
                 </div>
+                <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  Prioritized initiatives with expected ROI, timeline, and confidence to guide execution.
+                </p>
                 <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
                   <TableHeader className="bg-slate-50 text-slate-700">
                     <TableRow>
