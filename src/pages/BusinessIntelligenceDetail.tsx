@@ -6,6 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Download, CheckCircle2 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  BarChart,
+  Bar,
+  Tooltip as RechartsTooltip,
+} from "recharts";
 import { toast } from "sonner";
 import type { ReportPayload } from "@/types/report";
 import generateAnalysisReportPdf from "@/pdf/AnalysisReportPDF";
@@ -299,6 +310,35 @@ const BusinessIntelligenceDetail = () => {
     return sentences.join(" ");
   }, [productName]);
 
+  const opportunityChartData = useMemo(
+    () =>
+      opportunityRows.map((row, index) => {
+        const rawImpact =
+          typeof row.impact === "number"
+            ? row.impact
+            : parseFloat(row.impact ? String(row.impact).replace(/[^0-9.-]/g, "") : "");
+        const impactValue = Number.isFinite(rawImpact)
+          ? rawImpact
+          : Math.max(10, (opportunityRows.length - index) * 10);
+        return {
+          title: row.title ?? `Opportunity ${index + 1}`,
+          impact: impactValue,
+          timeframe: row.timeframe ?? "Ongoing",
+        };
+      }),
+    [opportunityRows],
+  );
+
+  const automationChartData = useMemo(() => {
+    if (!automationRows.length) return [];
+    const counts = automationRows.reduce((acc, row) => {
+      const priorityLabel = (row.priority ?? "Plan").toString().toUpperCase();
+      acc[priorityLabel] = (acc[priorityLabel] ?? 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    return Object.entries(counts).map(([priority, count]) => ({ priority, count }));
+  }, [automationRows]);
+
   const futureNarrative = useMemo(() => {
     const runwayLabel = runwayAverage ? `${runwayAverage}-month average runway` : "a monitored runway trajectory";
     const sentences = [
@@ -370,8 +410,9 @@ const BusinessIntelligenceDetail = () => {
               <Download className="mr-2 h-4 w-4" />
               {isExportingPdf ? "Exporting PDF..." : "Export PDF"}
             </Button>
-            <Button variant="ghost" className="rounded-full" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            <Button variant="ghost" className="flex items-center rounded-full" onClick={() => navigate("/dashboard")}>
+              Back
+              <ArrowLeft className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </header>
@@ -380,8 +421,8 @@ const BusinessIntelligenceDetail = () => {
           <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-violet-50/80 to-indigo-100/60`}
             aria-label="Strategic opportunity overview">
             <CardHeader className="space-y-2">
-              <CardDescription className="text-violet-600">Intelligence Execution Hub</CardDescription>
-              <CardTitle className="text-3xl font-semibold tracking-tight text-slate-900">
+              <CardDescription className="font-display text-violet-600">Intelligence Execution Hub</CardDescription>
+              <CardTitle className="font-display text-3xl font-semibold tracking-tight text-slate-900">
                 Unify decisions with shared context
               </CardTitle>
               <p className="max-w-3xl text-slate-600">
@@ -392,12 +433,12 @@ const BusinessIntelligenceDetail = () => {
             <CardContent className="flex flex-col gap-6 text-slate-700">
               <div className="flex flex-col gap-6 rounded-[28px] border border-violet-200/70 bg-white/85 p-5 backdrop-blur">
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Strategic Intelligence Narrative</p>
-                  <h3 className="text-xl font-semibold text-slate-900">Unify decisions with shared context</h3>
+                  <p className="font-display text-sm font-semibold uppercase tracking-wide text-violet-600">Strategic Intelligence Narrative</p>
+                  <h3 className="font-display text-xl font-semibold text-slate-900">Unify decisions with shared context</h3>
                 </div>
                 <p className="leading-relaxed text-base">{strategicNarrative}</p>
                 <div className="grid gap-3 rounded-[24px] border border-violet-200/60 bg-white/90 p-4">
-                  <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Headlines surfaced</p>
+                  <p className="font-display text-sm font-semibold uppercase tracking-wide text-violet-600">Headlines surfaced</p>
                   <ul className="grid gap-3">
                     {keyInsights.slice(0, 5).map((insight, index) => (
                       <li key={index} className="flex items-start gap-3">
@@ -414,94 +455,165 @@ const BusinessIntelligenceDetail = () => {
                 </div>
               </div>
               <div className="space-y-5 rounded-[24px] border border-indigo-200/60 bg-white/95 p-4">
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Opportunity Orchestration</p>
-                    <h4 className="text-lg font-semibold text-slate-900">Score, stage, and socialize growth bets</h4>
-                  </div>
-                  <p className="leading-relaxed text-base">{opportunityNarrative}</p>
-                  <Table className="overflow-hidden rounded-[20px] border border-indigo-200/60 bg-white/95 text-sm">
-                    <TableHeader className="bg-indigo-500/10 text-indigo-700">
-                      <TableRow className="border-indigo-200/60">
-                        <TableHead className="font-semibold">Opportunity</TableHead>
-                        <TableHead className="text-right font-semibold">Impact</TableHead>
-                        <TableHead className="text-right font-semibold">Timeframe</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {opportunityRows.map((row, index) => (
-                        <TableRow key={index} className="border-indigo-100/60 bg-white/95 backdrop-blur">
-                          <TableCell>
-                            <div className="flex items-start gap-3">
-                              <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
-                                <CheckCircle2 className="h-4 w-4" />
-                              </span>
-                              <div className="space-y-1">
-                                <p className="font-semibold text-slate-900">{row.title}</p>
-                                {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
-                          <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">
-                            {row.timeframe ?? "Ongoing"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {!opportunityRows.length ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
-                            Opportunity scoring will populate when the analysis highlights specific moves.
-                          </TableCell>
-                        </TableRow>
-                      ) : null}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-1">
+                  <p className="font-display text-sm font-semibold uppercase tracking-wide text-indigo-600">Opportunity Orchestration</p>
+                  <h4 className="font-display text-lg font-semibold text-slate-900">Score, stage, and socialize growth bets</h4>
                 </div>
+                <p className="leading-relaxed text-base">{opportunityNarrative}</p>
+                {opportunityChartData.length ? (
+                  <div className="rounded-3xl border border-indigo-200/70 bg-indigo-50/70 p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="font-display text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                        Impact trajectory
+                      </p>
+                      <span className="text-xs text-indigo-500">Latest opportunities</span>
+                    </div>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <AreaChart data={opportunityChartData} margin={{ top: 10, right: 24, bottom: 0, left: -10 }}>
+                        <defs>
+                          <linearGradient id="impactGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#6366f1" stopOpacity={0.7} />
+                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid stroke="#c7d2fe" strokeDasharray="4 4" />
+                        <XAxis
+                          dataKey="title"
+                          tick={{ fontSize: 11, fill: "#4338ca" }}
+                          axisLine={false}
+                          tickLine={false}
+                          interval={0}
+                        />
+                        <YAxis tick={{ fontSize: 11, fill: "#4338ca" }} axisLine={false} tickLine={false} width={30} />
+                        <RechartsTooltip
+                          cursor={{ fill: "rgba(99,102,241,0.08)" }}
+                          contentStyle={{ borderRadius: 16, borderColor: "#c7d2fe" }}
+                          labelStyle={{ fontWeight: 600 }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="impact"
+                          stroke="#6366f1"
+                          strokeWidth={3}
+                          fill="url(#impactGradient)"
+                          dot={{ r: 4, strokeWidth: 0 }}
+                          activeDot={{ r: 6, strokeWidth: 0 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : null}
+                <Table className="overflow-hidden rounded-[20px] border border-indigo-200/60 bg-white/95 text-sm">
+                  <TableHeader className="bg-indigo-500/10 text-indigo-700">
+                    <TableRow className="border-indigo-200/60">
+                      <TableHead className="font-display font-semibold">Opportunity</TableHead>
+                      <TableHead className="font-display text-right font-semibold">Impact</TableHead>
+                      <TableHead className="font-display text-right font-semibold">Timeframe</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {opportunityRows.map((row, index) => (
+                      <TableRow key={index} className="border-indigo-100/60 bg-white/95 backdrop-blur">
+                        <TableCell>
+                          <div className="flex items-start gap-3">
+                            <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
+                              <CheckCircle2 className="h-4 w-4" />
+                            </span>
+                            <div className="space-y-1">
+                              <p className="font-semibold text-slate-900">{row.title}</p>
+                              {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
+                        <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">
+                          {row.timeframe ?? "Ongoing"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!opportunityRows.length ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                          Opportunity scoring will populate when the analysis highlights specific moves.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
               <div className="rounded-[24px] border border-rose-200/60 bg-white/95 p-4">
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-rose-500">Automation Runway</p>
-                    <h4 className="text-lg font-semibold text-slate-900">Turn intelligence into repeatable momentum</h4>
-                  </div>
-                  <p className="leading-relaxed text-base">{automationNarrative}</p>
-                  <Table className="overflow-hidden rounded-[24px] border border-rose-200/60 bg-white/90 text-sm">
-                    <TableHeader className="bg-rose-500/10 text-rose-600">
-                      <TableRow className="border-rose-200/60">
-                        <TableHead className="font-semibold">Action</TableHead>
-                        <TableHead className="text-right font-semibold">Owner</TableHead>
-                        <TableHead className="text-right font-semibold">Priority</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {automationRows.map((row, index) => (
-                        <TableRow key={index} className="border-rose-100/60 bg-white/95 backdrop-blur">
-                          <TableCell>
-                            <div className="flex items-start gap-3">
-                              <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
-                                <CheckCircle2 className="h-4 w-4" />
-                              </span>
-                              <div className="space-y-1">
-                                <p className="font-semibold text-slate-900">{row.title}</p>
-                                {row.description ? <p className="text-xs text-slate-500">{row.description}</p> : null}
-                                {row.timeline ? (
-                                  <p className="text-xs uppercase tracking-wide text-rose-500">{row.timeline}</p>
-                                ) : null}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right text-sm font-medium text-slate-700">{row.owner ?? "TBD"}</TableCell>
-                          <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.priority ?? "Plan"}</TableCell>
-                        </TableRow>
-                      ))}
-                      {!automationRows.length ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
-                            Automation priorities populate as the AI surfaces explicit next moves.
-                          </TableCell>
-                        </TableRow>
-                      ) : null}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-1">
+                  <p className="font-display text-sm font-semibold uppercase tracking-wide text-rose-500">Automation Runway</p>
+                  <h4 className="font-display text-lg font-semibold text-slate-900">Turn intelligence into repeatable momentum</h4>
                 </div>
+                <p className="leading-relaxed text-base">{automationNarrative}</p>
+                {automationChartData.length ? (
+                  <div className="rounded-3xl border border-rose-200/70 bg-rose-50/70 p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="font-display text-xs font-semibold uppercase tracking-wide text-rose-500">
+                        Priority mix
+                      </p>
+                      <span className="text-xs text-rose-500/80">Actionable workload</span>
+                    </div>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={automationChartData} barSize={36} margin={{ top: 10, right: 16, bottom: 0, left: -10 }}>
+                        <CartesianGrid stroke="#fecdd3" strokeDasharray="4 4" vertical={false} />
+                        <XAxis
+                          dataKey="priority"
+                          tick={{ fontSize: 11, fill: "#be123c" }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis tick={{ fontSize: 11, fill: "#be123c" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                        <RechartsTooltip
+                          cursor={{ fill: "rgba(244,63,94,0.08)" }}
+                          contentStyle={{ borderRadius: 16, borderColor: "#fecdd3" }}
+                          labelStyle={{ fontWeight: 600 }}
+                        />
+                        <Bar dataKey="count" fill="#f43f5e" radius={[12, 12, 4, 4]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : null}
+                <Table className="overflow-hidden rounded-[24px] border border-rose-200/60 bg-white/90 text-sm">
+                  <TableHeader className="bg-rose-500/10 text-rose-600">
+                    <TableRow className="border-rose-200/60">
+                      <TableHead className="font-display font-semibold">Action</TableHead>
+                      <TableHead className="font-display text-right font-semibold">Owner</TableHead>
+                      <TableHead className="font-display text-right font-semibold">Priority</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {automationRows.map((row, index) => (
+                      <TableRow key={index} className="border-rose-100/60 bg-white/95 backdrop-blur">
+                        <TableCell>
+                          <div className="flex items-start gap-3">
+                            <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
+                              <CheckCircle2 className="h-4 w-4" />
+                            </span>
+                            <div className="space-y-1">
+                              <p className="font-semibold text-slate-900">{row.title}</p>
+                              {row.description ? <p className="text-xs text-slate-500">{row.description}</p> : null}
+                              {row.timeline ? (
+                                <p className="text-xs uppercase tracking-wide text-rose-500">{row.timeline}</p>
+                              ) : null}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right text-sm font-medium text-slate-700">{row.owner ?? "TBD"}</TableCell>
+                        <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.priority ?? "Plan"}</TableCell>
+                      </TableRow>
+                    ))}
+                    {!automationRows.length ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                          Automation priorities populate as the AI surfaces explicit next moves.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </section>
@@ -510,8 +622,8 @@ const BusinessIntelligenceDetail = () => {
           <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-slate-50/70 to-sky-100/50`}
             aria-label="Futurecasting intelligence card">
             <CardHeader className="space-y-1">
-              <CardDescription className="text-sky-600">Futurecasting & Resilience</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+              <CardDescription className="font-display text-sky-600">Futurecasting & Resilience</CardDescription>
+              <CardTitle className="font-display text-2xl font-semibold tracking-tight text-slate-900">
                 Stay ahead of the next inflection point
               </CardTitle>
             </CardHeader>
@@ -544,8 +656,8 @@ const BusinessIntelligenceDetail = () => {
           <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-amber-50/60 to-violet-100/40`}
             aria-label="Risk navigation card">
             <CardHeader className="space-y-1">
-              <CardDescription className="text-amber-600">Risk Navigation</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+              <CardDescription className="font-display text-amber-600">Risk Navigation</CardDescription>
+              <CardTitle className="font-display text-2xl font-semibold tracking-tight text-slate-900">
                 Keep experiments bold and defensible
               </CardTitle>
             </CardHeader>
@@ -574,8 +686,8 @@ const BusinessIntelligenceDetail = () => {
           <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-emerald-50/60 to-violet-100/40`}
             aria-label="Attribution and data confidence card">
             <CardHeader className="space-y-1">
-              <CardDescription className="text-emerald-600">Attribution & Evidence</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+              <CardDescription className="font-display text-emerald-600">Attribution & Evidence</CardDescription>
+              <CardTitle className="font-display text-2xl font-semibold tracking-tight text-slate-900">
                 Anchor every insight in transparent sources
               </CardTitle>
             </CardHeader>
@@ -593,7 +705,7 @@ const BusinessIntelligenceDetail = () => {
                       {source.url ? (
                         <a
                           href={source.url}
-                          className="text-xs font-semibold text-emerald-600 underline-offset-4 hover:underline"
+                          className="break-all text-xs font-semibold text-emerald-600 underline-offset-4 hover:underline"
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -615,12 +727,12 @@ const BusinessIntelligenceDetail = () => {
           <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-violet-50/70 to-indigo-100/40`}
             aria-label="Executive recap card">
             <CardHeader className="space-y-1">
-              <CardDescription className="text-violet-600">Executive Recap</CardDescription>
-              <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
+              <CardDescription className="font-display text-violet-600">Executive Recap</CardDescription>
+              <CardTitle className="font-display text-2xl font-semibold tracking-tight text-slate-900">
                 Broadcast the story in one confident swipe
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-4 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-2.5 text-slate-700">
               <p className="leading-relaxed text-base">{recapNarrative}</p>
               <div className="rounded-[24px] border border-violet-200/70 bg-white/80 p-4 text-sm text-slate-700">
                 <p className="font-semibold text-slate-900">Share-ready headline</p>
