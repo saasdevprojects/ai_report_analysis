@@ -27,7 +27,6 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
 } from "recharts";
-import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import type { ReportPayload } from "@/types/report";
@@ -143,7 +142,7 @@ const BusinessIntelligenceDetail = () => {
   const [report, setReport] = useState<ReportPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-  const [budget, setBudget] = useState<number[]>([60]);
+  
 
   useEffect(() => {
     let mounted = true;
@@ -448,21 +447,6 @@ const BusinessIntelligenceDetail = () => {
     return { cagr, tam, trend };
   }, [currentReport]);
 
-  const roiByChannelData = useMemo(() => {
-    const alloc = safeArray(currentReport?.gtmStrategy?.budgetAllocation);
-    const list = alloc.map((row: any, idx: number) => ({
-      channel: row?.channel ?? `Channel ${idx + 1}`,
-      roi: safeNumber(row?.expectedROI, 0),
-      allocation: safeNumber(row?.allocation, 0),
-    }));
-    if (list.length) return list;
-    return channels.map((ch: any, idx) => ({
-      channel: ch?.channel ?? ch?.name ?? `Channel ${idx + 1}`,
-      roi: safeNumber((ch as any)?.expectedROI, 0),
-      allocation: safeNumber((ch as any)?.budgetShare, 0),
-    }));
-  }, [channels, currentReport]);
-
   const competitorLabelA = useMemo(() => competitorNames[0] ?? "Competitor A", [competitorNames]);
   const competitorLabelB = useMemo(() => competitorNames[1] ?? "Competitor B", [competitorNames]);
   const competitorRadarData = useMemo(() => {
@@ -607,7 +591,6 @@ const BusinessIntelligenceDetail = () => {
     const benchmarkMetrics = formatCount(productBenchmarkData.length, "metric", "metrics");
     const regionCount = formatCount(forecastRegions.length, "region", "regions");
     const whitespaceCount = formatCount(emergingMarketCards.length, "whitespace bet", "whitespace bets");
-    const roiChannels = formatCount(roiByChannelData.length, "channel", "channels");
     const riskTotal = riskCells.reduce((acc, cell) => acc + cell.risks.length, 0);
     const riskCount = formatCount(riskTotal, "risk", "risks");
     const complianceCount = formatCount(complianceItems.length, "framework", "frameworks");
@@ -651,11 +634,6 @@ const BusinessIntelligenceDetail = () => {
         description: `Surfaces ${regionCount} regions and ${whitespaceCount} emerging opportunities derived from opportunityForecast data.`,
       },
       {
-        id: "gtm",
-        title: "GTM Strategy",
-        description: `Charts ROI across ${roiChannels} using gtmStrategy budget allocation figures with an adjustable budget slider.`,
-      },
-      {
         id: "risk",
         title: "Risk Assessment",
         description: `Organizes ${riskCount} in the risk matrix and tracks ${complianceCount} compliance frameworks to guide mitigation priorities.`,
@@ -694,7 +672,6 @@ const BusinessIntelligenceDetail = () => {
     profitSeries.length,
     recommendationsData.length,
     riskCells,
-    roiByChannelData.length,
     sentimentChannelsCount,
     sources.length,
   ]);
@@ -755,7 +732,6 @@ const BusinessIntelligenceDetail = () => {
                 <li><a href="#customers" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Customers</a></li>
                 <li><a href="#benchmarking" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Benchmarking</a></li>
                 <li><a href="#forecast" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Forecast</a></li>
-                <li><a href="#gtm" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">GTM</a></li>
                 <li><a href="#risk" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Risk</a></li>
                 <li><a href="#finance" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Finance</a></li>
                 <li><a href="#recommendations" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Recommendations</a></li>
@@ -906,31 +882,6 @@ const BusinessIntelligenceDetail = () => {
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
-              </div>
-            </section>
-
-            <section id="gtm" className="scroll-mt-24">
-              <div className={`${modernCardClass} p-6`}>
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">ROI by Channel</h3>
-                  <span className="text-xs text-slate-500">Budget: {budget[0]}%</span>
-                </div>
-                <p className="mb-2 flex items-start gap-2 text-sm text-slate-500">
-                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
-                  Expected ROI by acquisition channel; adjust the budget slider to explore allocations.
-                </p>
-                <div className="mb-4">
-                  <Slider value={budget} onValueChange={setBudget} min={0} max={100} step={1} />
-                </div>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={roiByChannelData} barSize={36} margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
-                    <CartesianGrid stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="channel" tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
-                    <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} />
-                    <Bar dataKey="roi" fill="#06b6d4" radius={[8, 8, 4, 4]} />
-                  </BarChart>
-                </ResponsiveContainer>
               </div>
             </section>
 
