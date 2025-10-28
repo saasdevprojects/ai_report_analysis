@@ -442,7 +442,7 @@ const BusinessIntelligenceDetail = () => {
     const tam = safeNumber(env?.marketSize?.current, 0);
     const f = safeArray(env?.marketSize?.forecast);
     const trend = f.length >= 2
-      ? Math.round(((safeNumber(f[f.length - 1]?.value, 0) - safeNumber(f[0]?.value, 0)) / Math.max(1, safeNumber(f[0]?.value, 1))) * 100)
+      ? Math.round(((safeNumber((f[f.length - 1] as any)?.value, 0) - safeNumber((f[0] as any)?.value, 0)) / Math.max(1, safeNumber((f[0] as any)?.value, 1))) * 100)
       : 0;
     return { cagr, tam, trend };
   }, [currentReport]);
@@ -481,10 +481,10 @@ const BusinessIntelligenceDetail = () => {
   const personaCards = useMemo(() => {
     const personas = safeArray(currentReport?.customerInsights?.personas);
     return personas.map((p: any) => ({
-      role: p?.role ?? p?.name ?? "Key persona",
-      pain: safeArray(p?.motivations).slice(0,1)[0] ?? "—",
-      budget: p?.budget ?? "—",
-      companySize: p?.companySize ?? "—",
+      role: String(p?.role ?? p?.name ?? "Key persona"),
+      pain: String(safeArray(p?.motivations).slice(0,1)[0] ?? "—"),
+      budget: String(p?.budget ?? "—"),
+      companySize: String(p?.companySize ?? "—"),
     }));
   }, [currentReport]);
 
@@ -508,7 +508,7 @@ const BusinessIntelligenceDetail = () => {
 
   const funnelData = useMemo(() => {
     const journey = safeArray(currentReport?.customerInsights?.purchaseJourney);
-    return journey.map((j: any) => ({ stage: j?.stage ?? "Stage", value: safeNumber(j?.conversionRate, 0) }));
+    return journey.map((j: any) => ({ stage: String(j?.stage ?? "Stage"), value: safeNumber(j?.conversionRate, 0) }));
   }, [currentReport]);
 
   const productBenchmarkData = useMemo(() => {
