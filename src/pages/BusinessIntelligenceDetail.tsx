@@ -229,6 +229,7 @@ const BusinessIntelligenceDetail = () => {
     .map((comp: any) => comp?.name)
     .filter(Boolean);
   const personaSignals = safeArray(currentReport?.customerInsights?.behavioralSignals).slice(0, 3);
+  const sentimentChannelsCount = safeArray(currentReport?.customerInsights?.sentimentMaps).length;
   const growthPeriods = safeArray(currentReport?.opportunityForecast?.growthTimeline)
     .slice(0, 4)
     .map((period) => period?.period)
@@ -593,6 +594,111 @@ const BusinessIntelligenceDetail = () => {
     }));
   }, [actions]);
 
+  const sectionSummaries = useMemo(() => {
+    const formatCount = (count: number, singular: string, plural: string) =>
+      `${count || 0} ${count === 1 ? singular : plural}`;
+
+    const insightCount = formatCount(keyInsights.length, "insight", "insights");
+    const forecastPoints = formatCount(marketGrowthSeries.length, "forecast point", "forecast points");
+    const competitorCount = formatCount(competitorNames.length, "competitor", "competitors");
+    const personaCount = formatCount(personaCards.length, "persona", "personas");
+    const sentimentChannels = formatCount(sentimentChannelsCount, "channel", "channels");
+    const funnelStages = formatCount(funnelData.length, "stage", "stages");
+    const benchmarkMetrics = formatCount(productBenchmarkData.length, "metric", "metrics");
+    const regionCount = formatCount(forecastRegions.length, "region", "regions");
+    const whitespaceCount = formatCount(emergingMarketCards.length, "whitespace bet", "whitespace bets");
+    const roiChannels = formatCount(roiByChannelData.length, "channel", "channels");
+    const riskTotal = riskCells.reduce((acc, cell) => acc + cell.risks.length, 0);
+    const riskCount = formatCount(riskTotal, "risk", "risks");
+    const complianceCount = formatCount(complianceItems.length, "framework", "frameworks");
+    const profitPoints = formatCount(profitSeries.length, "period", "periods");
+    const kpiCount = formatCount(Object.keys(kpis).length, "KPI", "KPIs");
+    const recommendationCount = formatCount(recommendationsData.length, "recommendation", "recommendations");
+    const sourceCount = formatCount(sources.length, "source", "sources");
+    const tamDisplay = marketStats.tam
+      ? `$${formatNumber(marketStats.tam, { notation: "compact", maximumFractionDigits: 1 })}`
+      : "n/a";
+
+    return [
+      {
+        id: "overview",
+        title: "Executive Summary",
+        description: `Radial gauge shows the market readiness score (${marketScore || 0}) and summarizes ${insightCount} for leadership alignment.`,
+      },
+      {
+        id: "market",
+        title: "Market Overview",
+        description: `Line chart plots ${forecastPoints}; stat cards highlight current TAM ${tamDisplay} and average regional CAGR ${marketStats.cagr || 0}%.`,
+      },
+      {
+        id: "competitors",
+        title: "Competitive Landscape",
+        description: `Compares us against ${competitorCount} via the price-feature matrix and feature radar sourced from competitiveLandscape data.`,
+      },
+      {
+        id: "customers",
+        title: "Customer Insights",
+        description: `Distills ${personaCount}, sentiment from ${sentimentChannels}, and ${funnelStages} funnel stages captured in customerInsights.`,
+      },
+      {
+        id: "benchmarking",
+        title: "Product Benchmarking",
+        description: `Tracks ${benchmarkMetrics} capability scores from productEvaluation.performanceRadar to contrast us with market averages.`,
+      },
+      {
+        id: "forecast",
+        title: "Opportunity Forecast",
+        description: `Surfaces ${regionCount} regions and ${whitespaceCount} emerging opportunities derived from opportunityForecast data.`,
+      },
+      {
+        id: "gtm",
+        title: "GTM Strategy",
+        description: `Charts ROI across ${roiChannels} using gtmStrategy budget allocation figures with an adjustable budget slider.`,
+      },
+      {
+        id: "risk",
+        title: "Risk Assessment",
+        description: `Organizes ${riskCount} in the risk matrix and tracks ${complianceCount} compliance frameworks to guide mitigation priorities.`,
+      },
+      {
+        id: "finance",
+        title: "Financial Summary",
+        description: `Plots margin across ${profitPoints} and highlights ${kpiCount} core KPIs sourced from financialBenchmark.unitEconomics.`,
+      },
+      {
+        id: "recommendations",
+        title: "Strategic Recommendations",
+        description: `Lists ${recommendationCount} prioritized actions with ROI, timeline, and confidence pulled from strategicRecommendations.actions.`,
+      },
+      {
+        id: "sources",
+        title: "Sources & Attribution",
+        description: `Keeps ${sourceCount} references clickable so analysts can audit every insight back to its origin.`,
+      },
+    ];
+  }, [
+    complianceItems.length,
+    competitorNames.length,
+    emergingMarketCards.length,
+    forecastRegions.length,
+    formatNumber,
+    funnelData.length,
+    keyInsights.length,
+    kpis,
+    marketGrowthSeries.length,
+    marketScore,
+    marketStats.cagr,
+    marketStats.tam,
+    personaCards.length,
+    productBenchmarkData.length,
+    profitSeries.length,
+    recommendationsData.length,
+    riskCells,
+    roiByChannelData.length,
+    sentimentChannelsCount,
+    sources.length,
+  ]);
+
   if (isLoading || !analysis) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background">
@@ -642,6 +748,7 @@ const BusinessIntelligenceDetail = () => {
           <aside className="sticky top-6 h-max rounded-xl border border-slate-200 bg-white p-3">
             <nav className="text-sm">
               <ul className="space-y-1">
+                <li><a href="#report-guide" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Report Guide</a></li>
                 <li><a href="#overview" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Overview</a></li>
                 <li><a href="#market" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Market</a></li>
                 <li><a href="#competitors" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Competitors</a></li>
@@ -657,6 +764,27 @@ const BusinessIntelligenceDetail = () => {
             </nav>
           </aside>
           <div className="space-y-6">
+            <section id="report-guide" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold tracking-tight text-slate-900">Report Guide</h2>
+                  <span className="text-xs text-slate-500">Quick reference</span>
+                </div>
+                <p className="mb-4 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  Use this guide to understand what each section covers and which data powers it.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {sectionSummaries.map((entry) => (
+                    <a key={entry.id} href={`#${entry.id}`} className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow">
+                      <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">{entry.title}</h3>
+                      <p className="leading-relaxed text-slate-600">{entry.description}</p>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </section>
+
             <section id="overview" className="scroll-mt-24">
               <div className={`${modernCardClass} p-6`}>
                 <div className="mb-4 flex items-center justify-between">
