@@ -578,6 +578,33 @@ const BusinessIntelligenceDetail = () => {
     }));
   }, [actions]);
 
+  const coverageByType = useMemo(() => {
+    const map: Record<string, number> = {};
+    sources.forEach((s: any) => {
+      const t = (s?.type ?? "Other").toString();
+      map[t] = (map[t] ?? 0) + 1;
+    });
+    return Object.entries(map).map(([type, count]) => ({ type, count }));
+  }, [sources]);
+
+  const sourceRecency = useMemo(() => {
+    const toTime = (d: any) => {
+      const t = d ? new Date(d).getTime() : NaN;
+      return Number.isFinite(t) ? t : NaN;
+    };
+    const times = sources
+      .map((s: any) => toTime(s?.retrievedAt))
+      .filter((n) => Number.isFinite(n)) as number[];
+    if (!times.length) return null as null | { first: Date; last: Date; avgAgeDays: number };
+    const now = Date.now();
+    const first = new Date(Math.min(...times));
+    const last = new Date(Math.max(...times));
+    const avgAgeDays = Math.round(
+      times.reduce((acc, t) => acc + (now - t), 0) / times.length / (1000 * 60 * 60 * 24),
+    );
+    return { first, last, avgAgeDays };
+  }, [sources]);
+
   const sectionSummaries = useMemo(() => {
     const formatCount = (count: number, singular: string, plural: string) =>
       `${count || 0} ${count === 1 ? singular : plural}`;
@@ -649,6 +676,21 @@ const BusinessIntelligenceDetail = () => {
         description: `Lists ${recommendationCount} prioritized actions with ROI, timeline, and confidence pulled from strategicRecommendations.actions.`,
       },
       {
+        id: "evidence",
+        title: "Evidence Quality",
+        description: `Summarizes ${sourceCount} and recency to back the ${dataConfidence.toLowerCase()} confidence rating.`,
+      },
+      {
+        id: "methodology",
+        title: "Methodology",
+        description: "How we compute market score, trend, risk quadrants, sentiment totals, and KPIs.",
+      },
+      {
+        id: "glossary",
+        title: "Glossary",
+        description: "Plain-English definitions for key terms (TAM, CAGR, CLV, CPA, Risk Matrix, etc.).",
+      },
+      {
         id: "sources",
         title: "Sources & Attribution",
         description: `Keeps ${sourceCount} references clickable so analysts can audit every insight back to its origin.`,
@@ -672,6 +714,7 @@ const BusinessIntelligenceDetail = () => {
     profitSeries.length,
     recommendationsData.length,
     riskCells,
+    dataConfidence,
     sentimentChannelsCount,
     sources.length,
   ]);
@@ -735,6 +778,9 @@ const BusinessIntelligenceDetail = () => {
                 <li><a href="#risk" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Risk</a></li>
                 <li><a href="#finance" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Finance</a></li>
                 <li><a href="#recommendations" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Recommendations</a></li>
+                <li><a href="#evidence" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Evidence</a></li>
+                <li><a href="#methodology" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Methodology</a></li>
+                <li><a href="#glossary" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Glossary</a></li>
                 <li><a href="#sources" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Sources</a></li>
               </ul>
             </nav>
@@ -758,6 +804,104 @@ const BusinessIntelligenceDetail = () => {
                     </a>
                   ))}
                 </div>
+              </div>
+            </section>
+
+            <section id="evidence" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Evidence Quality</h3>
+                  <span className="text-xs text-slate-500">Confidence: {dataConfidence}</span>
+                </div>
+                <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  Coverage by source type and recency metrics to qualify findings.
+                </p>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Coverage by Source Type</div>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart data={coverageByType} barSize={28} margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
+                        <CartesianGrid stroke="#e2e8f0" vertical={false} />
+                        <XAxis dataKey="type" tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                        <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} />
+                        <Bar dataKey="count" fill="#06b6d4" radius={[8, 8, 4, 4]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    {!coverageByType.length ? (
+                      <div className="mt-2 text-xs text-slate-500">No sources available to chart.</div>
+                    ) : null}
+                  </div>
+                  <div className="grid content-start gap-3">
+                    <div className="rounded-lg border border-slate-200 p-4">
+                      <div className="text-xs uppercase tracking-wide text-slate-500">Recency</div>
+                      {sourceRecency ? (
+                        <ul className="mt-1 space-y-1 text-sm text-slate-700">
+                          <li>Newest source: {formatDate(sourceRecency.last.toISOString())}</li>
+                          <li>Oldest source: {formatDate(sourceRecency.first.toISOString())}</li>
+                          <li>Average age: {sourceRecency.avgAgeDays} days</li>
+                        </ul>
+                      ) : (
+                        <div className="mt-1 text-sm text-slate-500">No recency data available.</div>
+                      )}
+                    </div>
+                    <div className="rounded-lg border border-slate-200 p-4">
+                      <div className="text-xs uppercase tracking-wide text-slate-500">Notes</div>
+                      <p className="mt-1 text-sm text-slate-700">Use Evidence to prioritize follow-ups where coverage is light or stale.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="methodology" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Methodology</h3>
+                </div>
+                <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  How metrics are calculated in this report.
+                </p>
+                <ul className="grid gap-2 text-sm text-slate-700">
+                  <li><strong className="font-semibold text-slate-900">Market Score</strong>: value from executiveSummary.marketReadiness.score (0–100).</li>
+                  <li><strong className="font-semibold text-slate-900">Trend</strong>: percent change from first to last point in marketEnvironment.marketSize.forecast.</li>
+                  <li><strong className="font-semibold text-slate-900">Risk Quadrants</strong>: probability/impact normalized to 0–1; quadrant assigned by 0.5 split.</li>
+                  <li><strong className="font-semibold text-slate-900">Sentiment</strong>: totals aggregated across customerInsights.sentimentMaps.</li>
+                  <li><strong className="font-semibold text-slate-900">KPIs</strong>: CPA/CLV/CLV:CAC from financialBenchmark.unitEconomics.</li>
+                </ul>
+              </div>
+            </section>
+
+            <section id="glossary" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Glossary</h3>
+                </div>
+                <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  Quick definitions to keep everyone aligned on terms.
+                </p>
+                <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
+                  <TableHeader className="bg-slate-50 text-slate-700">
+                    <TableRow>
+                      <TableHead>Term</TableHead>
+                      <TableHead>Definition</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow><TableCell>TAM</TableCell><TableCell>Total Addressable Market size.</TableCell></TableRow>
+                    <TableRow><TableCell>CAGR</TableCell><TableCell>Compound Annual Growth Rate.</TableCell></TableRow>
+                    <TableRow><TableCell>Market Readiness</TableCell><TableCell>Score indicating go-to-market fitness.</TableCell></TableRow>
+                    <TableRow><TableCell>Risk Matrix</TableCell><TableCell>Grid mapping impact vs probability.</TableCell></TableRow>
+                    <TableRow><TableCell>CLV</TableCell><TableCell>Customer Lifetime Value.</TableCell></TableRow>
+                    <TableRow><TableCell>CPA</TableCell><TableCell>Cost per Acquisition.</TableCell></TableRow>
+                    <TableRow><TableCell>CLV:CAC</TableCell><TableCell>Ratio of value created per acquisition cost.</TableCell></TableRow>
+                    <TableRow><TableCell>Sentiment</TableCell><TableCell>Aggregate tone across channels.</TableCell></TableRow>
+                    <TableRow><TableCell>Profit Margin</TableCell><TableCell>Percentage of revenue retained after costs.</TableCell></TableRow>
+                  </TableBody>
+                </Table>
               </div>
             </section>
 
