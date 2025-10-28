@@ -69,8 +69,8 @@ import generateAnalysisReportPdf from "@/pdf/AnalysisReportPDF";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const threeDCardClass =
-  "relative overflow-hidden rounded-[32px] border-2 border-cyan-100 bg-white/[0.92] shadow-[0_45px_140px_-60px_rgba(79,70,229,0.35)] ring-1 ring-violet-200/70 backdrop-blur-2xl";
-const modernCardClass = "rounded-xl border-2 border-cyan-100 bg-white shadow-sm";
+  "relative overflow-hidden rounded-[32px] border border-white/40 bg-white/[0.92] shadow-[0_45px_140px_-60px_rgba(79,70,229,0.35)] ring-1 ring-violet-200/70 backdrop-blur-2xl";
+const modernCardClass = "rounded-xl border border-slate-200 bg-white shadow-sm";
 const forecastCardClass = "rounded-xl border-2 border-cyan-100 bg-cyan-50 shadow-sm";
 
 function safeArray<T>(value: T[] | null | undefined): T[] {
@@ -928,7 +928,7 @@ const BusinessIntelligenceDetail = () => {
           </aside>
           <div className="space-y-6">
             <section id="report-guide" className="scroll-mt-24">
-              <div className={`${forecastCardClass} p-6`}>
+              <div className={`${modernCardClass} p-6`}>
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-lg font-semibold tracking-tight text-slate-900">Report Guide</h2>
                   <span className="text-xs text-slate-500">Quick reference</span>
@@ -949,7 +949,7 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="evidence" className="scroll-mt-24">
-              <div className={`${forecastCardClass} p-6`}>
+              <div className={`${modernCardClass} p-6`}>
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Evidence Quality</h3>
                   <span className="text-xs text-slate-500">Confidence: {dataConfidence}</span>
@@ -997,7 +997,7 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="methodology" className="scroll-mt-24">
-              <div className={`${forecastCardClass} p-6`}>
+              <div className={`${modernCardClass} p-6`}>
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Methodology</h3>
                 </div>
@@ -1024,7 +1024,7 @@ const BusinessIntelligenceDetail = () => {
                   <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
                   Quick definitions to keep everyone aligned on terms.
                 </p>
-                <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
+                <Table className="overflow-hidden rounded-lg border-2 border-cyan-100 bg-white text-sm">
                   <TableHeader className="bg-slate-50 text-slate-700">
                     <TableRow>
                       <TableHead>Term</TableHead>
@@ -1047,7 +1047,7 @@ const BusinessIntelligenceDetail = () => {
             </section>
 
             <section id="overview" className="scroll-mt-24">
-              <div className={`${forecastCardClass} p-6`}>
+              <div className={`${modernCardClass} p-6`}>
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-xl font-semibold tracking-tight text-slate-900">AI Market Intelligence Summary</h2>
                   <Badge className="rounded-full bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200">AI Generated Insights</Badge>
@@ -1300,7 +1300,7 @@ const BusinessIntelligenceDetail = () => {
                   <div className="mb-3 flex items-center justify-between">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Scenarios</h3>
                   </div>
-                  <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
+                  <Table className="overflow-hidden rounded-lg border-2 border-cyan-100 bg-white text-sm">
                     <TableHeader className="bg-slate-50 text-slate-700">
                       <TableRow>
                         <TableHead>Scenario</TableHead>
@@ -1450,7 +1450,7 @@ const BusinessIntelligenceDetail = () => {
                   <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
                   Prioritized initiatives with expected ROI, timeline, and confidence to guide execution.
                 </p>
-                <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
+                <Table className="overflow-hidden rounded-lg border-2 border-cyan-100 bg-white text-sm">
                   <TableHeader className="bg-slate-50 text-slate-700">
                     <TableRow>
                       <TableHead>Initiative</TableHead>
@@ -1487,7 +1487,7 @@ const BusinessIntelligenceDetail = () => {
                   <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
                   Linked references used to generate this report. Follow the links to audit or enrich the dataset.
                 </p>
-                <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
+                <Table className="overflow-hidden rounded-lg border-2 border-cyan-100 bg-white text-sm">
                   <TableHeader className="bg-slate-50 text-slate-700">
                     <TableRow>
                       <TableHead>Source</TableHead>
