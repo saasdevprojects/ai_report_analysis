@@ -1,36 +1,72 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download, CheckCircle2, Info, ExternalLink } from "lucide-react";
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  BarChart,
-  Bar,
-  Tooltip as RechartsTooltip,
-  Legend,
-  RadialBarChart,
-  RadialBar,
-  ScatterChart,
-  Scatter,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
+import { 
+  LineChart, 
+  Line, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer, 
+  Radar, 
+  RadarChart, 
+  PolarGrid, 
+  PolarAngleAxis, 
   PolarRadiusAxis,
+  Scatter,
+  ScatterChart,
+  RadialBar,
+  RadialBarChart,
+  Legend
 } from "recharts";
-import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
+import { 
+  AlertCircle, 
+  ArrowLeft,
+  ArrowUpRight, 
+  BarChart3, 
+  Check, 
+  CheckCircle, 
+  ChevronDown, 
+  ChevronRight, 
+  Download, 
+  ExternalLink, 
+  FileText, 
+  Filter, 
+  Info, 
+  Loader2, 
+  MoreHorizontal, 
+  Plus, 
+  RotateCw,
+  Search, 
+  SlidersHorizontal, 
+  TrendingUp,
+  AlertTriangle
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { withSupabaseRetry } from "@/utils/retry";
+
+// Import utility functions with aliases to avoid conflicts
+import * as Utils from "@/lib/utils";
+const { 
+  formatNumber: formatNum, 
+  formatPercentage: formatPct, 
+  formatDate: fmtDate, 
+  safeNumber: safeNum 
+} = Utils;
+
 import type { ReportPayload } from "@/types/report";
 import generateAnalysisReportPdf from "@/pdf/AnalysisReportPDF";
+
+// Add Checkbox import
+import { Checkbox } from "@/components/ui/checkbox";
 
 const threeDCardClass =
   "relative overflow-hidden rounded-[32px] border border-white/40 bg-white/[0.92] shadow-[0_45px_140px_-60px_rgba(79,70,229,0.35)] ring-1 ring-violet-200/70 backdrop-blur-2xl";
@@ -136,53 +172,69 @@ type FutureSignalRow = {
 };
 
 const BusinessIntelligenceDetail = () => {
-  const { id } = useParams();
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [analysis, setAnalysis] = useState<AnalysisRecord | null>(null);
   const [report, setReport] = useState<ReportPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   
 
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      if (!id) return;
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
+  const loadAnalysis = useCallback(async () => {
+    if (!id) return;
+    
+    try {
+      setIsLoading(true);
+      const { data, error } = await withSupabaseRetry(async () => {
+        const result = await supabase
           .from("product_analyses")
           .select("id, product_name, product_description, report_payload, report_version, generated_at")
           .eq("id", id)
           .single();
-        if (error) throw error;
-        if (!mounted) return;
-        setAnalysis(data as unknown as AnalysisRecord);
-        setReport((data as any).report_payload ?? null);
-      } catch (e) {
-        console.error(e);
-        toast.error("Couldn't load that report");
-        navigate("/dashboard");
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-    void load();
-    return () => {
-      mounted = false;
-    };
-  }, [id, navigate]);
+        return { data: result.data, error: result.error };
+      });
 
-  const currentReport = report ?? undefined;
+      if (error) throw error;
+      if (!data) throw new Error("Analysis not found");
+
+      setAnalysis(data as unknown as AnalysisRecord);
+      setReport((data as any).report_payload);
+    } catch (error) {
+      console.error("Error loading analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to load analysis. Please try again.",
+        action: (
+          <ToastAction altText="Retry" onClick={loadAnalysis}>
+            Retry
+          </ToastAction>
+        ),
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id, toast]);
+
+  useEffect(() => {
+    loadAnalysis();
+  }, [loadAnalysis]);
+
+  const currentReport = useMemo(() => report, [report]);
   const generatedDate = useMemo(() => {
-    if (currentReport?.generatedAt) return formatDate(currentReport.generatedAt);
-    if (analysis?.generated_at) return formatDate(analysis.generated_at);
+    if (currentReport?.generatedAt) return fmtDate(currentReport.generatedAt);
+    if (analysis?.generated_at) return fmtDate(analysis.generated_at);
     return null;
   }, [analysis?.generated_at, currentReport?.generatedAt]);
 
   const exportReportPDF = async () => {
     if (!analysis || !currentReport) {
-      toast.error("Report data unavailable");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Report data unavailable"
+      });
       return;
     }
     try {
@@ -199,10 +251,18 @@ const BusinessIntelligenceDetail = () => {
       anchor.download = `${sanitized || "analysis"}-bi-report.pdf`;
       anchor.click();
       URL.revokeObjectURL(url);
-      toast.success("PDF generated");
+      toast({
+        title: "Success",
+        description: "PDF generated successfully",
+        variant: "default"
+      });
     } catch (e) {
       console.error(e);
-      toast.error("Failed to export PDF");
+      toast({
+        title: "Error",
+        description: "Failed to export PDF",
+        variant: "destructive"
+      });
     } finally {
       setIsExportingPdf(false);
     }
@@ -221,7 +281,7 @@ const BusinessIntelligenceDetail = () => {
   const productOverview = analysis?.product_description ?? "its growth mission";
   const primaryRegions = safeArray(currentReport?.marketEnvironment?.segmentation?.geography)
     .slice(0, 3)
-    .map((item: any) => ({ name: item?.name ?? String(item), share: safeNumber(item?.share, 0) }))
+    .map((item: any) => ({ name: item?.name ?? String(item), share: safeNum(item?.share, 0) }))
     .filter((r) => !!r.name);
   const competitorNames = safeArray(currentReport?.competitiveLandscape?.topCompetitors)
     .slice(0, 4)
@@ -240,7 +300,7 @@ const BusinessIntelligenceDetail = () => {
       title: base?.label ?? base?.title ?? base?.name ?? "Emerging opportunity",
       impact:
         typeof base?.impact === "number"
-          ? `${formatNumber(base.impact, { maximumFractionDigits: 0 })}`
+          ? `${formatNum(base.impact, 0)}`
           : typeof base?.impact === "string"
           ? base.impact
           : undefined,
@@ -423,12 +483,12 @@ const BusinessIntelligenceDetail = () => {
 
   const marketScore = useMemo(() => {
     const raw = (currentReport as any)?.executiveSummary?.marketReadiness?.score;
-    return Math.max(0, Math.min(100, safeNumber(raw, 68)));
+    return Math.max(0, Math.min(100, safeNum(raw, 68)));
   }, [currentReport]);
 
   const marketGrowthSeries = useMemo(() => {
     const points = safeArray(currentReport?.marketEnvironment?.marketSize?.forecast);
-    return points.map((p: any) => ({ year: p?.year ?? p?.period ?? "", growth: safeNumber(p?.value, 0) }));
+    return points.map((p: any) => ({ year: p?.year ?? p?.period ?? "", growth: safeNum(p?.value, 0) }));
   }, [currentReport]);
 
   const marketStats = useMemo(() => {
@@ -436,13 +496,13 @@ const BusinessIntelligenceDetail = () => {
     const cagrArr: any[] = safeArray(env.cagrByRegion);
     const cagr = cagrArr.length
       ? Math.round(
-          (cagrArr.reduce((sum: number, r: any) => sum + safeNumber(r?.value, 0), 0) / cagrArr.length) * 100,
+          (cagrArr.reduce((sum: number, r: any) => sum + safeNum(r?.value, 0), 0) / cagrArr.length) * 100,
         ) / 100
       : 0;
-    const tam = safeNumber(env?.marketSize?.current, 0);
+    const tam = safeNum(env?.marketSize?.current, 0);
     const f = safeArray(env?.marketSize?.forecast);
     const trend = f.length >= 2
-      ? Math.round(((safeNumber((f[f.length - 1] as any)?.value, 0) - safeNumber((f[0] as any)?.value, 0)) / Math.max(1, safeNumber((f[0] as any)?.value, 1))) * 100)
+      ? Math.round(((safeNum((f[f.length - 1] as any)?.value, 0) - safeNum((f[0] as any)?.value, 0)) / Math.max(1, safeNum((f[0] as any)?.value, 1))) * 100)
       : 0;
     return { cagr, tam, trend };
   }, [currentReport]);
@@ -451,15 +511,15 @@ const BusinessIntelligenceDetail = () => {
   const competitorLabelB = useMemo(() => competitorNames[1] ?? "Competitor B", [competitorNames]);
   const competitorRadarData = useMemo(() => {
     const fb = safeArray(currentReport?.competitiveLandscape?.featureBenchmark);
-    return fb.map((row: any) => ({ metric: row?.feature ?? "Metric", Ours: safeNumber(row?.productScore, 0), Avg: safeNumber(row?.competitorAverage, 0) }));
+    return fb.map((row: any) => ({ metric: row?.feature ?? "Metric", Ours: safeNum(row?.productScore, 0), Avg: safeNum(row?.competitorAverage, 0) }));
   }, [currentReport]);
 
   const competitorMatrixData = useMemo(() => {
     const pf = safeArray(currentReport?.competitiveLandscape?.priceFeatureMatrix);
     return pf.map((p: any) => ({
       name: p?.company ?? "",
-      pricePosition: safeNumber(p?.pricePosition, 0),
-      featureScore: safeNumber(p?.featureScore, 0),
+      pricePosition: safeNum(p?.pricePosition, 0),
+      featureScore: safeNum(p?.featureScore, 0),
     }));
   }, [currentReport]);
 
@@ -477,9 +537,9 @@ const BusinessIntelligenceDetail = () => {
     const maps = safeArray(currentReport?.customerInsights?.sentimentMaps);
     const totals = maps.reduce(
       (acc, m: any) => {
-        acc.pos += safeNumber(m?.positive, 0);
-        acc.neu += safeNumber(m?.neutral, 0);
-        acc.neg += safeNumber(m?.negative, 0);
+        acc.pos += safeNum(m?.positive, 0);
+        acc.neu += safeNum(m?.neutral, 0);
+        acc.neg += safeNum(m?.negative, 0);
         return acc;
       },
       { pos: 0, neu: 0, neg: 0 },
@@ -493,26 +553,26 @@ const BusinessIntelligenceDetail = () => {
 
   const funnelData = useMemo(() => {
     const journey = safeArray(currentReport?.customerInsights?.purchaseJourney);
-    return journey.map((j: any) => ({ stage: String(j?.stage ?? "Stage"), value: safeNumber(j?.conversionRate, 0) }));
+    return journey.map((j: any) => ({ stage: String(j?.stage ?? "Stage"), value: safeNum(j?.conversionRate, 0) }));
   }, [currentReport]);
 
   const productBenchmarkData = useMemo(() => {
     const pr = safeArray(currentReport?.productEvaluation?.performanceRadar);
-    return pr.map((r: any) => ({ metric: r?.axis ?? "Metric", Ours: safeNumber(r?.product, 0), Avg: safeNumber(r?.competitors, 0) }));
+    return pr.map((r: any) => ({ metric: r?.axis ?? "Metric", Ours: safeNum(r?.product, 0), Avg: safeNum(r?.competitors, 0) }));
   }, [currentReport]);
 
   const forecastRegions = useMemo(() => {
     const reg = safeArray(currentReport?.opportunityForecast?.regionalOpportunity);
-    if (reg.length) return reg.map((r: any) => ({ region: r?.region ?? "Region", score: safeNumber(r?.score, 0) }));
+    if (reg.length) return reg.map((r: any) => ({ region: r?.region ?? "Region", score: safeNum(r?.score, 0) }));
     return primaryRegions.map((r) => ({ region: r.name, score: r.share }));
   }, [currentReport, primaryRegions]);
 
   const emergingMarketCards = useMemo(() => {
     const list = safeArray(currentReport?.opportunityForecast?.unexploredSegments)
       .slice(0, 4)
-      .map((o: any, i: number) => ({ title: o?.segment ?? `Market ${i + 1}`, score: safeNumber(o?.potentialValue, 0) }));
+      .map((o: any, i: number) => ({ title: o?.segment ?? `Market ${i + 1}`, score: safeNum(o?.potentialValue, 0) }));
     if (list.length) return list;
-    return topOpps.slice(0, 4).map((o: any, i: number) => ({ title: o?.label ?? o?.title ?? `Market ${i + 1}`, score: safeNumber(o?.impact, 0) }));
+    return topOpps.slice(0, 4).map((o: any, i: number) => ({ title: o?.label ?? o?.title ?? `Market ${i + 1}`, score: safeNum(o?.impact, 0) }));
   }, [currentReport, topOpps]);
 
   const riskCells = useMemo(() => {
@@ -525,8 +585,8 @@ const BusinessIntelligenceDetail = () => {
       { quadrant: "High L / High I", risks: [] as string[] },
     ];
     rm.forEach((r: any) => {
-      const p = as01(safeNumber(r?.probability, 0));
-      const i = as01(safeNumber(r?.impact, 0));
+      const p = as01(safeNum(r?.probability, 0));
+      const i = as01(safeNum(r?.impact, 0));
       const idx = (p < 0.5 ? 0 : 2) + (i < 0.5 ? 0 : 1);
       buckets[idx].risks.push(r?.risk ?? "Risk");
     });
@@ -548,9 +608,9 @@ const BusinessIntelligenceDetail = () => {
   const alertBadges = useMemo(() => {
     const rm = safeArray(currentReport?.riskCompliance?.riskMatrix);
     const as01 = (v: number) => (v > 1 ? v / 100 : v);
-    const highs = rm.filter((r: any) => as01(safeNumber(r?.probability, 0)) >= 0.7 && as01(safeNumber(r?.impact, 0)) >= 0.7);
+    const highs = rm.filter((r: any) => as01(safeNum(r?.probability, 0)) >= 0.7 && as01(safeNum(r?.impact, 0)) >= 0.7);
     if (highs.length) return highs.slice(0, 3).map((r: any) => ({ tone: "red", text: `High: ${r?.risk ?? "Critical risk"}` }));
-    const meds = rm.filter((r: any) => as01(safeNumber(r?.probability, 0)) >= 0.5 || as01(safeNumber(r?.impact, 0)) >= 0.5);
+    const meds = rm.filter((r: any) => as01(safeNum(r?.probability, 0)) >= 0.5 || as01(safeNum(r?.impact, 0)) >= 0.5);
     if (meds.length) return meds.slice(0, 3).map((r: any) => ({ tone: "yellow", text: `Medium: ${r?.risk ?? "Attention"}` }));
     return [{ tone: "green", text: "Low: No critical risks detected" }];
   }, [currentReport]);
@@ -577,6 +637,57 @@ const BusinessIntelligenceDetail = () => {
       confidence: safeNumber(a?.confidence, 0),
     }));
   }, [actions]);
+  const regulatoryEvents = useMemo(() => {
+    const ev = safeArray(currentReport?.marketEnvironment?.regulatoryTrends);
+    return ev.map((e: any, i: number) => ({
+      year: String(e?.year ?? ""),
+      title: String(e?.title ?? `Event ${i + 1}`),
+      impact: String(e?.impact ?? ""),
+      summary: String(e?.summary ?? e?.description ?? ""),
+    }));
+  }, [currentReport]);
+  const userAdoptionSeries = useMemo(() => {
+    const arr = safeArray(currentReport?.predictiveDashboard?.userAdoption);
+    return arr.map((p: any) => ({
+      period: String(p?.period ?? ""),
+      adoptionRate: safeNumber(p?.adoptionRate, 0),
+      sentimentScore: safeNumber(p?.sentimentScore, 0),
+    }));
+  }, [currentReport]);
+  const scenarioRows = useMemo(() => {
+    const s = safeArray(currentReport?.predictiveDashboard?.scenarios);
+    return s.map((row: any) => ({
+      scenario: String(row?.scenario ?? "Scenario"),
+      growthRate: safeNumber(row?.growthRate, 0),
+      revenueProjection: safeNumber(row?.revenueProjection, 0),
+      confidence: safeNumber(row?.confidence, 0),
+    }));
+  }, [currentReport]);
+  const runwayCards = useMemo(() => {
+    const r = safeArray(currentReport?.financialPlanning?.runwayScenarios);
+    return r.map((x: any) => ({
+      scenario: String(x?.scenario ?? "Base"),
+      months: safeNumber(x?.monthsOfRunway, 0),
+      cash: safeNumber(x?.cashBalance, 0),
+      burn: safeNumber(x?.burnRate, 0),
+    }));
+  }, [currentReport]);
+  const cashFlowSeries = useMemo(() => {
+    const cf = safeArray(currentReport?.financialPlanning?.cashFlowTimeline);
+    return cf.map((p: any) => ({
+      period: String(p?.period ?? ""),
+      net: safeNumber(p?.net, safeNumber(p?.inflow, 0) - safeNumber(p?.outflow, 0)),
+    }));
+  }, [currentReport]);
+  const budgetPlanRows = useMemo(() => {
+    const b = safeArray(currentReport?.financialPlanning?.budgetAllocation);
+    return b.map((row: any) => ({
+      category: String(row?.category ?? "Category"),
+      planned: safeNumber(row?.planned, 0),
+      actual: safeNumber(row?.actual, 0),
+      variance: safeNumber(row?.variance, (safeNumber(row?.actual, 0) - safeNumber(row?.planned, 0))),
+    }));
+  }, [currentReport]);
 
   const coverageByType = useMemo(() => {
     const map: Record<string, number> = {};
@@ -605,6 +716,7 @@ const BusinessIntelligenceDetail = () => {
     return { first, last, avgAgeDays };
   }, [sources]);
 
+
   const sectionSummaries = useMemo(() => {
     const formatCount = (count: number, singular: string, plural: string) =>
       `${count || 0} ${count === 1 ? singular : plural}`;
@@ -628,6 +740,11 @@ const BusinessIntelligenceDetail = () => {
     const tamDisplay = marketStats.tam
       ? `$${formatNumber(marketStats.tam, { notation: "compact", maximumFractionDigits: 1 })}`
       : "n/a";
+    const regulatoryCount = formatCount(regulatoryEvents.length, "event", "events");
+    const scenarioCount = formatCount(scenarioRows.length, "scenario", "scenarios");
+    const adoptionPoints = formatCount(userAdoptionSeries.length, "point", "points");
+    const runwayCount = formatCount(runwayCards.length, "scenario", "scenarios");
+    const cashPoints = formatCount(cashFlowSeries.length, "period", "periods");
 
     return [
       {
@@ -661,6 +778,16 @@ const BusinessIntelligenceDetail = () => {
         description: `Surfaces ${regionCount} regions and ${whitespaceCount} emerging opportunities derived from opportunityForecast data.`,
       },
       {
+        id: "predictive",
+        title: "Predictive Scenarios",
+        description: `Shows ${scenarioCount} scenarios and ${adoptionPoints} user adoption points to frame forward-looking bets.`,
+      },
+      {
+        id: "regulatory",
+        title: "Regulatory Timeline",
+        description: `Tracks ${regulatoryCount} regulatory events with impact notes to watch dependencies.`,
+      },
+      {
         id: "risk",
         title: "Risk Assessment",
         description: `Organizes ${riskCount} in the risk matrix and tracks ${complianceCount} compliance frameworks to guide mitigation priorities.`,
@@ -669,6 +796,11 @@ const BusinessIntelligenceDetail = () => {
         id: "finance",
         title: "Financial Summary",
         description: `Plots margin across ${profitPoints} and highlights ${kpiCount} core KPIs sourced from financialBenchmark.unitEconomics.`,
+      },
+      {
+        id: "planning",
+        title: "Financial Planning",
+        description: `Covers ${runwayCount} runway scenarios and ${cashPoints} cash flow periods for capital planning.`,
       },
       {
         id: "recommendations",
@@ -714,6 +846,11 @@ const BusinessIntelligenceDetail = () => {
     profitSeries.length,
     recommendationsData.length,
     riskCells,
+    regulatoryEvents.length,
+    scenarioRows.length,
+    userAdoptionSeries.length,
+    runwayCards.length,
+    cashFlowSeries.length,
     dataConfidence,
     sentimentChannelsCount,
     sources.length,
@@ -775,8 +912,11 @@ const BusinessIntelligenceDetail = () => {
                 <li><a href="#customers" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Customers</a></li>
                 <li><a href="#benchmarking" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Benchmarking</a></li>
                 <li><a href="#forecast" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Forecast</a></li>
+                <li><a href="#predictive" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Predictive</a></li>
+                <li><a href="#regulatory" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Regulatory</a></li>
                 <li><a href="#risk" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Risk</a></li>
                 <li><a href="#finance" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Finance</a></li>
+                <li><a href="#planning" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Planning</a></li>
                 <li><a href="#recommendations" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Recommendations</a></li>
                 <li><a href="#evidence" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Evidence</a></li>
                 <li><a href="#methodology" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Methodology</a></li>
@@ -1131,6 +1271,86 @@ const BusinessIntelligenceDetail = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="predictive" className="scroll-mt-24">
+              <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                Forward-looking scenarios and adoption trajectory to frame expectations.
+              </p>
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">User Adoption</h3>
+                  </div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={userAdoptionSeries}>
+                      <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
+                      <XAxis dataKey="period" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} />
+                      <Line type="monotone" dataKey="adoptionRate" stroke="#06b6d4" strokeWidth={2} dot={{ r: 2 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Scenarios</h3>
+                  </div>
+                  <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
+                    <TableHeader className="bg-slate-50 text-slate-700">
+                      <TableRow>
+                        <TableHead>Scenario</TableHead>
+                        <TableHead className="text-right">Growth %</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">Confidence</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {scenarioRows.map((s, i) => (
+                        <TableRow key={i}>
+                          <TableCell>{s.scenario}</TableCell>
+                          <TableCell className="text-right">{formatPercentage(s.growthRate)}</TableCell>
+                          <TableCell className="text-right">${formatNumber(s.revenueProjection, { notation: "compact", maximumFractionDigits: 1 })}</TableCell>
+                          <TableCell className="text-right">{formatPercentage(s.confidence)}</TableCell>
+                        </TableRow>
+                      ))}
+                      {!scenarioRows.length ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-slate-500">No scenarios available.</TableCell>
+                        </TableRow>
+                      ) : null}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </section>
+
+            <section id="regulatory" className="scroll-mt-24">
+              <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                Key regulatory milestones that may impact GTM and product planning.
+              </p>
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Regulatory Timeline</h3>
+                </div>
+                <div className="space-y-3">
+                  {regulatoryEvents.map((e, i) => (
+                    <div key={`${e.year}-${i}`} className="rounded-lg border border-slate-200 p-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="font-semibold text-slate-900">{e.title}</div>
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">{e.year}</span>
+                      </div>
+                      <div className="mt-1 text-xs text-slate-600">Impact: {e.impact || '—'}</div>
+                      {e.summary ? <p className="mt-2 text-sm text-slate-700">{e.summary}</p> : null}
+                    </div>
+                  ))}
+                  {!regulatoryEvents.length ? (
+                    <div className="text-sm text-slate-500">No regulatory items available.</div>
+                  ) : null}
                 </div>
               </div>
             </section>
