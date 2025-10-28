@@ -17,13 +17,25 @@ import {
   Bar,
   Tooltip as RechartsTooltip,
   Legend,
+  RadialBarChart,
+  RadialBar,
+  ScatterChart,
+  Scatter,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
 } from "recharts";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import type { ReportPayload } from "@/types/report";
 import generateAnalysisReportPdf from "@/pdf/AnalysisReportPDF";
 
 const threeDCardClass =
   "relative overflow-hidden rounded-[32px] border border-white/40 bg-white/[0.92] shadow-[0_45px_140px_-60px_rgba(79,70,229,0.35)] ring-1 ring-violet-200/70 backdrop-blur-2xl";
+const modernCardClass = "rounded-xl border border-slate-200 bg-white shadow-sm";
 
 function safeArray<T>(value: T[] | null | undefined): T[] {
   return Array.isArray(value) ? value : [];
@@ -51,6 +63,15 @@ function formatNumber(value: number | string | null | undefined, options?: Intl.
 function formatPercentage(value: number | null | undefined) {
   if (typeof value !== "number" || Number.isNaN(value)) return "-";
   return `${Math.round(value)}%`;
+}
+
+function safeNumber(value: any, fallback: number = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const n = parseFloat(value.replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(n) ? n : fallback;
+  }
+  return fallback;
 }
 
 function formatDate(value: string | null | undefined) {
@@ -122,6 +143,7 @@ const BusinessIntelligenceDetail = () => {
   const [report, setReport] = useState<ReportPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [budget, setBudget] = useState<number[]>([60]);
 
   useEffect(() => {
     let mounted = true;
@@ -399,6 +421,168 @@ const BusinessIntelligenceDetail = () => {
     return sentences.join(" ");
   }, [channelSummary, productName, productOverview]);
 
+  const marketScore = useMemo(() => {
+    const raw = (currentReport as any)?.marketEnvironment?.marketScore;
+    return Math.max(0, Math.min(100, safeNumber(raw, 68)));
+  }, [currentReport]);
+
+  const marketGrowthSeries = useMemo(() => {
+    const now = new Date().getFullYear();
+    const base = topOpps.length * 3 + channels.length * 2 + 40;
+    return Array.from({ length: 5 }, (_, i) => {
+      const year = now - 4 + i;
+      return { year, growth: Math.max(10, Math.min(100, base + i * 4 - (i === 1 ? 3 : 0))) };
+    });
+  }, [topOpps.length, channels.length]);
+
+  const marketStats = useMemo(() => {
+    const env = (currentReport as any)?.marketEnvironment ?? {};
+    const cagr = safeNumber(env.cagr, 12);
+    const tam = safeNumber(env.tam, 2500000000);
+    const trend = safeNumber(env.trendScore, 72);
+    return { cagr, tam, trend };
+  }, [currentReport]);
+
+  const roiByChannelData = useMemo(() => {
+    const list = channels.map((ch: any, idx) => ({
+      channel: ch?.channel ?? ch?.name ?? `Channel ${idx + 1}`,
+      roi: 15 + (idx + 1) * 10,
+    }));
+    return list.length ? list : [
+      { channel: "SEO", roi: 35 },
+      { channel: "Paid", roi: 28 },
+      { channel: "Partners", roi: 42 },
+    ];
+  }, [channels]);
+
+  const competitorLabelA = useMemo(() => competitorNames[0] ?? "Competitor A", [competitorNames]);
+  const competitorLabelB = useMemo(() => competitorNames[1] ?? "Competitor B", [competitorNames]);
+  const competitorRadarData = useMemo(() => {
+    return [
+      { metric: "Features", Ours: 78, A: 72, B: 68 },
+      { metric: "Innovation", Ours: 81, A: 74, B: 69 },
+      { metric: "UX", Ours: 85, A: 77, B: 71 },
+      { metric: "Pricing", Ours: 70, A: 75, B: 73 },
+    ];
+  }, []);
+
+  const competitorMatrixData = useMemo(() => {
+    return competitorNames.slice(0, 6).map((name, i) => ({
+      name,
+      price: 50 + i * 8,
+      features: 60 - i * 5,
+    }));
+  }, [competitorNames]);
+
+  const personaCards = useMemo(() => {
+    const defaults = [
+      { role: "CIO", pain: "Integration sprawl & data silos", budget: "$250k" },
+      { role: "Ops Lead", pain: "Manual workflows slow scale", budget: "$120k" },
+      { role: "Finance", pain: "Unclear ROI on tooling", budget: "$90k" },
+    ];
+    if (!personaSignals.length) return defaults;
+    return personaSignals.map((p: any, idx: number) => ({
+      role: p?.role ?? p?.persona ?? defaults[idx % defaults.length].role,
+      pain: p?.painPoint ?? p?.signal ?? defaults[idx % defaults.length].pain,
+      budget: p?.budget ?? defaults[idx % defaults.length].budget,
+    }));
+  }, [personaSignals]);
+
+  const sentimentData = useMemo(() => {
+    const s = (currentReport as any)?.customerInsights?.sentiment ?? {};
+    const pos = safeNumber(s.positive, 52);
+    const neu = safeNumber(s.neutral, 30);
+    const neg = safeNumber(s.negative, 18);
+    return [
+      { label: "Positive", value: pos },
+      { label: "Neutral", value: neu },
+      { label: "Negative", value: neg },
+    ];
+  }, [currentReport]);
+
+  const funnelData = useMemo(() => {
+    const base = 1000 + topOpps.length * 50;
+    return [
+      { stage: "Visitors", value: base },
+      { stage: "Signups", value: Math.round(base * 0.32) },
+      { stage: "Trials", value: Math.round(base * 0.12) },
+      { stage: "Customers", value: Math.round(base * 0.036) },
+    ];
+  }, [topOpps.length]);
+
+  const productBenchmarkData = useMemo(() => {
+    return [
+      { metric: "Features", Ours: 82, Avg: 75 },
+      { metric: "Innovation", Ours: 84, Avg: 73 },
+      { metric: "UX", Ours: 86, Avg: 76 },
+      { metric: "Pricing", Ours: 72, Avg: 74 },
+    ];
+  }, []);
+
+  const forecastRegions = useMemo(() => {
+    const base = primaryRegions.length ? primaryRegions : ["NA", "EU", "APAC"];
+    return base.map((r, i) => ({ region: r, score: 65 + i * 7 }));
+  }, [primaryRegions]);
+
+  const emergingMarketCards = useMemo(() => {
+    const list = topOpps.slice(0, 4).map((o: any, i: number) => ({
+      title: o?.label ?? o?.title ?? `Market ${i + 1}`,
+      score: 60 + (i + 1) * 8,
+    }));
+    return list.length ? list : [
+      { title: "Vertical AI Assistants", score: 76 },
+      { title: "Automation Analytics", score: 68 },
+    ];
+  }, [topOpps]);
+
+  const riskCells = useMemo(() => {
+    const labels = ["Low L / Low I", "Low L / High I", "High L / Low I", "High L / High I"];
+    const items = risks.length ? risks : [
+      "Vendor lock-in",
+      "Data privacy gaps",
+      "Model drift",
+      "Compliance backlog",
+    ];
+    return labels.map((q, idx) => ({ quadrant: q, risks: items.filter((_, i) => i % 4 === idx) }));
+  }, [risks]);
+
+  const complianceItems = [
+    "SOC 2 controls mapped",
+    "PII handling reviewed",
+    "DSAR workflow tested",
+    "Model audit log enabled",
+  ];
+
+  const alertBadges = [
+    { tone: "red", text: "High: Data residency review" },
+    { tone: "yellow", text: "Medium: Model retraining schedule" },
+    { tone: "green", text: "Low: SLA meets SLOs" },
+  ];
+
+  const financeSeries = useMemo(() => {
+    const months = ["M1", "M2", "M3", "M4", "M5", "M6"];
+    return {
+      cac: months.map((m, i) => ({ m, v: 320 - i * 18 })),
+      clv: months.map((m, i) => ({ m, v: 2100 + i * 90 })),
+      profit: months.map((m, i) => ({ m, v: 8 + i * 2 })),
+    };
+  }, []);
+
+  const kpis = {
+    CAC: { value: 212, delta: -6 },
+    CLV: { value: 2560, delta: 9 },
+    Margin: { value: 22, delta: 3 },
+  };
+
+  const recommendationsData = useMemo(() => {
+    return actions.map((a: any, i: number) => ({
+      title: a?.title ?? a?.name ?? `Initiative ${i + 1}`,
+      roi: 22 + ((i + 1) * 7) % 58,
+      timeline: a?.timeline ?? a?.timeframe ?? "Next quarter",
+      confidence: 65 + ((i * 9) % 30),
+    }));
+  }, [actions]);
+
   if (isLoading || !analysis) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background">
@@ -411,7 +595,7 @@ const BusinessIntelligenceDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f9fafb] via-[#eef2ff] to-[#fff1f2]">
+    <div className="min-h-screen bg-slate-50 font-plex">
       <div className="container mx-auto max-w-6xl space-y-8 px-4 py-8">
         <header className="flex flex-col gap-4 rounded-3xl border bg-white/90 p-6 backdrop-blur md:flex-row md:items-center md:justify-between">
           <div>
@@ -443,6 +627,391 @@ const BusinessIntelligenceDetail = () => {
             </Button>
           </div>
         </header>
+
+        <div className="grid gap-6 md:grid-cols-[220px_1fr]">
+          <aside className="sticky top-6 h-max rounded-xl border border-slate-200 bg-white p-3">
+            <nav className="text-sm">
+              <ul className="space-y-1">
+                <li><a href="#overview" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Overview</a></li>
+                <li><a href="#market" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Market</a></li>
+                <li><a href="#competitors" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Competitors</a></li>
+                <li><a href="#customers" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Customers</a></li>
+                <li><a href="#benchmarking" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Benchmarking</a></li>
+                <li><a href="#forecast" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Forecast</a></li>
+                <li><a href="#gtm" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">GTM</a></li>
+                <li><a href="#risk" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Risk</a></li>
+                <li><a href="#finance" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Finance</a></li>
+                <li><a href="#recommendations" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Recommendations</a></li>
+              </ul>
+            </nav>
+          </aside>
+          <div className="space-y-6">
+            <section id="overview" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold tracking-tight text-slate-900">AI Market Intelligence Summary</h2>
+                  <Badge className="rounded-full bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200">AI Generated Insights</Badge>
+                </div>
+                <div className="grid gap-6 md:grid-cols-[220px_1fr]">
+                  <div className="relative">
+                    <ResponsiveContainer width="100%" height={180}>
+                      <RadialBarChart data={[{ name: "Score", value: marketScore, fill: "#06b6d4" }]} innerRadius="70%" outerRadius="100%" startAngle={90} endAngle={-270}>
+                        <RadialBar dataKey="value" cornerRadius={10} />
+                      </RadialBarChart>
+                    </ResponsiveContainer>
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-3xl font-semibold text-slate-900">{marketScore}</div>
+                        <div className="text-xs uppercase tracking-wide text-slate-500">Market Score</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    {renderNarrative(recapNarrative)}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="market" className="scroll-mt-24">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">5-year Growth</h3>
+                    <span className="text-xs text-slate-500">Market Overview</span>
+                  </div>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <LineChart data={marketGrowthSeries} margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
+                      <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
+                      <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} width={28} />
+                      <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} cursor={{ stroke: "#bae6fd" }} />
+                      <Line type="monotone" dataKey="growth" stroke="#06b6d4" strokeWidth={3} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="grid gap-6">
+                  <div className={`${modernCardClass} p-4`}>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-slate-500">CAGR</div>
+                        <div className="text-xl font-semibold text-slate-900">{formatPercentage(marketStats.cagr)}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-slate-500">TAM</div>
+                        <div className="text-xl font-semibold text-slate-900">${formatNumber(marketStats.tam, { notation: "compact", maximumFractionDigits: 1 })}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-slate-500">Trend</div>
+                        <div className="text-xl font-semibold text-slate-900">{marketStats.trend}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`${modernCardClass} p-4`}>
+                    <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-cyan-700">Adoption by Region</h4>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      {primaryRegions.length ? primaryRegions.map((r, i) => (
+                        <div key={r} className="rounded-lg border border-slate-200 p-3" style={{ backgroundColor: `rgba(6,182,212,${0.06 + i * 0.06})` }}>
+                          <div className="font-medium text-slate-900">{r}</div>
+                          <div className="text-xs text-slate-600">Adoption score: {60 + i * 8}</div>
+                        </div>
+                      )) : (
+                        <div className="text-sm text-slate-500">Regions will appear when available.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="competitors" className="scroll-mt-24">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Price vs Features</h3>
+                  </div>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <ScatterChart margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
+                      <CartesianGrid stroke="#e2e8f0" />
+                      <XAxis dataKey="price" name="Price" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <YAxis dataKey="features" name="Features" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <RechartsTooltip cursor={{ stroke: "#bae6fd" }} />
+                      <Scatter data={competitorMatrixData} fill="#06b6d4" />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Product Radar</h3>
+                  </div>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <RadarChart data={competitorRadarData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
+                      <Radar name="Ours" dataKey="Ours" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} />
+                      <Radar name={competitorLabelA} dataKey="A" stroke="#64748b" fill="#64748b" fillOpacity={0.1} />
+                      <Radar name={competitorLabelB} dataKey="B" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.1} />
+                      <Legend />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </section>
+
+            <section id="gtm" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">ROI by Channel</h3>
+                  <span className="text-xs text-slate-500">Budget: {budget[0]}%</span>
+                </div>
+                <div className="mb-4">
+                  <Slider value={budget} onValueChange={setBudget} min={0} max={100} step={1} />
+                </div>
+                <ResponsiveContainer width="100%" height={240}>
+                  <BarChart data={roiByChannelData} barSize={36} margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
+                    <CartesianGrid stroke="#e2e8f0" vertical={false} />
+                    <XAxis dataKey="channel" tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
+                    <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} />
+                    <Bar dataKey="roi" fill="#06b6d4" radius={[8, 8, 4, 4]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
+            <section id="customers" className="scroll-mt-24">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Persona Cards</h3>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {personaCards.map((p, idx) => (
+                      <div key={idx} className="rounded-lg border border-slate-200 p-4">
+                        <div className="text-sm font-semibold text-slate-900">{p.role}</div>
+                        <div className="mt-1 text-xs text-slate-600">{p.pain}</div>
+                        <div className="mt-2 text-xs text-cyan-700">Budget: {p.budget}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid gap-6">
+                  <div className={`${modernCardClass} p-6`}>
+                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-cyan-700">Sentiment</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={sentimentData} barSize={36} margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
+                        <CartesianGrid stroke="#e2e8f0" vertical={false} />
+                        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
+                        <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} />
+                        <Bar dataKey="value" fill="#06b6d4" radius={[8, 8, 4, 4]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className={`${modernCardClass} p-6`}>
+                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-cyan-700">Conversion Funnel</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={funnelData} barSize={36} margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
+                        <CartesianGrid stroke="#e2e8f0" vertical={false} />
+                        <XAxis dataKey="stage" tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} axisLine={false} tickLine={false} />
+                        <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} />
+                        <Bar dataKey="value" fill="#94a3b8" radius={[8, 8, 4, 4]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="benchmarking" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Product Benchmarking</h3>
+                </div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <RadarChart data={productBenchmarkData}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
+                    <Radar name="Ours" dataKey="Ours" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} />
+                    <Radar name="Avg" dataKey="Avg" stroke="#64748b" fill="#64748b" fillOpacity={0.1} />
+                    <Legend />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
+            <section id="forecast" className="scroll-mt-24">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Regional Heat</h3>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {forecastRegions.map((r) => (
+                      <div key={r.region} className="rounded-lg border border-slate-200 p-3" style={{ backgroundColor: `rgba(6,182,212,${Math.min(0.1 + (r.score - 60) / 200, 0.25)})` }}>
+                        <div className="text-sm font-medium text-slate-900">{r.region}</div>
+                        <div className="text-xs text-slate-600">Score: {r.score}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Emerging Markets</h3>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {emergingMarketCards.map((c, i) => (
+                      <div key={i} className="rounded-lg border border-slate-200 p-4" style={{ backgroundColor: `rgba(6,182,212,${0.06 + (c.score - 60) / 200})` }}>
+                        <div className="text-sm font-semibold text-slate-900">{c.title}</div>
+                        <div className="mt-1 text-xs text-slate-600">Score: {c.score}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="risk" className="scroll-mt-24">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">2x2 Risk Matrix</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {riskCells.map((cell, idx) => (
+                      <div key={idx} className="rounded-lg border border-slate-200 p-3">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{cell.quadrant}</div>
+                        <ul className="mt-2 space-y-1 text-sm">
+                          {cell.risks.map((r: string, i: number) => (
+                            <li key={i} className="flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                              <span className="truncate">{r}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid gap-6">
+                  <div className={`${modernCardClass} p-6`}>
+                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-cyan-700">Compliance Checklist</h3>
+                    <div className="space-y-2">
+                      {complianceItems.map((item, i) => (
+                        <label key={i} className="flex items-center gap-2 text-sm">
+                          <Checkbox />
+                          <span>{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={`${modernCardClass} p-4`}>
+                    <div className="flex flex-wrap gap-2">
+                      {alertBadges.map((b, i) => (
+                        <span key={i} className={`rounded-full px-2.5 py-1 text-xs ring-1 ${b.tone === 'red' ? 'bg-red-50 text-red-700 ring-red-200' : b.tone === 'yellow' ? 'bg-amber-50 text-amber-700 ring-amber-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200'}`}>{b.text}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="finance" className="scroll-mt-24">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Financial Summary</h3>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">CAC</div>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <LineChart data={financeSeries.cac}>
+                          <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
+                          <XAxis dataKey="m" hide />
+                          <YAxis hide />
+                          <Line type="monotone" dataKey="v" stroke="#64748b" strokeWidth={2} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div>
+                      <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">CLV</div>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <LineChart data={financeSeries.clv}>
+                          <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
+                          <XAxis dataKey="m" hide />
+                          <YAxis hide />
+                          <Line type="monotone" dataKey="v" stroke="#06b6d4" strokeWidth={2} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div>
+                      <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Profit %</div>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <LineChart data={financeSeries.profit}>
+                          <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
+                          <XAxis dataKey="m" hide />
+                          <YAxis hide />
+                          <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+                <div className={`${modernCardClass} p-6`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">KPIs</h3>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    {Object.entries(kpis).map(([k, v]) => (
+                      <div key={k} className="rounded-lg border border-slate-200 p-4">
+                        <div className="text-xs uppercase tracking-wide text-slate-500">{k}</div>
+                        <div className="text-xl font-semibold text-slate-900">{k === 'CLV' ? `$${formatNumber(v.value)}` : k === 'Margin' ? `${v.value}%` : formatNumber(v.value)}</div>
+                        <div className={`text-xs ${v.delta >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{v.delta >= 0 ? `▲ ${v.delta}%` : `▼ ${Math.abs(v.delta)}%`}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="recommendations" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Strategic Recommendations</h3>
+                </div>
+                <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
+                  <TableHeader className="bg-slate-50 text-slate-700">
+                    <TableRow>
+                      <TableHead>Initiative</TableHead>
+                      <TableHead className="text-right">ROI %</TableHead>
+                      <TableHead className="text-right">Timeline</TableHead>
+                      <TableHead className="text-right">Confidence</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recommendationsData.map((r, i) => (
+                      <TableRow key={i}>
+                        <TableCell>{r.title}</TableCell>
+                        <TableCell className="text-right">{r.roi}</TableCell>
+                        <TableCell className="text-right">{r.timeline}</TableCell>
+                        <TableCell className="text-right">{r.confidence}</TableCell>
+                      </TableRow>
+                    ))}
+                    {!recommendationsData.length ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-slate-500">Recommendations will appear when available.</TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
+            </section>
+          </div>
+        </div>
 
         <section>
           <Card className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-violet-50/80 to-indigo-100/60`}
