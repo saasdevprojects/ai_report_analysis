@@ -1050,7 +1050,7 @@ const BusinessIntelligenceDetail = () => {
               <div className={`${forecastCardClass} p-6`}>
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-xl font-semibold tracking-tight text-slate-900">AI Market Intelligence Summary</h2>
-                  <Badge className="rounded-full bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200">AI Generated Insights</Badge>
+                  <Badge className="rounded-full bg-white text-cyan-700 ring-1 ring-cyan-200">AI Generated Insights</Badge>
                 </div>
                 <p className="mb-4 flex items-start gap-2 text-sm text-slate-500">
                   <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
