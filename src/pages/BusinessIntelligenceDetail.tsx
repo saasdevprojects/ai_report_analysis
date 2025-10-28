@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download, CheckCircle2, Info } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, Info, ExternalLink } from "lucide-react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -222,8 +222,8 @@ const BusinessIntelligenceDetail = () => {
   const productOverview = analysis?.product_description ?? "its growth mission";
   const primaryRegions = safeArray(currentReport?.marketEnvironment?.segmentation?.geography)
     .slice(0, 3)
-    .map((item: any) => (typeof item === "string" ? item : item?.name))
-    .filter(Boolean);
+    .map((item: any) => ({ name: item?.name ?? String(item), share: safeNumber(item?.share, 0) }))
+    .filter((r) => !!r.name);
   const competitorNames = safeArray(currentReport?.competitiveLandscape?.topCompetitors)
     .slice(0, 4)
     .map((comp: any) => comp?.name)
@@ -422,164 +422,174 @@ const BusinessIntelligenceDetail = () => {
   }, [channelSummary, productName, productOverview]);
 
   const marketScore = useMemo(() => {
-    const raw = (currentReport as any)?.marketEnvironment?.marketScore;
+    const raw = (currentReport as any)?.executiveSummary?.marketReadiness?.score;
     return Math.max(0, Math.min(100, safeNumber(raw, 68)));
   }, [currentReport]);
 
   const marketGrowthSeries = useMemo(() => {
-    const now = new Date().getFullYear();
-    const base = topOpps.length * 3 + channels.length * 2 + 40;
-    return Array.from({ length: 5 }, (_, i) => {
-      const year = now - 4 + i;
-      return { year, growth: Math.max(10, Math.min(100, base + i * 4 - (i === 1 ? 3 : 0))) };
-    });
-  }, [topOpps.length, channels.length]);
+    const points = safeArray(currentReport?.marketEnvironment?.marketSize?.forecast);
+    return points.map((p: any) => ({ year: p?.year ?? p?.period ?? "", growth: safeNumber(p?.value, 0) }));
+  }, [currentReport]);
 
   const marketStats = useMemo(() => {
     const env = (currentReport as any)?.marketEnvironment ?? {};
-    const cagr = safeNumber(env.cagr, 12);
-    const tam = safeNumber(env.tam, 2500000000);
-    const trend = safeNumber(env.trendScore, 72);
+    const cagrArr = safeArray(env.cagrByRegion);
+    const cagr = cagrArr.length
+      ? Math.round(
+          (cagrArr.reduce((sum: number, r: any) => sum + safeNumber(r?.value, 0), 0) / cagrArr.length) * 100,
+        ) / 100
+      : 0;
+    const tam = safeNumber(env?.marketSize?.current, 0);
+    const f = safeArray(env?.marketSize?.forecast);
+    const trend = f.length >= 2
+      ? Math.round(((safeNumber(f[f.length - 1]?.value, 0) - safeNumber(f[0]?.value, 0)) / Math.max(1, safeNumber(f[0]?.value, 1))) * 100)
+      : 0;
     return { cagr, tam, trend };
   }, [currentReport]);
 
   const roiByChannelData = useMemo(() => {
-    const list = channels.map((ch: any, idx) => ({
-      channel: ch?.channel ?? ch?.name ?? `Channel ${idx + 1}`,
-      roi: 15 + (idx + 1) * 10,
+    const alloc = safeArray(currentReport?.gtmStrategy?.budgetAllocation);
+    const list = alloc.map((row: any, idx: number) => ({
+      channel: row?.channel ?? `Channel ${idx + 1}`,
+      roi: safeNumber(row?.expectedROI, 0),
+      allocation: safeNumber(row?.allocation, 0),
     }));
-    return list.length ? list : [
-      { channel: "SEO", roi: 35 },
-      { channel: "Paid", roi: 28 },
-      { channel: "Partners", roi: 42 },
-    ];
-  }, [channels]);
+    if (list.length) return list;
+    return channels.map((ch: any, idx) => ({
+      channel: ch?.channel ?? ch?.name ?? `Channel ${idx + 1}`,
+      roi: safeNumber((ch as any)?.expectedROI, 0),
+      allocation: safeNumber((ch as any)?.budgetShare, 0),
+    }));
+  }, [channels, currentReport]);
 
   const competitorLabelA = useMemo(() => competitorNames[0] ?? "Competitor A", [competitorNames]);
   const competitorLabelB = useMemo(() => competitorNames[1] ?? "Competitor B", [competitorNames]);
   const competitorRadarData = useMemo(() => {
-    return [
-      { metric: "Features", Ours: 78, A: 72, B: 68 },
-      { metric: "Innovation", Ours: 81, A: 74, B: 69 },
-      { metric: "UX", Ours: 85, A: 77, B: 71 },
-      { metric: "Pricing", Ours: 70, A: 75, B: 73 },
-    ];
-  }, []);
+    const fb = safeArray(currentReport?.competitiveLandscape?.featureBenchmark);
+    return fb.map((row: any) => ({ metric: row?.feature ?? "Metric", Ours: safeNumber(row?.productScore, 0), Avg: safeNumber(row?.competitorAverage, 0) }));
+  }, [currentReport]);
 
   const competitorMatrixData = useMemo(() => {
-    return competitorNames.slice(0, 6).map((name, i) => ({
-      name,
-      price: 50 + i * 8,
-      features: 60 - i * 5,
+    const pf = safeArray(currentReport?.competitiveLandscape?.priceFeatureMatrix);
+    return pf.map((p: any) => ({
+      name: p?.company ?? "",
+      pricePosition: safeNumber(p?.pricePosition, 0),
+      featureScore: safeNumber(p?.featureScore, 0),
     }));
-  }, [competitorNames]);
+  }, [currentReport]);
 
   const personaCards = useMemo(() => {
-    const defaults = [
-      { role: "CIO", pain: "Integration sprawl & data silos", budget: "$250k" },
-      { role: "Ops Lead", pain: "Manual workflows slow scale", budget: "$120k" },
-      { role: "Finance", pain: "Unclear ROI on tooling", budget: "$90k" },
-    ];
-    if (!personaSignals.length) return defaults;
-    return personaSignals.map((p: any, idx: number) => ({
-      role: p?.role ?? p?.persona ?? defaults[idx % defaults.length].role,
-      pain: p?.painPoint ?? p?.signal ?? defaults[idx % defaults.length].pain,
-      budget: p?.budget ?? defaults[idx % defaults.length].budget,
+    const personas = safeArray(currentReport?.customerInsights?.personas);
+    return personas.map((p: any) => ({
+      role: p?.role ?? p?.name ?? "Key persona",
+      pain: safeArray(p?.motivations).slice(0,1)[0] ?? "—",
+      budget: p?.budget ?? "—",
+      companySize: p?.companySize ?? "—",
     }));
-  }, [personaSignals]);
+  }, [currentReport]);
 
   const sentimentData = useMemo(() => {
-    const s = (currentReport as any)?.customerInsights?.sentiment ?? {};
-    const pos = safeNumber(s.positive, 52);
-    const neu = safeNumber(s.neutral, 30);
-    const neg = safeNumber(s.negative, 18);
+    const maps = safeArray(currentReport?.customerInsights?.sentimentMaps);
+    const totals = maps.reduce(
+      (acc, m: any) => {
+        acc.pos += safeNumber(m?.positive, 0);
+        acc.neu += safeNumber(m?.neutral, 0);
+        acc.neg += safeNumber(m?.negative, 0);
+        return acc;
+      },
+      { pos: 0, neu: 0, neg: 0 },
+    );
     return [
-      { label: "Positive", value: pos },
-      { label: "Neutral", value: neu },
-      { label: "Negative", value: neg },
+      { label: "Positive", value: totals.pos },
+      { label: "Neutral", value: totals.neu },
+      { label: "Negative", value: totals.neg },
     ];
   }, [currentReport]);
 
   const funnelData = useMemo(() => {
-    const base = 1000 + topOpps.length * 50;
-    return [
-      { stage: "Visitors", value: base },
-      { stage: "Signups", value: Math.round(base * 0.32) },
-      { stage: "Trials", value: Math.round(base * 0.12) },
-      { stage: "Customers", value: Math.round(base * 0.036) },
-    ];
-  }, [topOpps.length]);
+    const journey = safeArray(currentReport?.customerInsights?.purchaseJourney);
+    return journey.map((j: any) => ({ stage: j?.stage ?? "Stage", value: safeNumber(j?.conversionRate, 0) }));
+  }, [currentReport]);
 
   const productBenchmarkData = useMemo(() => {
-    return [
-      { metric: "Features", Ours: 82, Avg: 75 },
-      { metric: "Innovation", Ours: 84, Avg: 73 },
-      { metric: "UX", Ours: 86, Avg: 76 },
-      { metric: "Pricing", Ours: 72, Avg: 74 },
-    ];
-  }, []);
+    const pr = safeArray(currentReport?.productEvaluation?.performanceRadar);
+    return pr.map((r: any) => ({ metric: r?.axis ?? "Metric", Ours: safeNumber(r?.product, 0), Avg: safeNumber(r?.competitors, 0) }));
+  }, [currentReport]);
 
   const forecastRegions = useMemo(() => {
-    const base = primaryRegions.length ? primaryRegions : ["NA", "EU", "APAC"];
-    return base.map((r, i) => ({ region: r, score: 65 + i * 7 }));
-  }, [primaryRegions]);
+    const reg = safeArray(currentReport?.opportunityForecast?.regionalOpportunity);
+    if (reg.length) return reg.map((r: any) => ({ region: r?.region ?? "Region", score: safeNumber(r?.score, 0) }));
+    return primaryRegions.map((r) => ({ region: r.name, score: r.share }));
+  }, [currentReport, primaryRegions]);
 
   const emergingMarketCards = useMemo(() => {
-    const list = topOpps.slice(0, 4).map((o: any, i: number) => ({
-      title: o?.label ?? o?.title ?? `Market ${i + 1}`,
-      score: 60 + (i + 1) * 8,
-    }));
-    return list.length ? list : [
-      { title: "Vertical AI Assistants", score: 76 },
-      { title: "Automation Analytics", score: 68 },
-    ];
-  }, [topOpps]);
+    const list = safeArray(currentReport?.opportunityForecast?.unexploredSegments)
+      .slice(0, 4)
+      .map((o: any, i: number) => ({ title: o?.segment ?? `Market ${i + 1}`, score: safeNumber(o?.potentialValue, 0) }));
+    if (list.length) return list;
+    return topOpps.slice(0, 4).map((o: any, i: number) => ({ title: o?.label ?? o?.title ?? `Market ${i + 1}`, score: safeNumber(o?.impact, 0) }));
+  }, [currentReport, topOpps]);
 
   const riskCells = useMemo(() => {
-    const labels = ["Low L / Low I", "Low L / High I", "High L / Low I", "High L / High I"];
-    const items = risks.length ? risks : [
-      "Vendor lock-in",
-      "Data privacy gaps",
-      "Model drift",
-      "Compliance backlog",
+    const rm = safeArray(currentReport?.riskCompliance?.riskMatrix);
+    const as01 = (v: number) => (v > 1 ? v / 100 : v);
+    const buckets = [
+      { quadrant: "Low L / Low I", risks: [] as string[] },
+      { quadrant: "Low L / High I", risks: [] as string[] },
+      { quadrant: "High L / Low I", risks: [] as string[] },
+      { quadrant: "High L / High I", risks: [] as string[] },
     ];
-    return labels.map((q, idx) => ({ quadrant: q, risks: items.filter((_, i) => i % 4 === idx) }));
-  }, [risks]);
+    rm.forEach((r: any) => {
+      const p = as01(safeNumber(r?.probability, 0));
+      const i = as01(safeNumber(r?.impact, 0));
+      const idx = (p < 0.5 ? 0 : 2) + (i < 0.5 ? 0 : 1);
+      buckets[idx].risks.push(r?.risk ?? "Risk");
+    });
+    if (buckets.some((b) => b.risks.length)) return buckets;
+    return [
+      { quadrant: "Low L / Low I", risks },
+      { quadrant: "Low L / High I", risks: [] as string[] },
+      { quadrant: "High L / Low I", risks: [] as string[] },
+      { quadrant: "High L / High I", risks: [] as string[] },
+    ];
+  }, [currentReport, risks]);
 
-  const complianceItems = [
-    "SOC 2 controls mapped",
-    "PII handling reviewed",
-    "DSAR workflow tested",
-    "Model audit log enabled",
-  ];
+  const complianceItems = useMemo(() => {
+    const cs = safeArray(currentReport?.riskCompliance?.complianceStatus);
+    if (!cs.length) return ["SOC 2 controls mapped", "PII handling reviewed", "DSAR workflow tested", "Model audit log enabled"];
+    return cs.map((c: any) => `${c?.framework ?? "Framework"}: ${c?.status ?? "Unknown"}`);
+  }, [currentReport]);
 
-  const alertBadges = [
-    { tone: "red", text: "High: Data residency review" },
-    { tone: "yellow", text: "Medium: Model retraining schedule" },
-    { tone: "green", text: "Low: SLA meets SLOs" },
-  ];
+  const alertBadges = useMemo(() => {
+    const rm = safeArray(currentReport?.riskCompliance?.riskMatrix);
+    const as01 = (v: number) => (v > 1 ? v / 100 : v);
+    const highs = rm.filter((r: any) => as01(safeNumber(r?.probability, 0)) >= 0.7 && as01(safeNumber(r?.impact, 0)) >= 0.7);
+    if (highs.length) return highs.slice(0, 3).map((r: any) => ({ tone: "red", text: `High: ${r?.risk ?? "Critical risk"}` }));
+    const meds = rm.filter((r: any) => as01(safeNumber(r?.probability, 0)) >= 0.5 || as01(safeNumber(r?.impact, 0)) >= 0.5);
+    if (meds.length) return meds.slice(0, 3).map((r: any) => ({ tone: "yellow", text: `Medium: ${r?.risk ?? "Attention"}` }));
+    return [{ tone: "green", text: "Low: No critical risks detected" }];
+  }, [currentReport]);
 
-  const financeSeries = useMemo(() => {
-    const months = ["M1", "M2", "M3", "M4", "M5", "M6"];
+  const profitSeries = useMemo(() => {
+    const trend = safeArray(currentReport?.financialBenchmark?.profitMarginTrend);
+    return trend.map((p: any) => ({ period: p?.period ?? "", margin: safeNumber(p?.margin, 0) }));
+  }, [currentReport]);
+
+  const kpis = useMemo(() => {
+    const ue = (currentReport as any)?.financialBenchmark?.unitEconomics ?? {};
     return {
-      cac: months.map((m, i) => ({ m, v: 320 - i * 18 })),
-      clv: months.map((m, i) => ({ m, v: 2100 + i * 90 })),
-      profit: months.map((m, i) => ({ m, v: 8 + i * 2 })),
-    };
-  }, []);
-
-  const kpis = {
-    CAC: { value: 212, delta: -6 },
-    CLV: { value: 2560, delta: 9 },
-    Margin: { value: 22, delta: 3 },
-  };
+      CPA: { value: safeNumber(ue.cpa, 0) },
+      CLV: { value: safeNumber(ue.clv, 0) },
+      "CLV:CAC": { value: safeNumber(ue.clvToCac, 0) },
+    } as Record<string, { value: number }>;
+  }, [currentReport]);
 
   const recommendationsData = useMemo(() => {
     return actions.map((a: any, i: number) => ({
       title: a?.title ?? a?.name ?? `Initiative ${i + 1}`,
-      roi: 22 + ((i + 1) * 7) % 58,
+      roi: safeNumber(a?.roi, 0),
       timeline: a?.timeline ?? a?.timeframe ?? "Next quarter",
-      confidence: 65 + ((i * 9) % 30),
+      confidence: safeNumber(a?.confidence, 0),
     }));
   }, [actions]);
 
@@ -642,6 +652,7 @@ const BusinessIntelligenceDetail = () => {
                 <li><a href="#risk" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Risk</a></li>
                 <li><a href="#finance" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Finance</a></li>
                 <li><a href="#recommendations" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Recommendations</a></li>
+                <li><a href="#sources" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Sources</a></li>
               </ul>
             </nav>
           </aside>
@@ -719,9 +730,9 @@ const BusinessIntelligenceDetail = () => {
                     <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-cyan-700">Adoption by Region</h4>
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       {primaryRegions.length ? primaryRegions.map((r, i) => (
-                        <div key={r} className="rounded-lg border border-slate-200 p-3" style={{ backgroundColor: `rgba(6,182,212,${0.06 + i * 0.06})` }}>
-                          <div className="font-medium text-slate-900">{r}</div>
-                          <div className="text-xs text-slate-600">Adoption score: {60 + i * 8}</div>
+                        <div key={r.name} className="rounded-lg border border-slate-200 p-3" style={{ backgroundColor: `rgba(6,182,212,${0.06 + i * 0.06})` }}>
+                          <div className="font-medium text-slate-900">{r.name}</div>
+                          <div className="text-xs text-slate-600">Adoption score: {Math.round(r.share)}</div>
                         </div>
                       )) : (
                         <div className="text-sm text-slate-500">Regions will appear when available.</div>
@@ -745,8 +756,8 @@ const BusinessIntelligenceDetail = () => {
                   <ResponsiveContainer width="100%" height={240}>
                     <ScatterChart margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
                       <CartesianGrid stroke="#e2e8f0" />
-                      <XAxis dataKey="price" name="Price" tick={{ fontSize: 11, fill: "#0e7490" }} />
-                      <YAxis dataKey="features" name="Features" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <XAxis dataKey="pricePosition" name="Price" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <YAxis dataKey="featureScore" name="Features" tick={{ fontSize: 11, fill: "#0e7490" }} />
                       <RechartsTooltip cursor={{ stroke: "#bae6fd" }} />
                       <Scatter data={competitorMatrixData} fill="#06b6d4" />
                     </ScatterChart>
@@ -762,8 +773,7 @@ const BusinessIntelligenceDetail = () => {
                       <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "#0e7490" }} />
                       <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
                       <Radar name="Ours" dataKey="Ours" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} />
-                      <Radar name={competitorLabelA} dataKey="A" stroke="#64748b" fill="#64748b" fillOpacity={0.1} />
-                      <Radar name={competitorLabelB} dataKey="B" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.1} />
+                      <Radar name="Competitor Avg" dataKey="Avg" stroke="#64748b" fill="#64748b" fillOpacity={0.1} />
                       <Legend />
                     </RadarChart>
                   </ResponsiveContainer>
@@ -959,43 +969,17 @@ const BusinessIntelligenceDetail = () => {
               <div className="grid gap-6 md:grid-cols-2">
                 <div className={`${modernCardClass} p-6`}>
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Financial Summary</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Profit Margin Trend</h3>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">CAC</div>
-                      <ResponsiveContainer width="100%" height={120}>
-                        <LineChart data={financeSeries.cac}>
-                          <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
-                          <XAxis dataKey="m" hide />
-                          <YAxis hide />
-                          <Line type="monotone" dataKey="v" stroke="#64748b" strokeWidth={2} dot={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div>
-                      <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">CLV</div>
-                      <ResponsiveContainer width="100%" height={120}>
-                        <LineChart data={financeSeries.clv}>
-                          <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
-                          <XAxis dataKey="m" hide />
-                          <YAxis hide />
-                          <Line type="monotone" dataKey="v" stroke="#06b6d4" strokeWidth={2} dot={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div>
-                      <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Profit %</div>
-                      <ResponsiveContainer width="100%" height={120}>
-                        <LineChart data={financeSeries.profit}>
-                          <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
-                          <XAxis dataKey="m" hide />
-                          <YAxis hide />
-                          <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={profitSeries}>
+                      <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
+                      <XAxis dataKey="period" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} />
+                      <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} />
+                      <Line type="monotone" dataKey="margin" stroke="#10b981" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
                 <div className={`${modernCardClass} p-6`}>
                   <div className="mb-3 flex items-center justify-between">
@@ -1005,8 +989,7 @@ const BusinessIntelligenceDetail = () => {
                     {Object.entries(kpis).map(([k, v]) => (
                       <div key={k} className="rounded-lg border border-slate-200 p-4">
                         <div className="text-xs uppercase tracking-wide text-slate-500">{k}</div>
-                        <div className="text-xl font-semibold text-slate-900">{k === 'CLV' ? `$${formatNumber(v.value)}` : k === 'Margin' ? `${v.value}%` : formatNumber(v.value)}</div>
-                        <div className={`text-xs ${v.delta >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{v.delta >= 0 ? `▲ ${v.delta}%` : `▼ ${Math.abs(v.delta)}%`}</div>
+                        <div className="text-xl font-semibold text-slate-900">{(k === 'CLV' || k === 'CPA') ? `$${formatNumber(v.value)}` : (k.includes(':') ? `${formatNumber(v.value)}x` : formatNumber(v.value))}</div>
                       </div>
                     ))}
                   </div>
@@ -1044,6 +1027,51 @@ const BusinessIntelligenceDetail = () => {
                     {!recommendationsData.length ? (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center text-slate-500">Recommendations will appear when available.</TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
+            </section>
+
+            <section id="sources" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Sources & Attribution</h3>
+                </div>
+                <p className="mb-3 flex items-start gap-2 text-sm text-slate-500">
+                  <Info className="mt-0.5 h-4 w-4 text-cyan-600" />
+                  Linked references used to generate this report. Follow the links to audit or enrich the dataset.
+                </p>
+                <Table className="overflow-hidden rounded-lg border border-slate-200 bg-white text-sm">
+                  <TableHeader className="bg-slate-50 text-slate-700">
+                    <TableRow>
+                      <TableHead>Source</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="text-right">Retrieved</TableHead>
+                      <TableHead className="text-right">Link</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sources.slice(0, 50).map((s: any, i: number) => (
+                      <TableRow key={`${s?.url ?? s?.name}-${i}`}>
+                        <TableCell>{s?.name ?? 'Source'}</TableCell>
+                        <TableCell>{s?.type ?? '—'}</TableCell>
+                        <TableCell className="text-right">{formatDate(s?.retrievedAt)}</TableCell>
+                        <TableCell className="text-right">
+                          {s?.url ? (
+                            <a href={s.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan-700 hover:underline">
+                              Open <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!sources.length ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-slate-500">No sources available.</TableCell>
                       </TableRow>
                     ) : null}
                   </TableBody>
