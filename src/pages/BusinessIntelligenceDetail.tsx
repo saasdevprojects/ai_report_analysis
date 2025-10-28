@@ -8,14 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Download, CheckCircle2 } from "lucide-react";
 import {
   ResponsiveContainer,
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   CartesianGrid,
   XAxis,
   YAxis,
   BarChart,
   Bar,
   Tooltip as RechartsTooltip,
+  Legend,
 } from "recharts";
 import { toast } from "sonner";
 import type { ReportPayload } from "@/types/report";
@@ -26,6 +27,19 @@ const threeDCardClass =
 
 function safeArray<T>(value: T[] | null | undefined): T[] {
   return Array.isArray(value) ? value : [];
+}
+
+function renderNarrative(text: string) {
+  const parts = (text ?? "")
+    .split(/(?<=[.!?])\s+(?=[A-Z0-9])/g)
+    .filter((s) => s && s.trim().length > 0);
+  return (
+    <div className="max-w-prose space-y-3 leading-7 text-slate-700/90">
+      {parts.map((s, i) => (
+        <p key={i}>{s}</p>
+      ))}
+    </div>
+  );
 }
 
 function formatNumber(value: number | string | null | undefined, options?: Intl.NumberFormatOptions) {
@@ -329,6 +343,19 @@ const BusinessIntelligenceDetail = () => {
     [opportunityRows],
   );
 
+  const opportunityChartMulti = useMemo(() => {
+    const data = [...opportunityChartData];
+    if (!data.length) return data;
+    const impacts = data.map((d) => d.impact);
+    const trend: number[] = [];
+    for (let i = 0; i < impacts.length; i++) {
+      const start = Math.max(0, i - 2);
+      const window = impacts.slice(start, i + 1);
+      trend.push(Math.round(window.reduce((a, b) => a + b, 0) / window.length));
+    }
+    return data.map((d, i) => ({ ...d, trend: trend[i] }));
+  }, [opportunityChartData]);
+
   const automationChartData = useMemo(() => {
     if (!automationRows.length) return [];
     const counts = automationRows.reduce((acc, row) => {
@@ -436,13 +463,13 @@ const BusinessIntelligenceDetail = () => {
                   <p className="font-display text-sm font-semibold uppercase tracking-wide text-violet-600">Strategic Intelligence Narrative</p>
                   <h3 className="font-display text-xl font-semibold text-slate-900">Unify decisions with shared context</h3>
                 </div>
-                <p className="leading-relaxed text-base">{strategicNarrative}</p>
+                {renderNarrative(strategicNarrative)}
                 <div className="grid gap-3 rounded-[24px] border border-violet-200/60 bg-white/90 p-4">
                   <p className="font-display text-sm font-semibold uppercase tracking-wide text-violet-600">Headlines surfaced</p>
                   <ul className="grid gap-3">
                     {keyInsights.slice(0, 5).map((insight, index) => (
-                      <li key={index} className="flex items-start gap-3">
-                        <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-violet-600">
+                      <li key={index} className="flex items-center gap-3">
+                        <span className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-violet-500/15 text-violet-600">
                           <CheckCircle2 className="h-4 w-4" />
                         </span>
                         <span className="text-sm leading-relaxed text-slate-800">{insight}</span>
@@ -459,47 +486,25 @@ const BusinessIntelligenceDetail = () => {
                   <p className="font-display text-sm font-semibold uppercase tracking-wide text-indigo-600">Opportunity Orchestration</p>
                   <h4 className="font-display text-lg font-semibold text-slate-900">Score, stage, and socialize growth bets</h4>
                 </div>
-                <p className="leading-relaxed text-base">{opportunityNarrative}</p>
-                {opportunityChartData.length ? (
-                  <div className="rounded-3xl border border-indigo-200/70 bg-indigo-50/70 p-4">
+                {renderNarrative(opportunityNarrative)}
+                {opportunityChartMulti.length ? (
+                  <div className="mt-2 rounded-3xl border border-indigo-200/70 bg-indigo-50/70 p-4 mb-4">
                     <div className="mb-3 flex items-center justify-between">
                       <p className="font-display text-xs font-semibold uppercase tracking-wide text-indigo-600">
                         Impact trajectory
                       </p>
                       <span className="text-xs text-indigo-500">Latest opportunities</span>
                     </div>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <AreaChart data={opportunityChartData} margin={{ top: 10, right: 24, bottom: 0, left: -10 }}>
-                        <defs>
-                          <linearGradient id="impactGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#6366f1" stopOpacity={0.7} />
-                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <LineChart data={opportunityChartMulti} margin={{ top: 10, right: 24, bottom: 0, left: -10 }}>
                         <CartesianGrid stroke="#c7d2fe" strokeDasharray="4 4" />
-                        <XAxis
-                          dataKey="title"
-                          tick={{ fontSize: 11, fill: "#4338ca" }}
-                          axisLine={false}
-                          tickLine={false}
-                          interval={0}
-                        />
+                        <XAxis dataKey="title" tick={{ fontSize: 11, fill: "#4338ca" }} axisLine={false} tickLine={false} interval={0} />
                         <YAxis tick={{ fontSize: 11, fill: "#4338ca" }} axisLine={false} tickLine={false} width={30} />
-                        <RechartsTooltip
-                          cursor={{ fill: "rgba(99,102,241,0.08)" }}
-                          contentStyle={{ borderRadius: 16, borderColor: "#c7d2fe" }}
-                          labelStyle={{ fontWeight: 600 }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="impact"
-                          stroke="#6366f1"
-                          strokeWidth={3}
-                          fill="url(#impactGradient)"
-                          dot={{ r: 4, strokeWidth: 0 }}
-                          activeDot={{ r: 6, strokeWidth: 0 }}
-                        />
-                      </AreaChart>
+                        <RechartsTooltip cursor={{ fill: "rgba(99,102,241,0.08)" }} contentStyle={{ borderRadius: 16, borderColor: "#c7d2fe" }} labelStyle={{ fontWeight: 600 }} />
+                        <Legend verticalAlign="top" height={24} wrapperStyle={{ fontSize: 12, color: "#4338ca" }} />
+                        <Line type="monotone" dataKey="impact" name="Impact" stroke="#6366f1" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="trend" name="Trend" stroke="#22c55e" strokeDasharray="6 6" strokeWidth={2} dot={false} />
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 ) : null}
@@ -516,7 +521,7 @@ const BusinessIntelligenceDetail = () => {
                       <TableRow key={index} className="border-indigo-100/60 bg-white/95 backdrop-blur">
                         <TableCell>
                           <div className="flex items-start gap-3">
-                            <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
+                            <span className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
                               <CheckCircle2 className="h-4 w-4" />
                             </span>
                             <div className="space-y-1">
@@ -546,9 +551,9 @@ const BusinessIntelligenceDetail = () => {
                   <p className="font-display text-sm font-semibold uppercase tracking-wide text-rose-500">Automation Runway</p>
                   <h4 className="font-display text-lg font-semibold text-slate-900">Turn intelligence into repeatable momentum</h4>
                 </div>
-                <p className="leading-relaxed text-base">{automationNarrative}</p>
+                {renderNarrative(automationNarrative)}
                 {automationChartData.length ? (
-                  <div className="rounded-3xl border border-rose-200/70 bg-rose-50/70 p-4">
+                  <div className="mt-2 rounded-3xl border border-rose-200/70 bg-rose-50/70 p-4 mb-4">
                     <div className="mb-3 flex items-center justify-between">
                       <p className="font-display text-xs font-semibold uppercase tracking-wide text-rose-500">
                         Priority mix
@@ -588,7 +593,7 @@ const BusinessIntelligenceDetail = () => {
                       <TableRow key={index} className="border-rose-100/60 bg-white/95 backdrop-blur">
                         <TableCell>
                           <div className="flex items-start gap-3">
-                            <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
+                            <span className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
                               <CheckCircle2 className="h-4 w-4" />
                             </span>
                             <div className="space-y-1">
@@ -628,11 +633,11 @@ const BusinessIntelligenceDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col gap-6 text-slate-700 lg:grid lg:grid-cols-2">
-              <p className="leading-relaxed text-base">{futureNarrative}</p>
+              {renderNarrative(futureNarrative)}
               <div className="space-y-4">
                 {futureSignals.map((signal, index) => (
                   <div key={index} className="flex items-start gap-3 rounded-[24px] border border-sky-200/70 bg-white/80 p-4 backdrop-blur">
-                    <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-500/15 text-sky-600">
+                    <span className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-sky-500/15 text-sky-600">
                       <CheckCircle2 className="h-4 w-4" />
                     </span>
                     <div className="space-y-1">
@@ -692,7 +697,7 @@ const BusinessIntelligenceDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
-              <p className="leading-relaxed text-base">{attributionNarrative}</p>
+              {renderNarrative(attributionNarrative)}
               <div className="rounded-[28px] border border-emerald-200/70 bg-white/80 p-5">
                 <p className="text-sm font-semibold text-emerald-600">
                   Data confidence level: <span className="font-bold text-slate-900">{dataConfidence}</span> ({sources.length} sources)
@@ -733,7 +738,7 @@ const BusinessIntelligenceDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col gap-2.5 text-slate-700">
-              <p className="leading-relaxed text-base">{recapNarrative}</p>
+              {renderNarrative(recapNarrative)}
               <div className="rounded-[24px] border border-violet-200/70 bg-white/80 p-4 text-sm text-slate-700">
                 <p className="font-semibold text-slate-900">Share-ready headline</p>
                 <p className="mt-2 leading-relaxed">{analysis.product_name} can accelerate growth using AI-driven GTM automation and prioritized actions across {channels.slice(0, 2).map((c) => c.channel).join(" & ") || "core channels"}; align squads around the roadmap above.</p>
