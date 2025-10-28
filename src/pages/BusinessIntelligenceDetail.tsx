@@ -389,7 +389,7 @@ const BusinessIntelligenceDetail = () => {
                 live intelligence without hopping between multiple sections.
               </p>
             </CardHeader>
-            <CardContent className="grid gap-6 text-slate-700 lg:grid-cols-3">
+            <CardContent className="grid gap-6 text-slate-700 lg:grid-cols-[1.6fr_1fr]">
               <div className="flex flex-col gap-6 rounded-[28px] border border-violet-200/70 bg-white/85 p-5 backdrop-blur">
                 <div className="space-y-1">
                   <p className="text-sm font-semibold uppercase tracking-wide text-violet-600">Strategic Intelligence Narrative</p>
@@ -413,94 +413,96 @@ const BusinessIntelligenceDetail = () => {
                   </ul>
                 </div>
               </div>
-
-              <div className="flex flex-col gap-6 rounded-[28px] border border-indigo-200/70 bg-white/85 p-5 backdrop-blur">
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Opportunity Orchestration</p>
-                  <h3 className="text-xl font-semibold text-slate-900">Score, stage, and socialize growth bets</h3>
-                </div>
-                <p className="leading-relaxed text-base">{opportunityNarrative}</p>
-                <Table className="overflow-hidden rounded-[24px] border border-indigo-200/60 bg-white/90 text-sm">
-                  <TableHeader className="bg-indigo-500/10 text-indigo-700">
-                    <TableRow className="border-indigo-200/60">
-                      <TableHead className="font-semibold">Opportunity</TableHead>
-                      <TableHead className="text-right font-semibold">Impact</TableHead>
-                      <TableHead className="text-right font-semibold">Timeframe</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {opportunityRows.map((row, index) => (
-                      <TableRow key={index} className="border-indigo-100/60 bg-white/95 backdrop-blur">
-                        <TableCell>
-                          <div className="flex items-start gap-3">
-                            <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
-                              <CheckCircle2 className="h-4 w-4" />
-                            </span>
-                            <div className="space-y-1">
-                              <p className="font-semibold text-slate-900">{row.title}</p>
-                              {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
+              <div className="flex flex-col gap-6 rounded-[28px] border border-indigo-200/60 bg-white/90 p-5 backdrop-blur">
+                <div className="space-y-5 rounded-[24px] border border-indigo-200/60 bg-white/95 p-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Opportunity Orchestration</p>
+                    <h4 className="text-lg font-semibold text-slate-900">Score, stage, and socialize growth bets</h4>
+                  </div>
+                  <p className="leading-relaxed text-base">{opportunityNarrative}</p>
+                  <Table className="overflow-hidden rounded-[20px] border border-indigo-200/60 bg-white/95 text-sm">
+                    <TableHeader className="bg-indigo-500/10 text-indigo-700">
+                      <TableRow className="border-indigo-200/60">
+                        <TableHead className="font-semibold">Opportunity</TableHead>
+                        <TableHead className="text-right font-semibold">Impact</TableHead>
+                        <TableHead className="text-right font-semibold">Timeframe</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {opportunityRows.map((row, index) => (
+                        <TableRow key={index} className="border-indigo-100/60 bg-white/95 backdrop-blur">
+                          <TableCell>
+                            <div className="flex items-start gap-3">
+                              <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </span>
+                              <div className="space-y-1">
+                                <p className="font-semibold text-slate-900">{row.title}</p>
+                                {row.detail ? <p className="text-xs text-slate-500">{row.detail}</p> : null}
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
-                        <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.timeframe ?? "Ongoing"}</TableCell>
-                      </TableRow>
-                    ))}
-                    {!opportunityRows.length ? (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
-                          Opportunity scoring will populate when the analysis highlights specific moves.
-                        </TableCell>
-                      </TableRow>
-                    ) : null}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="flex flex-col gap-6 rounded-[28px] border border-rose-200/70 bg-white/85 p-5 backdrop-blur">
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold uppercase tracking-wide text-rose-500">Automation Runway</p>
-                  <h3 className="text-xl font-semibold text-slate-900">Turn intelligence into repeatable momentum</h3>
+                          </TableCell>
+                          <TableCell className="text-right font-medium text-slate-800">{row.impact ?? "—"}</TableCell>
+                          <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">
+                            {row.timeframe ?? "Ongoing"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {!opportunityRows.length ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                            Opportunity scoring will populate when the analysis highlights specific moves.
+                          </TableCell>
+                        </TableRow>
+                      ) : null}
+                    </TableBody>
+                  </Table>
                 </div>
-                <p className="leading-relaxed text-base">{automationNarrative}</p>
-                <Table className="overflow-hidden rounded-[24px] border border-rose-200/60 bg-white/90 text-sm">
-                  <TableHeader className="bg-rose-500/10 text-rose-600">
-                    <TableRow className="border-rose-200/60">
-                      <TableHead className="font-semibold">Action</TableHead>
-                      <TableHead className="text-right font-semibold">Owner</TableHead>
-                      <TableHead className="text-right font-semibold">Priority</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {automationRows.map((row, index) => (
-                      <TableRow key={index} className="border-rose-100/60 bg-white/95 backdrop-blur">
-                        <TableCell>
-                          <div className="flex items-start gap-3">
-                            <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
-                              <CheckCircle2 className="h-4 w-4" />
-                            </span>
-                            <div className="space-y-1">
-                              <p className="font-semibold text-slate-900">{row.title}</p>
-                              {row.description ? <p className="text-xs text-slate-500">{row.description}</p> : null}
-                              {row.timeline ? (
-                                <p className="text-xs uppercase tracking-wide text-rose-500">{row.timeline}</p>
-                              ) : null}
+                <div className="rounded-[24px] border border-rose-200/60 bg-white/95 p-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-rose-500">Automation Runway</p>
+                    <h4 className="text-lg font-semibold text-slate-900">Turn intelligence into repeatable momentum</h4>
+                  </div>
+                  <p className="leading-relaxed text-base">{automationNarrative}</p>
+                  <Table className="overflow-hidden rounded-[24px] border border-rose-200/60 bg-white/90 text-sm">
+                    <TableHeader className="bg-rose-500/10 text-rose-600">
+                      <TableRow className="border-rose-200/60">
+                        <TableHead className="font-semibold">Action</TableHead>
+                        <TableHead className="text-right font-semibold">Owner</TableHead>
+                        <TableHead className="text-right font-semibold">Priority</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {automationRows.map((row, index) => (
+                        <TableRow key={index} className="border-rose-100/60 bg-white/95 backdrop-blur">
+                          <TableCell>
+                            <div className="flex items-start gap-3">
+                              <span className="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/15 text-rose-600">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </span>
+                              <div className="space-y-1">
+                                <p className="font-semibold text-slate-900">{row.title}</p>
+                                {row.description ? <p className="text-xs text-slate-500">{row.description}</p> : null}
+                                {row.timeline ? (
+                                  <p className="text-xs uppercase tracking-wide text-rose-500">{row.timeline}</p>
+                                ) : null}
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right text-sm font-medium text-slate-700">{row.owner ?? "TBD"}</TableCell>
-                        <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.priority ?? "Plan"}</TableCell>
-                      </TableRow>
-                    ))}
-                    {!automationRows.length ? (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
-                          Automation priorities populate as the AI surfaces explicit next moves.
-                        </TableCell>
-                      </TableRow>
-                    ) : null}
-                  </TableBody>
-                </Table>
+                          </TableCell>
+                          <TableCell className="text-right text-sm font-medium text-slate-700">{row.owner ?? "TBD"}</TableCell>
+                          <TableCell className="text-right text-xs uppercase tracking-wide text-slate-500">{row.priority ?? "Plan"}</TableCell>
+                        </TableRow>
+                      ))}
+                      {!automationRows.length ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                            Automation priorities populate as the AI surfaces explicit next moves.
+                          </TableCell>
+                        </TableRow>
+                      ) : null}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -515,7 +517,7 @@ const BusinessIntelligenceDetail = () => {
                 Stay ahead of the next inflection point
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700">
+            <CardContent className="flex flex-1 flex-col gap-6 text-slate-700 lg:grid lg:grid-cols-2">
               <p className="leading-relaxed text-base">{futureNarrative}</p>
               <div className="space-y-4">
                 {futureSignals.map((signal, index) => (
