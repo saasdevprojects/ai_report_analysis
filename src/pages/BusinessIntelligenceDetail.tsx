@@ -796,18 +796,18 @@ const BusinessIntelligenceDetail = () => {
                   Executive snapshot of your market position and the key narrative to align teams.
                 </p>
                 <div className="grid gap-6 md:grid-cols-[220px_1fr]">
-                  <div className="relative">
-                    <ResponsiveContainer width="100%" height={180}>
-                      <RadialBarChart data={[{ name: "Score", value: marketScore, fill: "#06b6d4" }]} innerRadius="70%" outerRadius="100%" startAngle={90} endAngle={-270}>
-                        <RadialBar dataKey="value" cornerRadius={10} />
-                      </RadialBarChart>
-                    </ResponsiveContainer>
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-3xl font-semibold text-slate-900">{marketScore}</div>
-                        <div className="text-xs uppercase tracking-wide text-slate-500">Market Score</div>
+                  <div className="relative flex flex-col items-center">
+                    <div className="relative w-full">
+                      <ResponsiveContainer width="100%" height={180}>
+                        <RadialBarChart data={[{ name: "Score", value: marketScore, fill: "#06b6d4" }]} innerRadius="70%" outerRadius="100%" startAngle={90} endAngle={-270}>
+                          <RadialBar dataKey="value" cornerRadius={10} />
+                        </RadialBarChart>
+                      </ResponsiveContainer>
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <span className="text-3xl font-semibold text-slate-900">{marketScore}</span>
                       </div>
                     </div>
+                    <div className="mt-2 text-xs uppercase tracking-wide text-slate-500">Market Score</div>
                   </div>
                   <div>
                     {renderNarrative(recapNarrative)}
