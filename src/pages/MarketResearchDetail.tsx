@@ -540,7 +540,24 @@ const MarketResearchDetail = () => {
                   <p className="text-sm font-semibold uppercase tracking-wide text-sky-600">Market Intelligence Narrative</p>
                   <h3 className="text-xl font-semibold text-slate-900">Translate signal into confident action</h3>
                 </div>
-                <p className="leading-relaxed text-base">{insightNarrative}</p>
+                <ul className="space-y-3 text-sm text-slate-700">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-500"></span>
+                    <span>Transforms {sources.length} data sources into actionable market intelligence</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-500"></span>
+                    <span>Highlights {keyInsights.length} key insights for strategy alignment</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-500"></span>
+                    <span>Identifies {opportunityRows.length} high-potential opportunities</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-500"></span>
+                    <span>Surfaces {threatSummary} for risk mitigation planning</span>
+                  </li>
+                </ul>
                 <div className="grid gap-3 rounded-[24px] border border-sky-200/60 bg-white/90 p-4">
                   <p className="text-sm font-semibold uppercase tracking-wide text-sky-600">Spotlight insights</p>
                   <ul className="grid gap-3">
@@ -566,7 +583,20 @@ const MarketResearchDetail = () => {
                   <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Forecast Outlook</p>
                   <h3 className="text-xl font-semibold text-slate-900">See where the category is headed next</h3>
                 </div>
-                <p className="leading-relaxed text-base">{forecastNarrative}</p>
+                <ul className="space-y-3 text-sm text-slate-700">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-indigo-500"></span>
+                    <span>Projects market growth across {forecastHorizon} with {growthAverage ? `a ${growthAverage} growth index` : 'measured acceleration'}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-indigo-500"></span>
+                    <span>Highlights {forecast.length} key data points for financial planning</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-indigo-500"></span>
+                    <span>Identifies seasonal patterns and growth inflection points</span>
+                  </li>
+                </ul>
                 <Table className="overflow-hidden rounded-[24px] border border-indigo-200/60 bg-white/90 text-sm">
                   <TableHeader className="bg-indigo-500/10 text-indigo-700">
                     <TableRow className="border-indigo-200/60">
@@ -611,7 +641,24 @@ const MarketResearchDetail = () => {
                   <p className="text-sm font-semibold uppercase tracking-wide text-purple-600">Opportunity Radar</p>
                   <h3 className="text-xl font-semibold text-slate-900">Prioritize moves with shared evidence</h3>
                 </div>
-                <p className="leading-relaxed text-base">{opportunityNarrative}</p>
+                <ul className="space-y-3 text-sm text-slate-700">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-500"></span>
+                    <span>Prioritizes {opportunityRows.length} high-impact opportunities with clear ROI</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-500"></span>
+                    <span>Ranks initiatives by impact and urgency for strategic planning</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-500"></span>
+                    <span>Aligns cross-functional teams with data-driven priorities</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-500"></span>
+                    <span>Provides evidence-based justification for resource allocation</span>
+                  </li>
+                </ul>
                 <Table className="overflow-hidden rounded-[24px] border border-purple-200/60 bg-white/90 text-sm">
                   <TableHeader className="bg-purple-500/10 text-purple-700">
                     <TableRow className="border-purple-200/60">
