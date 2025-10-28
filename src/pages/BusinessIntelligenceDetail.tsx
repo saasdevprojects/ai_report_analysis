@@ -433,7 +433,7 @@ const BusinessIntelligenceDetail = () => {
 
   const marketStats = useMemo(() => {
     const env = (currentReport as any)?.marketEnvironment ?? {};
-    const cagrArr = safeArray(env.cagrByRegion);
+    const cagrArr: any[] = safeArray(env.cagrByRegion);
     const cagr = cagrArr.length
       ? Math.round(
           (cagrArr.reduce((sum: number, r: any) => sum + safeNumber(r?.value, 0), 0) / cagrArr.length) * 100,
