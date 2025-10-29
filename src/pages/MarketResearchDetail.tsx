@@ -653,9 +653,9 @@ const MarketResearchDetail = () => {
               <Download className="mr-2 h-4 w-4" />
               {isExportingPdf ? "Exporting PDF..." : "Export PDF"}
             </Button>
-            <Button variant="ghost" className="flex items-center rounded-full" onClick={() => navigate("/dashboard")}> 
+            <Button variant="ghost" className="flex items-center rounded-full" onClick={() => navigate("/dashboard")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back
-              <ArrowLeft className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </header>

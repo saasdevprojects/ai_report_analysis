@@ -896,8 +896,8 @@ const BusinessIntelligenceDetail = () => {
               {isExportingPdf ? "Exporting PDF..." : "Export PDF"}
             </Button>
             <Button variant="ghost" className="flex items-center rounded-full" onClick={() => navigate("/dashboard")}>
-              Back
               <ArrowLeft className="ml-2 h-4 w-4" />
+              Back
             </Button>
           </div>
         </header>
