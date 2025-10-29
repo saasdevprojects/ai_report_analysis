@@ -1230,8 +1230,19 @@ const MarketResearchDetail = () => {
                               <span>{source?.date || '2024'}</span>
                               <span className="mx-2">•</span>
                               <span>{source?.type || 'Research Paper'}</span>
-                              <span className="mx-2">•</span>
-                              <a href="#" className="text-indigo-500 hover:underline">View Source</a>
+                              {source?.url && (
+                                <>
+                                  <span className="mx-2">•</span>
+                                  <a 
+                                    href={source.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-indigo-500 hover:underline"
+                                  >
+                                    View Source
+                                  </a>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
