@@ -494,6 +494,49 @@ const MarketResearchDetail = () => {
     return sentences.join(" ");
   }, [regulatorySummary]);
 
+  const sectionSummaries = useMemo(() => [
+    {
+      id: 'overview',
+      title: 'Overview',
+      description: 'Key insights and market summary with growth indicators.'
+    },
+    {
+      id: 'segmentation',
+      title: 'Segmentation',
+      description: 'Market breakdown by industry, geography, and customer segments.'
+    },
+    {
+      id: 'audience',
+      title: 'Audience',
+      description: 'Detailed profiles of target customer personas and behaviors.'
+    },
+    {
+      id: 'competition',
+      title: 'Competition',
+      description: 'Competitive landscape and market positioning.'
+    },
+    {
+      id: 'journey',
+      title: 'Journey & Growth',
+      description: 'Customer journey mapping and growth opportunities.'
+    },
+    {
+      id: 'regulation',
+      title: 'Regulation',
+      description: 'Regulatory considerations and compliance requirements.'
+    },
+    {
+      id: 'evidence',
+      title: 'Evidence',
+      description: 'Supporting data and research sources.'
+    },
+    {
+      id: 'recap',
+      title: 'Executive Recap',
+      description: 'Key takeaways and strategic recommendations.'
+    }
+  ], []);
+
   const recapNarrative = useMemo(() => {
     const sentences = [
       `${productName} is positioned to capture outsized share by aligning go-to-market choreography with the opportunity clusters highlighted above.`,
@@ -713,6 +756,30 @@ const MarketResearchDetail = () => {
             </nav>
           </aside>
           <div className="space-y-8">
+            {/* Report Guide Section */}
+            <section id="report-guide" className="scroll-mt-24">
+              <div className={`${forecastCardClass} p-6 shadow-sm`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold tracking-tight text-slate-900">Report Guide</h2>
+                  <span className="text-xs text-slate-500">Quick reference</span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {sectionSummaries.map((entry) => (
+                    <a
+                      key={entry.id}
+                      href={`#${entry.id}`}
+                      className="group block rounded-lg border border-slate-200 p-4 transition-colors hover:border-sky-200 hover:bg-sky-50"
+                    >
+                      <h3 className="mb-1 text-sm font-medium text-sky-700 group-hover:text-sky-800">
+                        {entry.title}
+                      </h3>
+                      <p className="text-xs text-slate-600">{entry.description}</p>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </section>
+
             {/* Overview Section */}
             <section id="overview" className="scroll-mt-24">
               <Card className={modernCardClass}>
