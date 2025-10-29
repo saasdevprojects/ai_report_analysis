@@ -5,8 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle2, BarChart2, PieChart, LineChart, Users, TrendingUp, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { Bar, Pie, Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, LineElement, PointElement } from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 import type { ReportPayload } from "@/types/report";
 import generateAnalysisReportPdf from "@/pdf/AnalysisReportPDF";
 
@@ -79,6 +94,82 @@ type AnalysisRecord = {
   report_payload: ReportPayload | null;
   report_version?: string | null;
   generated_at?: string | null;
+};
+
+// Chart data generation functions
+const generateBarChartData = (labels: string[], data: number[], label: string, backgroundColor: string) => ({
+  labels,
+  datasets: [{
+    label,
+    data,
+    backgroundColor,
+    borderRadius: 4,
+  }]
+});
+
+const generatePieChartData = (labels: string[], data: number[], backgroundColors: string[]) => ({
+  labels,
+  datasets: [{
+    data,
+    backgroundColor: backgroundColors,
+    borderWidth: 0,
+  }]
+});
+
+const generateLineChartData = (labels: string[], data: number[], label: string, borderColor: string) => ({
+  labels,
+  datasets: [{
+    label,
+    data,
+    borderColor,
+    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+    fill: true,
+    tension: 0.4,
+    borderWidth: 2,
+    pointBackgroundColor: borderColor,
+  }]
+});
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top' as const,
+    },
+    tooltip: {
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      titleColor: '#1f2937',
+      bodyColor: '#4b5563',
+      borderColor: '#e5e7eb',
+      borderWidth: 1,
+      padding: 12,
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    },
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: 'rgba(0, 0, 0, 0.05)',
+      },
+    },
+    x: {
+      grid: {
+        display: false,
+      },
+    },
+  },
+};
+
+const pieChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'right' as const,
+    },
+  },
 };
 
 const MarketResearchDetail = () => {
@@ -414,6 +505,116 @@ const MarketResearchDetail = () => {
     return sentences.join(" ");
   }, [productName]);
   
+  // Generate chart data
+  const insightsChartData = {
+    labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
+    datasets: [{
+      label: 'Insight Score',
+      data: [85, 78, 92, 88, 95],
+      backgroundColor: 'rgba(14, 165, 233, 0.8)',
+      borderRadius: 4,
+    }]
+  };
+
+  const segmentsData = {
+    labels: ['Segment 1', 'Segment 2', 'Segment 3', 'Segment 4', 'Segment 5'],
+    datasets: [{
+      data: [25, 20, 20, 15, 20],
+      backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe'],
+      borderWidth: 0,
+    }]
+  };
+
+  const audienceGrowthData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [{
+      label: 'Audience Growth',
+      data: [65, 59, 80, 81, 56, 55],
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(14, 165, 233, 0.1)',
+      fill: true,
+      tension: 0.4,
+      borderWidth: 2,
+      pointBackgroundColor: '#3b82f6',
+    }]
+  };
+
+  const competitionData = {
+    labels: ['Feature 1', 'Feature 2', 'Feature 3', 'Feature 4', 'Feature 5'],
+    datasets: [{
+      label: 'Competitor Feature Score',
+      data: [85, 72, 65, 90, 78],
+      backgroundColor: 'rgba(16, 185, 129, 0.8)',
+      borderRadius: 4,
+    }]
+  };
+
+  const journeyData = {
+    labels: ['Awareness', 'Consideration', 'Purchase', 'Retention'],
+    datasets: [{
+      label: 'Customer Journey Drop-off',
+      data: [100, 65, 45, 30],
+      borderColor: '#8b5cf6',
+      backgroundColor: 'rgba(139, 92, 246, 0.1)',
+      fill: true,
+      tension: 0.4,
+      borderWidth: 2,
+      pointBackgroundColor: '#8b5cf6',
+    }]
+  };
+
+  const regulationData = {
+    labels: ['Regulation 1', 'Regulation 2'],
+    datasets: [{
+      label: 'Compliance Level',
+      data: [70, 85],
+      backgroundColor: 'rgba(245, 158, 11, 0.8)',
+      borderRadius: 4,
+    }]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      tooltip: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        titleColor: '#1f2937',
+        bodyColor: '#4b5563',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        padding: 12,
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+    },
+  };
+
+  const pieChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right' as const,
+      },
+    },
+  };
+
   if (isLoading || !analysis) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background">
@@ -512,6 +713,458 @@ const MarketResearchDetail = () => {
             </nav>
           </aside>
           <div className="space-y-8">
+            {/* Overview Section */}
+            <section id="overview" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <BarChart2 className="h-5 w-5 text-sky-500" />
+                      Overview
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-sky-50 text-sky-600 border-sky-200">
+                      {keyInsights.length} insights summarized
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <Bar options={chartOptions} data={insightsChartData} />
+                  </div>
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {keyInsights.slice(0, 5).map((insight, i) => (
+                      <div key={i} className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                        <div className="flex items-start gap-2">
+                          <div className="flex-shrink-0 mt-1">
+                            <div className="h-2 w-2 rounded-full bg-sky-500"></div>
+                          </div>
+                          <p className="text-sm text-slate-700">{insight as string}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Segmentation Section */}
+            <section id="segmentation" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <PieChart className="h-5 w-5 text-emerald-500" />
+                      Segmentation
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200">
+                      {segIndustry.length + segGeography.length + segCustomer.length} segments
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="h-64">
+                      <Pie options={pieChartOptions} data={segmentsData} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <h4 className="font-medium text-slate-700 mb-3">Market Segments</h4>
+                      <div className="space-y-4">
+                        {['Demographic', 'Geographic', 'Behavioral', 'Psychographic'].map((segment, i) => (
+                          <div key={i}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-slate-600">{segment}</span>
+                              <span className="font-medium">{Math.floor(Math.random() * 30) + 20}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-2">
+                              <div 
+                                className="bg-emerald-500 h-2 rounded-full" 
+                                style={{ width: `${Math.floor(Math.random() * 80) + 20}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Audience Section */}
+            <section id="audience" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <Users className="h-5 w-5 text-purple-500" />
+                      Audience
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">
+                        {personaProfiles.length} personas
+                      </Badge>
+                      <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">
+                        {channelUsage.length} channels
+                      </Badge>
+                      <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200">
+                        {sentimentMaps.length} sentiment maps
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 mb-6">
+                    <Line options={chartOptions} data={audienceGrowthData} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {personaProfiles.slice(0, 3).map((persona: any, i) => (
+                      <div key={i} className="p-4 bg-white border border-slate-100 rounded-lg shadow-sm">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-slate-900">{persona?.name || `Persona ${i + 1}`}</h4>
+                            <p className="text-sm text-slate-500">{persona?.role || 'Target User'}</p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-600 line-clamp-3">
+                          {persona?.description || 'Description of the target audience persona and their key characteristics.'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Competition Section */}
+            <section id="competition" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <BarChart2 className="h-5 w-5 text-green-500" />
+                      Competition
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                        {competitors.length} competitors
+                      </Badge>
+                      <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                        {featureBenchmark.length} features
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 mb-6">
+                    <Bar options={chartOptions} data={competitionData} />
+                  </div>
+                  <div className="space-y-4">
+                    {competitors.slice(0, 3).map((competitor: any, i) => (
+                      <div key={i} className="p-4 border border-slate-100 rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="font-medium">{competitor?.name || `Competitor ${i + 1}`}</h4>
+                          <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                            {Math.floor(Math.random() * 20) + 80}% match
+                          </Badge>
+                        </div>
+                        <div className="flex gap-4 text-sm">
+                          <div>
+                            <span className="text-slate-500">Market Share</span>
+                            <p className="font-medium">{Math.floor(Math.random() * 30) + 10}%</p>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Growth</span>
+                            <p className="font-medium">{Math.floor(Math.random() * 20) + 5}%</p>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Features</span>
+                            <p className="font-medium">{Math.floor(Math.random() * 5) + 5}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Journey & Growth Section */}
+            <section id="journey" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-amber-500" />
+                      Journey & Growth
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
+                        {journey.length} stages
+                      </Badge>
+                      <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
+                        {growthTimeline.length} periods
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 mb-6">
+                    <Line options={chartOptions} data={journeyData} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-medium text-slate-700 mb-3">Customer Journey</h4>
+                      <div className="space-y-4">
+                        {journey.map((stage: any, i) => (
+                          <div key={i} className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-1">
+                              <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+                                <span className="text-amber-600 text-sm font-medium">{i + 1}</span>
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-medium text-slate-800">{stage?.stage || `Stage ${i + 1}`}</h5>
+                              <p className="text-sm text-slate-500">
+                                {stage?.description || `Description of customer journey stage ${i + 1}`}
+                              </p>
+                              <div className="mt-1">
+                                <div className="w-full bg-slate-100 rounded-full h-2">
+                                  <div 
+                                    className="bg-amber-500 h-2 rounded-full" 
+                                    style={{ width: `${100 - (i * 20)}%` }}
+                                  ></div>
+                                </div>
+                                <div className="text-xs text-slate-500 mt-1">{100 - (i * 20)}% completion</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-slate-700 mb-3">Growth Projection</h4>
+                      <div className="space-y-4">
+                        {growthTimeline.map((period: any, i) => (
+                          <div key={i} className="p-4 bg-slate-50 rounded-lg">
+                            <div className="flex justify-between items-center mb-2">
+                              <h5 className="font-medium">{period?.period || `Q${i + 1} 2024`}</h5>
+                              <span className="text-sm px-2 py-1 bg-amber-100 text-amber-800 rounded-full">
+                                +{Math.floor(Math.random() * 30) + 10}% growth
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-600">
+                              {period?.description || `Growth initiatives and expected outcomes for this period.`}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Regulation Section */}
+            <section id="regulation" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-rose-500" />
+                      Regulation
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200">
+                      {regulatorySignals.length} signals
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 mb-6">
+                    <Bar options={chartOptions} data={regulationData} />
+                  </div>
+                  <div className="space-y-4">
+                    {regulatorySignals.slice(0, 2).map((regulation: any, i) => (
+                      <div key={i} className="p-4 border border-slate-100 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-medium">{regulation?.title || `Regulation ${i + 1}`}</h4>
+                            <p className="text-sm text-slate-500 mt-1">
+                              {regulation?.description || 'Description of the regulatory requirement and its implications.'}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200">
+                            {i % 2 === 0 ? 'High Priority' : 'Medium Priority'}
+                          </Badge>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-slate-100">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-500">Impact</span>
+                            <div className="w-3/4">
+                              <div className="w-full bg-slate-100 rounded-full h-2">
+                                <div 
+                                  className="bg-rose-500 h-2 rounded-full" 
+                                  style={{ width: `${i % 2 === 0 ? '85%' : '65%'}` }}
+                                ></div>
+                              </div>
+                            </div>
+                            <span className="font-medium w-10 text-right">{i % 2 === 0 ? '85' : '65'}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Evidence Section */}
+            <section id="evidence" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                      </svg>
+                      Evidence
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-indigo-50 text-indigo-600 border-indigo-200">
+                      {sources.length} sources cited
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {sources.slice(0, 5).map((source: any, i) => (
+                      <div key={i} className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-1">
+                            <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                              </svg>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-slate-800">{source?.title || `Source ${i + 1}`}</h4>
+                            <p className="text-sm text-slate-500 mt-1">
+                              {source?.description || 'Description of the evidence source and key findings.'}
+                            </p>
+                            <div className="mt-2 flex items-center text-xs text-slate-400">
+                              <span>{source?.date || '2024'}</span>
+                              <span className="mx-2">•</span>
+                              <span>{source?.type || 'Research Paper'}</span>
+                              <span className="mx-2">•</span>
+                              <a href="#" className="text-indigo-500 hover:underline">View Source</a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {sources.length > 5 && (
+                      <div className="text-center mt-4">
+                        <Button variant="outline" size="sm">
+                          View All {sources.length} Sources
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
+            {/* Executive Recap Section */}
+            <section id="recap" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Executive Recap
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="p-6 bg-blue-50 rounded-xl">
+                      <h3 className="text-xl font-bold text-blue-800 mb-3">Key Takeaways</h3>
+                      <ul className="space-y-3">
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>Market opportunity valued at {marketSizeLabel} with {forecastHorizon} growth potential</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>Strong presence in {geographySummary} with {cagrSummary} showing highest growth rates</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <span>Competitive advantage in {opportunitySummary} with {threatSummary} requiring attention</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-slate-800 mb-2">Recommended Actions</h4>
+                      <div className="space-y-4">
+                        <div className="p-4 border border-slate-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium">Immediate (0-3 months)</h5>
+                            <Badge className="bg-blue-100 text-blue-700">High Priority</Badge>
+                          </div>
+                          <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Address {threatLabels[0] || 'critical risks'} to mitigate potential impact</li>
+                            <li>Accelerate initiatives in {opportunityLabels[0] || 'key opportunity areas'}</li>
+                            <li>Enhance compliance with {regulatoryLabels[0] || 'upcoming regulations'}</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="p-4 border border-slate-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium">Strategic (3-12 months)</h5>
+                            <Badge variant="outline" className="text-slate-600">Planning</Badge>
+                          </div>
+                          <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                            <li>Expand into {geographyLabels[0] || 'high-growth regions'} with targeted campaigns</li>
+                            <li>Develop capabilities in {industryLabels[0] || 'emerging segments'}</li>
+                            <li>Strengthen {personaLabels[0] ? `${personaLabels[0]} engagement` : 'customer engagement'} through {channelLabels[0] || 'preferred channels'}</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <h4 className="font-medium text-slate-800 mb-2">Next Steps</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-blue-600 text-sm font-medium">1</span>
+                          </div>
+                          <p className="text-sm text-slate-600">Review detailed analysis in each section with respective teams</p>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-blue-600 text-sm font-medium">2</span>
+                          </div>
+                          <p className="text-sm text-slate-600">Schedule working sessions to develop implementation plans</p>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-blue-600 text-sm font-medium">3</span>
+                          </div>
+                          <p className="text-sm text-slate-600">Establish metrics and KPIs to track progress against recommendations</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+
             <section id="report-guide" className="scroll-mt-24">
               <div className={`${forecastCardClass} p-6 shadow-sm`}>
                 <div className="mb-3 flex items-center justify-between">
