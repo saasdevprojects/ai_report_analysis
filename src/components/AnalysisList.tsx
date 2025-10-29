@@ -178,13 +178,13 @@ export const AnalysisList = ({ userId }: AnalysisListProps) => {
           className="group relative overflow-hidden border border-slate-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl focus-visible:-translate-y-1 focus-visible:shadow-2xl cursor-pointer"
           onClick={() => navigate(`/analysis/${analysis.id}`)}
         >
-          <CardHeader className="relative z-10 pb-4">
-            <div className="absolute left-4 top-4">
-              <Badge className="rounded-full bg-[#ede9fe] text-[#5b21b6]">
+          <CardHeader className="relative z-10 pb-4 pt-16">
+            <div className="absolute left-4 top-4 right-4">
+              <Badge className="rounded-full bg-[#ede9fe] text-[#5b21b6] w-full max-w-max">
                 {analysis.report_type === 'business_intelligence' ? 'Business Intelligence' : 'Market Research'}
               </Badge>
             </div>
-            <div className="min-w-0 pr-10">
+            <div className="min-w-0">
               <CardTitle className="text-lg font-semibold text-slate-900 transition-colors duration-300 line-clamp-1">
                 {analysis.product_name}
               </CardTitle>
