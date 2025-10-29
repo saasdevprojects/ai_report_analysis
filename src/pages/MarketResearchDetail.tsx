@@ -1222,28 +1222,39 @@ const MarketResearchDetail = () => {
                             </div>
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-slate-800">{source?.title || `Source ${i + 1}`}</h4>
-                            <p className="text-sm text-slate-500 mt-1">
-                              {source?.description || 'Description of the evidence source and key findings.'}
-                            </p>
-                            <div className="mt-2 flex items-center text-xs text-slate-400">
-                              <span>{source?.date || '2024'}</span>
-                              <span className="mx-2">•</span>
-                              <span>{source?.type || 'Research Paper'}</span>
-                              {source?.url && (
-                                <>
-                                  <span className="mx-2">•</span>
-                                  <a 
-                                    href={source.url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-indigo-500 hover:underline"
-                                  >
-                                    View Source
-                                  </a>
-                                </>
+                            <div className="flex items-baseline justify-between">
+                              <h4 className="font-medium text-slate-800">
+                                {source?.title || `Research Source ${i + 1}`}
+                              </h4>
+                              {source?.type && (
+                                <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full">
+                                  {source.type}
+                                </span>
                               )}
                             </div>
+                            {source?.date && (
+                              <p className="text-xs text-slate-400 mt-0.5">
+                                {new Date(source.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              </p>
+                            )}
+                            <p className="text-sm text-slate-600 mt-1.5">
+                              {source?.description || 'Key findings and insights from this source.'}
+                            </p>
+                            {source?.url && (
+                              <div className="mt-2">
+                                <a 
+                                  href={source.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+                                >
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                  View Full Source
+                                </a>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
