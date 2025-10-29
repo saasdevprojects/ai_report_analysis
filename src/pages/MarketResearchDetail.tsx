@@ -521,6 +521,11 @@ const MarketResearchDetail = () => {
       description: 'Customer journey mapping and growth opportunities.'
     },
     {
+      id: 'growth-matrix',
+      title: 'Growth Matrix',
+      description: 'Growth drivers, strategies, and near-term plan.'
+    },
+    {
       id: 'regulation',
       title: 'Regulation',
       description: 'Regulatory considerations and compliance requirements.'
@@ -549,72 +554,115 @@ const MarketResearchDetail = () => {
   }, [productName]);
   
   // Generate chart data
-  const insightsChartData = {
-    labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'],
-    datasets: [{
-      label: 'Insight Score',
-      data: [85, 78, 92, 88, 95],
-      backgroundColor: 'rgba(14, 165, 233, 0.8)',
-      borderRadius: 4,
-    }]
-  };
+  const insightsChartData = useMemo(() => {
+    const labels = topOpportunities
+      .map((item: any) => item?.label ?? item?.area ?? item?.title ?? null)
+      .filter(Boolean) as string[];
+    const data = topOpportunities.map((item: any) => asNumber(item?.impact));
+    if (!labels.length || !data.some((n) => n > 0)) {
+      return generateBarChartData(
+        ['Q1', 'Q2', 'Q3', 'Q4'],
+        [50, 55, 60, 65],
+        'Opportunity Impact',
+        'rgba(14, 165, 233, 0.8)'
+      );
+    }
+    return generateBarChartData(labels, data, 'Opportunity Impact', 'rgba(14, 165, 233, 0.8)');
+  }, [topOpportunities]);
 
-  const segmentsData = {
-    labels: ['Segment 1', 'Segment 2', 'Segment 3', 'Segment 4', 'Segment 5'],
-    datasets: [{
-      data: [25, 20, 20, 15, 20],
-      backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe'],
-      borderWidth: 0,
-    }]
-  };
+  const segmentsData = useMemo(() => {
+    const labels = segIndustry.map((s: any) => s?.name ?? String(s)).filter(Boolean);
+    const data = segIndustry.map((s: any) => asNumber(s?.share));
+    if (!labels.length) {
+      return generatePieChartData(
+        ['Segment A', 'Segment B', 'Segment C'],
+        [40, 30, 30],
+        ['#3b82f6', '#60a5fa', '#93c5fd']
+      );
+    }
+    const palette = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe'];
+    const colors = labels.map((_, i) => palette[i % palette.length]);
+    return generatePieChartData(labels, data, colors);
+  }, [segIndustry]);
 
-  const audienceGrowthData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [{
-      label: 'Audience Growth',
-      data: [65, 59, 80, 81, 56, 55],
-      borderColor: '#3b82f6',
-      backgroundColor: 'rgba(14, 165, 233, 0.1)',
-      fill: true,
-      tension: 0.4,
-      borderWidth: 2,
-      pointBackgroundColor: '#3b82f6',
-    }]
-  };
+  const audienceGrowthData = useMemo(() => {
+    const labels = channelLabels as string[];
+    const data = channelUsage.map((c: any) => asNumber(c?.percentage));
+    if (!labels.length) {
+      return generateLineChartData(
+        ['Jan', 'Feb', 'Mar', 'Apr'],
+        [60, 62, 65, 67],
+        'Channel Usage %',
+        '#3b82f6'
+      );
+    }
+    return generateLineChartData(labels, data, 'Channel Usage %', '#3b82f6');
+  }, [channelLabels, channelUsage]);
 
-  const competitionData = {
-    labels: ['Feature 1', 'Feature 2', 'Feature 3', 'Feature 4', 'Feature 5'],
-    datasets: [{
-      label: 'Competitor Feature Score',
-      data: [85, 72, 65, 90, 78],
-      backgroundColor: 'rgba(16, 185, 129, 0.8)',
-      borderRadius: 4,
-    }]
-  };
+  const competitionData = useMemo(() => {
+    const labels = featureBenchmark.map((f: any) => f?.feature ?? 'Feature');
+    const data = featureBenchmark.map((f: any) => asNumber(f?.productScore));
+    if (!labels.length) {
+      return generateBarChartData(
+        ['Feature A', 'Feature B', 'Feature C'],
+        [70, 65, 60],
+        'Product Feature Score',
+        'rgba(16, 185, 129, 0.8)'
+      );
+    }
+    return generateBarChartData(labels, data, 'Product Feature Score', 'rgba(16, 185, 129, 0.8)');
+  }, [featureBenchmark]);
 
-  const journeyData = {
-    labels: ['Awareness', 'Consideration', 'Purchase', 'Retention'],
-    datasets: [{
-      label: 'Customer Journey Drop-off',
-      data: [100, 65, 45, 30],
-      borderColor: '#8b5cf6',
-      backgroundColor: 'rgba(139, 92, 246, 0.1)',
-      fill: true,
-      tension: 0.4,
-      borderWidth: 2,
-      pointBackgroundColor: '#8b5cf6',
-    }]
-  };
+  const journeyData = useMemo(() => {
+    const labels = journey.map((j: any) => j?.stage ?? 'Stage');
+    const data = journey.map((j: any) => asNumber(j?.conversionRate));
+    if (!labels.length) {
+      return generateLineChartData(
+        ['Awareness', 'Consideration', 'Decision'],
+        [100, 60, 40],
+        'Customer Journey Drop-off',
+        '#8b5cf6'
+      );
+    }
+    return generateLineChartData(labels, data, 'Customer Journey Drop-off', '#8b5cf6');
+  }, [journey]);
 
-  const regulationData = {
-    labels: ['Regulation 1', 'Regulation 2'],
-    datasets: [{
-      label: 'Compliance Level',
-      data: [70, 85],
-      backgroundColor: 'rgba(245, 158, 11, 0.8)',
-      borderRadius: 4,
-    }]
-  };
+  const regulationData = useMemo(() => {
+    if (!regulatorySignals.length) {
+      return generateBarChartData(
+        ['Regulation 1', 'Regulation 2'],
+        [1, 1],
+        'Signals',
+        'rgba(245, 158, 11, 0.8)'
+      );
+    }
+    const counts = { High: 0, Medium: 0, Low: 0 } as Record<string, number>;
+    regulatorySignals.forEach((r: any) => {
+      const key = (r?.impact ?? 'Low').toString().toLowerCase();
+      if (key.startsWith('high')) counts.High += 1;
+      else if (key.startsWith('med')) counts.Medium += 1;
+      else counts.Low += 1;
+    });
+    const labels = ['High', 'Medium', 'Low'];
+    const data = labels.map((l) => counts[l]);
+    return generateBarChartData(labels, data, 'Regulatory Impact (count)', 'rgba(245, 158, 11, 0.8)');
+  }, [regulatorySignals]);
+
+  const growthMatrixData = useMemo(() => {
+    const labels = growthTimeline.map((p: any) => p?.period ?? 'Period');
+    const data = growthTimeline.map((p: any) => asNumber(p?.growthIndex));
+    if (!labels.length) {
+      return generateLineChartData(
+        ['Q1', 'Q2', 'Q3', 'Q4'],
+        [1.12, 1.2, 1.28, 1.35],
+        'Growth Index',
+        '#f59e0b'
+      );
+    }
+    return generateLineChartData(labels, data, 'Growth Index', '#f59e0b');
+  }, [growthTimeline]);
+
+  const strategyActions = safeArray(current?.strategicRecommendations?.actions).slice(0, 4);
 
   const chartOptions = {
     responsive: true,
@@ -742,6 +790,11 @@ const MarketResearchDetail = () => {
                   </a>
                 </li>
                 <li>
+                  <a href="#growth-matrix" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">
+                    Growth Matrix
+                  </a>
+                </li>
+                <li>
                   <a href="#regulation" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">
                     Regulation
                   </a>
@@ -782,6 +835,54 @@ const MarketResearchDetail = () => {
                   ))}
                 </div>
               </div>
+            </section>
+
+            {/* Growth Matrix & Plan */}
+            <section id="growth-matrix" className="scroll-mt-24">
+              <Card className={modernCardClass}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                      <LineChart className="h-5 w-5 text-amber-500" />
+                      Growth Matrix & Plan
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
+                      {growthTimeline.length} periods
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 mb-6">
+                    <Line options={chartOptions} data={growthMatrixData} />
+                  </div>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <h4 className="font-medium text-slate-700 mb-2">How growth compounds</h4>
+                      <p className="text-sm text-slate-600 leading-6">{forecastNarrative}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-slate-700 mb-2">Strategies and near-term plan</h4>
+                      <div className="space-y-3">
+                        {strategyActions.length ? strategyActions.map((a: any, i: number) => (
+                          <div key={i} className="rounded-md border border-amber-100 bg-amber-50/40 p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm font-medium text-slate-800">{a?.title ?? `Initiative ${i + 1}`}</div>
+                              {a?.timeline ? (
+                                <span className="text-xs rounded-full bg-white px-2 py-0.5 text-amber-700 ring-1 ring-amber-200">{a.timeline}</span>
+                              ) : null}
+                            </div>
+                            {a?.description ? (
+                              <p className="mt-1 text-sm text-slate-600">{a.description}</p>
+                            ) : null}
+                          </div>
+                        )) : (
+                          <p className="text-sm text-slate-500">No strategic actions available.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </section>
 
             {/* Overview Section */}

@@ -664,6 +664,13 @@ const BusinessIntelligenceDetail = () => {
       confidence: safeNumber(row?.confidence, 0),
     }));
   }, [currentReport]);
+  const growthMatrixSeries = useMemo(() => {
+    const arr = safeArray(currentReport?.opportunityForecast?.growthTimeline);
+    return arr.map((p: any) => ({
+      period: String(p?.period ?? ""),
+      growthIndex: safeNumber(p?.growthIndex, 0),
+    }));
+  }, [currentReport]);
   const runwayCards = useMemo(() => {
     const r = safeArray(currentReport?.financialPlanning?.runwayScenarios);
     return r.map((x: any) => ({
@@ -746,6 +753,7 @@ const BusinessIntelligenceDetail = () => {
     const adoptionPoints = formatCount(userAdoptionSeries.length, "point", "points");
     const runwayCount = formatCount(runwayCards.length, "scenario", "scenarios");
     const cashPoints = formatCount(cashFlowSeries.length, "period", "periods");
+    const growthCount = formatCount(growthPeriods.length, "period", "periods");
 
     return [
       {
@@ -777,6 +785,11 @@ const BusinessIntelligenceDetail = () => {
         id: "forecast",
         title: "Opportunity Forecast",
         description: `Surfaces ${regionCount} regions and ${whitespaceCount} emerging opportunities derived from opportunityForecast data.`,
+      },
+      {
+        id: "growth-matrix",
+        title: "Growth Matrix",
+        description: `Plots ${growthCount} from the growth timeline and aligns ${recommendationCount} into a near-term plan.`,
       },
       {
         id: "predictive",
@@ -913,6 +926,7 @@ const BusinessIntelligenceDetail = () => {
                 <li><a href="#customers" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Customers</a></li>
                 <li><a href="#benchmarking" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Benchmarking</a></li>
                 <li><a href="#forecast" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Forecast</a></li>
+                <li><a href="#growth-matrix" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Growth Matrix</a></li>
                 <li><a href="#predictive" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Predictive</a></li>
                 <li><a href="#regulatory" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Regulatory</a></li>
                 <li><a href="#risk" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">Risk</a></li>
@@ -944,6 +958,58 @@ const BusinessIntelligenceDetail = () => {
                       <p className="leading-relaxed text-slate-600">{entry.description}</p>
                     </a>
                   ))}
+                </div>
+              </div>
+            </section>
+
+            <section id="growth-matrix" className="scroll-mt-24">
+              <div className={`${modernCardClass} p-6`}>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-700">Growth Matrix & Plan</h3>
+                  <span className="text-xs text-slate-500">{growthMatrixSeries.length} periods</span>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <LineChart data={growthMatrixSeries} margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
+                        <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" />
+                        <XAxis dataKey="period" tick={{ fontSize: 11, fill: "#0e7490" }} />
+                        <YAxis tick={{ fontSize: 11, fill: "#0e7490" }} />
+                        <RechartsTooltip contentStyle={{ borderRadius: 12, borderColor: "#bae6fd" }} />
+                        <Line type="monotone" dataKey="growthIndex" stroke="#f59e0b" strokeWidth={3} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                    {!growthMatrixSeries.length ? (
+                      <div className="mt-2 text-xs text-slate-500">No growth data available.</div>
+                    ) : null}
+                  </div>
+                  <div className="grid content-start gap-3">
+                    <div className="rounded-lg border border-slate-200 p-4">
+                      <div className="text-xs uppercase tracking-wide text-slate-500">How growth compounds</div>
+                      <div className="mt-1 text-sm text-slate-700">{renderNarrative(opportunityNarrative)}</div>
+                    </div>
+                    <div className="rounded-lg border border-slate-200 p-4">
+                      <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">Strategies & Near-term Plan</div>
+                      <div className="space-y-2">
+                        {recommendationsData.slice(0, 4).map((r, i) => (
+                          <div key={`${r.title}-${i}`} className="rounded-md border border-cyan-100 bg-cyan-50/40 p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm font-medium text-slate-900">{r.title}</div>
+                              <span className="text-xs rounded-full bg-white px-2 py-0.5 text-cyan-700 ring-1 ring-cyan-200">{r.timeline}</span>
+                            </div>
+                            <div className="mt-1 grid grid-cols-3 gap-2 text-xs text-slate-600">
+                              <div>ROI: {formatPercentage(r.roi)}</div>
+                              <div>Confidence: {formatPercentage(r.confidence)}</div>
+                              <div className="text-right">Plan</div>
+                            </div>
+                          </div>
+                        ))}
+                        {!recommendationsData.length ? (
+                          <div className="text-sm text-slate-500">No strategies available.</div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
