@@ -494,54 +494,6 @@ const MarketResearchDetail = () => {
     return sentences.join(" ");
   }, [regulatorySummary]);
 
-  const sectionSummaries = useMemo(() => [
-    {
-      id: 'overview',
-      title: 'Overview',
-      description: 'Key insights and market summary with growth indicators.'
-    },
-    {
-      id: 'segmentation',
-      title: 'Segmentation',
-      description: 'Market breakdown by industry, geography, and customer segments.'
-    },
-    {
-      id: 'audience',
-      title: 'Audience',
-      description: 'Detailed profiles of target customer personas and behaviors.'
-    },
-    {
-      id: 'competition',
-      title: 'Competition',
-      description: 'Competitive landscape and market positioning.'
-    },
-    {
-      id: 'journey',
-      title: 'Journey & Growth',
-      description: 'Customer journey mapping and growth opportunities.'
-    },
-    {
-      id: 'growth-matrix',
-      title: 'Growth Matrix',
-      description: 'Growth drivers, strategies, and near-term plan.'
-    },
-    {
-      id: 'regulation',
-      title: 'Regulation',
-      description: 'Regulatory considerations and compliance requirements.'
-    },
-    {
-      id: 'evidence',
-      title: 'Evidence',
-      description: 'Supporting data and research sources.'
-    },
-    {
-      id: 'recap',
-      title: 'Executive Recap',
-      description: 'Key takeaways and strategic recommendations.'
-    }
-  ], []);
-
   const recapNarrative = useMemo(() => {
     const sentences = [
       `${productName} is positioned to capture outsized share by aligning go-to-market choreography with the opportunity clusters highlighted above.`,
@@ -760,11 +712,6 @@ const MarketResearchDetail = () => {
             <nav className="text-sm">
               <ul className="space-y-1">
                 <li>
-                  <a href="#report-guide" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">
-                    Report Guide
-                  </a>
-                </li>
-                <li>
                   <a href="#overview" className="block rounded-md px-2 py-1.5 text-slate-700 hover:bg-slate-100">
                     Overview
                   </a>
@@ -813,29 +760,6 @@ const MarketResearchDetail = () => {
             </nav>
           </aside>
           <div className="space-y-8">
-            {/* Report Guide Section */}
-            <section id="report-guide" className="scroll-mt-24">
-              <div className={`${forecastCardClass} p-6 shadow-sm`}>
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold tracking-tight text-slate-900">Report Guide</h2>
-                  <span className="text-xs text-slate-500">Quick reference</span>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {sectionSummaries.map((entry) => (
-                    <a
-                      key={entry.id}
-                      href={`#${entry.id}`}
-                      className="group block rounded-lg border border-slate-200 p-4 transition-colors hover:border-sky-200 hover:bg-sky-50"
-                    >
-                      <h3 className="mb-1 text-sm font-medium text-sky-700 group-hover:text-sky-800">
-                        {entry.title}
-                      </h3>
-                      <p className="text-xs text-slate-600">{entry.description}</p>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </section>
 
             {/* Growth Matrix & Plan */}
             <section id="growth-matrix" className="scroll-mt-24">
@@ -1359,81 +1283,6 @@ const MarketResearchDetail = () => {
               </Card>
             </section>
 
-            <section id="report-guide" className="scroll-mt-24">
-              <div className={`${forecastCardClass} p-6 shadow-sm`}>
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold tracking-tight text-slate-900">Report Guide</h2>
-                  <span className="text-xs text-slate-500">Quick reference</span>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <a
-                    href="#overview"
-                    className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow"
-                  >
-                    <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Overview</h3>
-                    <p className="leading-relaxed text-slate-600">{keyInsights.length || 0} insights summarized</p>
-                  </a>
-                  <a
-                    href="#segmentation"
-                    className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow"
-                  >
-                    <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Segmentation</h3>
-                    <p className="leading-relaxed text-slate-600">
-                      {segIndustry.length + segGeography.length + segCustomer.length} segments
-                    </p>
-                  </a>
-                  <a
-                    href="#audience"
-                    className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow"
-                  >
-                    <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Audience</h3>
-                    <p className="leading-relaxed text-slate-600">
-                      {personaProfiles.length} personas • {channelUsage.length} channels • {sentimentMaps.length} sentiment maps
-                    </p>
-                  </a>
-                  <a
-                    href="#competition"
-                    className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow"
-                  >
-                    <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Competition</h3>
-                    <p className="leading-relaxed text-slate-600">
-                      {competitors.length} competitors • {featureBenchmark.length} features
-                    </p>
-                  </a>
-                  <a
-                    href="#journey"
-                    className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow"
-                  >
-                    <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Journey & Growth</h3>
-                    <p className="leading-relaxed text-slate-600">
-                      {journey.length} stages • {growthTimeline.length} periods
-                    </p>
-                  </a>
-                  <a
-                    href="#regulation"
-                    className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow"
-                  >
-                    <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Regulation</h3>
-                    <p className="leading-relaxed text-slate-600">{regulatorySignals.length} signals</p>
-                  </a>
-                  <a
-                    href="#evidence"
-                    className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow"
-                  >
-                    <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Evidence</h3>
-                    <p className="leading-relaxed text-slate-600">{sources.length} sources cited</p>
-                  </a>
-                  <a
-                    href="#recap"
-                    className="group block rounded-lg border border-slate-200 bg-white/95 p-4 text-sm shadow-sm transition hover:border-cyan-200 hover:shadow"
-                  >
-                    <h3 className="mb-1 text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Executive Recap</h3>
-                    <p className="leading-relaxed text-slate-600">Share-ready headline and summary</p>
-                  </a>
-                </div>
-              </div>
-            </section>
-
             <section id="segmentation" className="grid gap-6 lg:auto-rows-fr lg:grid-cols-[1.4fr_1fr] scroll-mt-24">
               <Card
                 className={`${threeDCardClass} flex h-full flex-col bg-gradient-to-br from-white/95 via-sky-50/70 to-emerald-100/40`}
@@ -1637,8 +1486,6 @@ const MarketResearchDetail = () => {
               </Card>
             </section>
 
-            {/* Add other sections here with proper closing tags */}
-            
           </div>
         </div>
       </div>
