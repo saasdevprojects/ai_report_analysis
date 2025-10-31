@@ -23,7 +23,8 @@ ChartJS.register(
   ArcElement
 );
 import type { ReportPayload } from "@/types/report";
-import generateAnalysisReportPdf from "@/pdf/AnalysisReportPDF";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const threeDCardClass =
   "relative overflow-hidden rounded-[32px] border border-white/40 bg-white/[0.92] shadow-[0_45px_140px_-60px_rgba(37,99,235,0.35)] ring-1 ring-sky-200/70 backdrop-blur-2xl";
@@ -226,28 +227,55 @@ const MarketResearchDetail = () => {
   }, [analysis?.generated_at, current?.generatedAt]);
 
   const exportReportPDF = async () => {
-    if (!analysis || !current) {
+    if (!analysis) {
       toast.error("Report data unavailable");
       return;
     }
+
     try {
       setIsExportingPdf(true);
-      const blob = await generateAnalysisReportPdf({
-        analysisName: analysis.product_name,
-        report: current,
-        generatedAt: current.generatedAt ?? analysis.generated_at,
-      });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
+
+      const element = document.getElementById("report-container");
+      if (!element) {
+        throw new Error("Report container not found");
+      }
+
+      type Html2CanvasConfig = Exclude<Parameters<typeof html2canvas>[1], undefined>;
+      const canvas = await html2canvas(
+        element,
+        {
+          useCORS: true,
+          allowTaint: true,
+          scrollY: -window.scrollY,
+          windowHeight: document.documentElement.scrollHeight,
+        } as unknown as Html2CanvasConfig,
+      );
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight - pageHeight;
+      let position = 0;
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
       const sanitized = analysis.product_name.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-      anchor.href = url;
-      anchor.download = `${sanitized || "analysis"}-market-research.pdf`;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      toast.success("PDF generated");
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to export PDF");
+      pdf.save(`${sanitized || "market-research"}-report.pdf`);
+
+      toast.success("PDF generated successfully!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF. Please try again.");
     } finally {
       setIsExportingPdf(false);
     }
@@ -670,7 +698,7 @@ const MarketResearchDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-plex">
+    <div id="report-container" className="min-h-screen bg-slate-50 font-plex">
       <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
         <header className={`${modernCardClass} flex flex-col gap-4 rounded-3xl p-6`}>
           <div className="space-y-2">

@@ -63,7 +63,8 @@ const {
 } = Utils;
 
 import type { ReportPayload } from "@/types/report";
-import generateAnalysisReportPdf from "@/pdf/AnalysisReportPDF";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 // Add Checkbox import
 import { Checkbox } from "@/components/ui/checkbox";
@@ -230,39 +231,66 @@ const BusinessIntelligenceDetail = () => {
   }, [analysis?.generated_at, currentReport?.generatedAt]);
 
   const exportReportPDF = async () => {
-    if (!analysis || !currentReport) {
+    if (!analysis) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Report data unavailable"
+        description: "Report data unavailable",
       });
       return;
     }
+
     try {
       setIsExportingPdf(true);
-      const blob = await generateAnalysisReportPdf({
-        analysisName: analysis.product_name,
-        report: currentReport,
-        generatedAt: currentReport.generatedAt ?? analysis.generated_at,
-      });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
+
+      const element = document.getElementById("report-container");
+      if (!element) {
+        throw new Error("Report container not found");
+      }
+
+      type Html2CanvasConfig = Exclude<Parameters<typeof html2canvas>[1], undefined>;
+      const canvas = await html2canvas(
+        element,
+        {
+          useCORS: true,
+          allowTaint: true,
+          scrollY: -window.scrollY,
+          windowHeight: document.documentElement.scrollHeight,
+        } as unknown as Html2CanvasConfig,
+      );
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight - pageHeight;
+      let position = 0;
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
       const sanitized = analysis.product_name.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-      anchor.href = url;
-      anchor.download = `${sanitized || "analysis"}-bi-report.pdf`;
-      anchor.click();
-      URL.revokeObjectURL(url);
+      pdf.save(`${sanitized || "business-intelligence"}-report.pdf`);
+
       toast({
         title: "Success",
-        description: "PDF generated successfully",
-        variant: "default"
+        description: "PDF generated successfully!",
+        variant: "default",
       });
     } catch (e) {
       console.error(e);
       toast({
         title: "Error",
         description: "Failed to export PDF",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsExportingPdf(false);
